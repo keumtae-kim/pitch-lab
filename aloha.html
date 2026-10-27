@@ -105,7 +105,15 @@ html,body{width:100%;max-width:100%;overflow-x:clip}
 .token.nowPlaying::before{content:'♪ 지금 재생';background:#c21f69;color:#fff;font-weight:800;font-size:10px;padding:3px 6px;border-radius:5px;white-space:nowrap;position:absolute;left:50%;top:-13px;transform:translateX(-50%);z-index:3}
 .token.nowPlaying .lyric{color:#8d154c}
 @media(max-width:530px){.scoreStacks{gap:9px}.scoreLine{padding:7px}.scoreLineHead{font-size:12px}.token.nowPlaying::before{font-size:9px;top:-11px}}
-</style></head><body>
+</style><style id="practice-nav-style">
+#practice-nav{position:sticky;top:0;z-index:10000;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px max(12px,env(safe-area-inset-left));background:#fff;border-bottom:1px solid #dce5eb;font-family:system-ui,-apple-system,"Apple SD Gothic Neo",sans-serif;line-height:1.4;box-shadow:0 2px 10px #15324e0a}
+#practice-nav a{display:inline-flex;align-items:center;justify-content:center;min-height:42px;padding:9px 12px;border-radius:10px;text-decoration:none;font-size:14px;font-weight:700;color:#174b7a;background:#eef4fc;white-space:nowrap}
+#practice-nav a:focus-visible{outline:3px solid #e8a42b;outline-offset:2px}
+#practice-nav span{font-size:12px;color:#607080;text-align:center}
+@media(max-width:380px){#practice-nav{gap:5px;padding:7px 8px}#practice-nav a{font-size:12px;padding:8px}#practice-nav span{font-size:11px}}
+</style>
+</head><body>
+<nav id="practice-nav" aria-label="연습 도구 이동"><a href="./">← 연습 목록으로</a><span>아로하 v9</span><a href="./pitch.html">음정·청음 →</a></nav>
 <header><h1>아로하 <span style="font-weight:400;color:#59718a">·</span> 음정 트레이너</h1><p>제공해 주신 악보를 보고 한 음씩 듣고 따라 부르세요. 기본은 실제 남성 보컬 음역 기준 <b>한 옥타브 아래</b>, <b>-4키</b>로 설정했습니다.</p></header>
 <main class="wrap">
 <section class="card"><div class="toolbar"><div class="group"><span class="label">조옮김</span><button class="tiny" id="down">−</button><b id="shiftName" style="min-width:42px;text-align:center">−4</b><button class="tiny" id="up">+</button><span class="sub">반음 단위</span></div><div class="group"><span class="label">옥타브</span><select id="oct"><option value="-12" selected>악보보다 한 옥타브 아래</option><option value="0">악보에 적힌 높이 그대로</option><option value="12">악보보다 한 옥타브 위</option></select></div><div class="group"><label class="label" for="soundStyle">기준음 소리</label><select id="soundStyle" aria-label="기준음 소리 종류"><option value="piano" selected>피아노 느낌</option><option value="classic">기존 전자음</option><option value="sine">순수음 · 사인파</option><option value="organ">오르간 느낌</option></select></div><div class="group"><span class="label">기준음 A4</span><span class="pill">440Hz</span><span class="pill">D장조 · ♩=110</span></div></div></section>

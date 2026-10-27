@@ -89,8 +89,16 @@
     @media(max-width:500px){.ear-config{grid-template-columns:1fr}.ear-actions .btn{font-size:12px}.ear-note{font-size:34px}}
     @media(max-width:760px){.cols{grid-template-columns:minmax(0,1fr)}.shell{padding:0 13px}.card{padding:17px}.top{padding-top:25px}.keyboard{height:135px}.white{min-width:45px;width:45px}.black{width:28px}.note{font-size:34px}}
   </style>
+<style id="practice-nav-style">
+#practice-nav{position:sticky;top:0;z-index:10000;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px max(12px,env(safe-area-inset-left));background:#fff;border-bottom:1px solid #dce5eb;font-family:system-ui,-apple-system,"Apple SD Gothic Neo",sans-serif;line-height:1.4;box-shadow:0 2px 10px #15324e0a}
+#practice-nav a{display:inline-flex;align-items:center;justify-content:center;min-height:42px;padding:9px 12px;border-radius:10px;text-decoration:none;font-size:14px;font-weight:700;color:#174b7a;background:#eef4fc;white-space:nowrap}
+#practice-nav a:focus-visible{outline:3px solid #e8a42b;outline-offset:2px}
+#practice-nav span{font-size:12px;color:#607080;text-align:center}
+@media(max-width:380px){#practice-nav{gap:5px;padding:7px 8px}#practice-nav a{font-size:12px;padding:8px}#practice-nav span{font-size:11px}}
+</style>
 </head>
 <body>
+<nav id="practice-nav" aria-label="연습 도구 이동"><a href="./">← 연습 목록으로</a><span>음정·청음 v5</span><a href="./aloha.html">아로하 →</a></nav>
   <header class="top"><div class="shell"><div class="eyebrow">VOCAL PITCH LAB</div><h1>내 음정 연습실 <span style="font-size:17px;vertical-align:middle">♪</span></h1><p>기준음 듣기 → 따라 부르기 → 음정 확인 · 설치 없이 실행하는 개인용 보컬 연습 도구</p></div></header>
   <main class="shell body">
     <div class="cols">
