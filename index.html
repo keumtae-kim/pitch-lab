@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#15324e">
+  <meta name="description" content="음정·청음 연습과 아로하 음정 트레이너를 한곳에서 여는 보컬 연습실">
+  <title>보컬 연습실</title>
+  <style>
+    :root { color-scheme: light; --ink:#15324e; --muted:#5c6d7b; --line:#dce5eb; }
+    * { box-sizing:border-box; }
+    body { margin:0; min-height:100vh; background:#f4f7f9; color:var(--ink); font-family:system-ui,-apple-system,"Apple SD Gothic Neo","Malgun Gothic",sans-serif; line-height:1.6; }
+    main { max-width:860px; margin:auto; padding:70px 24px 48px; }
+    .eyebrow { margin:0 0 12px; color:#52718a; font-size:12px; font-weight:700; letter-spacing:.14em; }
+    h1 { margin:0; font-size:clamp(30px,6vw,44px); line-height:1.25; letter-spacing:-.04em; }
+    .intro { margin:16px 0 32px; color:var(--muted); font-size:16px; }
+    .grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:18px; }
+    .card { display:flex; flex-direction:column; padding:28px; background:#fff; border:1px solid var(--line); border-radius:22px; box-shadow:0 8px 26px #15324e06; }
+    .badge { align-self:flex-start; padding:4px 10px; border-radius:99px; background:#eef4fc; color:#245fa1; font-size:12px; font-weight:700; }
+    .song .badge { background:#eaf6f2; color:#20735d; }
+    h2 { margin:18px 0 10px; font-size:23px; letter-spacing:-.04em; }
+    .card p { margin:0 0 25px; color:var(--muted); font-size:15px; }
+    .open { display:flex; justify-content:space-between; align-items:center; gap:16px; margin-top:auto; padding:13px 16px; border-radius:12px; background:#245fa1; color:white; text-decoration:none; font-size:15px; font-weight:700; min-height:50px; }
+    .song .open { background:#20735d; }
+    .open:hover { filter:brightness(.92); }
+    .open:focus-visible { outline:3px solid #e8a42b; outline-offset:4px; }
+    aside { margin-top:26px; padding:19px 22px; border:1px solid var(--line); border-radius:16px; color:var(--muted); font-size:13px; }
+    aside p { margin:0; }
+    aside p+p { margin-top:7px; }
+    @media(max-width:620px) { main { padding:40px 18px 32px; } .grid { grid-template-columns:1fr; } .card { padding:23px; } h2 { font-size:22px; } }
+    @media(prefers-reduced-motion:no-preference) { .open { transition:filter .15s; } }
+  </style>
+</head>
+<body>
+  <main>
+    <p class="eyebrow">VOCAL PRACTICE</p>
+    <h1>보컬 연습실</h1>
+    <p class="intro">오늘 연습할 도구를 선택하세요.</p>
+    <div class="grid">
+      <section class="card" aria-labelledby="pitch-title">
+        <span class="badge">PITCH · v5</span>
+        <h2 id="pitch-title">음정·청음 연습</h2>
+        <p>기준음을 듣고 따라 부르거나, 음의 높낮이와 간격을 비교해 보세요.</p>
+        <a class="open" href="./pitch.html">음정·청음 연습 열기 <span aria-hidden="true">→</span></a>
+      </section>
+      <section class="card song" aria-labelledby="aloha-title">
+        <span class="badge">ALOHA · v9</span>
+        <h2 id="aloha-title">아로하 음정 트레이너</h2>
+        <p>아로하의 멜로디를 들으며, 구간별로 음정을 익히고 연습해 보세요.</p>
+        <a class="open" href="./aloha.html">아로하 연습 열기 <span aria-hidden="true">→</span></a>
+      </section>
+    </div>
+    <aside aria-label="사용 안내">
+      <p>소리는 각 도구의 재생 버튼을 눌러 시작하세요. 마이크로 음정을 측정하려면 마이크 접근을 허용해 주세요.</p>
+      <p>연습 기록은 현재 사용하는 기기와 브라우저에 저장됩니다.</p>
+    </aside>
+  </main>
+</body>
+</html>

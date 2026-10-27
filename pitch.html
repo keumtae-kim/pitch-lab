@@ -1,0 +1,796 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>음정·청음 연습실 v5 — Vocal Pitch Lab</title>
+  <style>
+    :root{color-scheme:light;--ink:#1d2939;--muted:#66758b;--blue:#226bda;--teal:#158d82;--line:#dfe7ee;--bg:#f4f7fa;--card:#fff;--pale:#eff6ff;--danger:#b45309}
+    *{box-sizing:border-box}body{font-family:system-ui,-apple-system,"Malgun Gothic","Apple SD Gothic Neo",sans-serif;margin:0;background:var(--bg);color:var(--ink);line-height:1.5}
+    .top{background:linear-gradient(120deg,#0e2442 0%,#183e63 75%,#21547c 100%);color:white;padding:30px 0 34px}
+    .shell{max-width:1080px;margin:auto;padding:0 20px}.eyebrow{font-size:12px;letter-spacing:2px;font-weight:800;color:#9ed6ec;text-transform:uppercase}.top h1{font-size:clamp(25px,4vw,35px);line-height:1.25;margin:7px 0}.top p{margin:0;color:#d6e7f5;font-size:14px}.body{margin:-13px auto 50px;position:relative}
+    .cols{display:grid;grid-template-columns:minmax(0,1.12fr) minmax(0,.88fr);gap:17px}.cols>section,.cols>aside{min-width:0}.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:22px;box-shadow:0 9px 25px #0a2d5120;margin-bottom:17px}
+    h2{font-size:18px;margin:0 0 5px}h3{font-size:14px;margin:12px 0 6px}.sub{font-size:13px;color:var(--muted);margin:0 0 16px}.label{font-size:12px;font-weight:700;color:#56677c}label{display:block}.toolbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap}.control{display:flex;flex-direction:column;gap:5px;flex:1;min-width:110px}.btn{border:1px solid var(--line);background:white;color:var(--ink);padding:10px 13px;border-radius:10px;font-weight:700;font-size:13px;cursor:pointer;white-space:nowrap;transition:filter .12s,transform .12s}.btn:hover{filter:brightness(.96)}.btn:active{transform:scale(.98)}.btn.primary{background:var(--blue);border-color:var(--blue);color:#fff}.btn.teal{background:var(--teal);border-color:var(--teal);color:#fff}.btn.secondary{background:#eef4fa}.btn:disabled{opacity:.5;cursor:default}
+    select,input[type=text],input[type=number]{background:white;color:var(--ink);border:1px solid #ccd7e3;border-radius:9px;padding:10px;font:inherit;width:100%;font-size:14px}input[type=range]{width:100%;accent-color:var(--blue)}
+    .focus{display:flex;justify-content:space-between;align-items:center;border-radius:14px;background:#eef5ff;border:1px solid #d4e5ff;padding:15px 18px;margin:14px 0}.note{font-size:40px;font-weight:850;line-height:1.1;letter-spacing:-1px}.ko{color:#416d9b;font-size:14px;font-weight:600}.hz{font-size:15px;font-weight:700;color:#426b92;text-align:right}.small{font-size:12px;color:var(--muted)}
+    .keyboard-wrap{overflow-x:auto;max-width:100%;min-width:0;padding:10px 1px 4px}.keyboard{position:relative;display:flex;height:150px;width:max-content;min-width:100%;border-radius:7px;overflow:hidden}.white{position:relative;width:49px;min-width:49px;background:linear-gradient(#fff,#f9fbff);border:1px solid #aebdcd;border-radius:0 0 6px 6px;cursor:pointer;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;padding-bottom:10px;color:#566b82;z-index:1}.white.active{background:#cfe6ff;border-color:#1c6bca}.white span{font-size:11px;font-weight:750}.black{position:absolute;top:0;height:91px;width:30px;background:linear-gradient(#263b4c,#091927);border-radius:0 0 5px 5px;color:#fff;z-index:3;cursor:pointer;display:flex;align-items:flex-end;justify-content:center;padding-bottom:8px;box-shadow:2px 3px 6px #0004}.black span{font-size:9px}.black.active{background:linear-gradient(#3b9cea,#165899)}
+    .sequence{text-align:center;background:#f7f9fc;border:1px solid #e7ebf1;border-radius:13px;padding:13px 9px;margin:13px 0}.chips{display:flex;justify-content:center;gap:5px;flex-wrap:wrap;margin-top:10px}.chip{border:1px solid #d6e0ed;background:#fff;border-radius:8px;padding:7px 10px;font-size:13px;font-weight:750}.chip.active{background:#d5edff;border-color:#2485cb;color:#145895}.scale-panel{border:1px solid #cfe1f4;background:#f2f8ff;border-radius:13px;padding:15px;margin-bottom:15px}.scale-panel .toolbar{align-items:end}.scale-panel .control{min-width:175px}.start-picker{display:flex;gap:6px;align-items:center;min-width:0}.start-picker select{flex:1;min-width:0}.start-picker .btn{padding:9px 11px}.scale-help{font-size:12px;color:#426b92;margin:8px 0 0}.form-section{margin-top:12px}.readonly-notes{background:#f7f9fc!important;color:#62748c!important}.range-row{display:flex;gap:12px;align-items:center;margin:10px 0}.range-row .label{min-width:95px}.range-row output{min-width:56px;text-align:right;font-variant-numeric:tabular-nums;font-weight:700;font-size:13px}
+    .tuner-box{border:1px solid #dce8ee;background:#f7fbfc;border-radius:13px;padding:14px;text-align:center;margin:15px 0}.heard{font-size:43px;font-weight:850;line-height:1.2;letter-spacing:-1px}.heard.faded{color:#a1b2bf}.cents{font-size:14px;color:var(--muted);margin-bottom:14px}.cents-track{height:15px;border-radius:8px;background:linear-gradient(90deg,#f0b6a9,#f5d5a8 27%,#b7e7db 45%,#70cdb3 50%,#b7e7db 55%,#f5d5a8 73%,#f0b6a9);position:relative;margin:12px 5px 26px}.cents-track:before{content:'';position:absolute;left:50%;width:2px;height:27px;background:#145d52;top:-6px}.needle{position:absolute;top:-7px;left:50%;width:5px;height:29px;border:2px solid white;border-radius:5px;background:#132e51;box-shadow:0 1px 5px #152d4280;transform:translateX(-50%);transition:left .12s}.ticks{display:flex;justify-content:space-between;font-size:11px;color:#617488}.status{font-size:12px;color:#56768c;margin-top:12px;min-height:21px}.on{color:#0b8069;font-weight:700}.warning{background:#fff8e8;border:1px solid #f2dfb8;border-radius:10px;padding:10px 12px;color:#795d26;font-size:12px}.footer{color:#6c7e90;font-size:12px;margin-top:14px}.pill{display:inline-block;background:#e8f6f2;color:#086b5d;padding:2px 8px;font-size:11px;border-radius:99px;font-weight:700;margin-left:7px}
+
+    /* 청음·음정 재현 훈련 */
+    .ear-card{border-color:#cbdff1}
+    .ear-tag{display:inline-block;font-size:11px;font-weight:800;color:#1b6597;background:#e9f4ff;padding:3px 8px;border-radius:999px;margin-left:7px}
+    .ear-hero{border:1px solid #dce8f3;background:linear-gradient(130deg,#f6fbff,#edf5fc);padding:18px 16px;border-radius:15px;text-align:center;margin:13px 0}
+    .ear-note{font-weight:850;font-size:clamp(30px,5vw,42px);line-height:1.2;min-height:51px;letter-spacing:-.6px}
+    .ear-note.hidden-note{letter-spacing:4px;color:#54728d}
+    .ear-description{font-size:13px;color:#5c7187;min-height:20px;margin-top:5px}
+    .ear-actions{display:flex;gap:9px;flex-wrap:wrap;margin:12px 0}
+    .ear-actions .btn{flex:1 1 auto}
+    .ear-config{display:grid;grid-template-columns:1fr 1fr;gap:11px}
+    .ear-feedback{border:1px solid #d6e5f0;background:#f7fbfe;border-radius:12px;padding:12px;font-size:13px;min-height:48px;line-height:1.6;margin:12px 0}
+    .ear-feedback.success{background:#eaf8f1;border-color:#a9d9c6;color:#155b44}
+    .ear-feedback.needs-work{background:#fff9ed;border-color:#f0d6a2;color:#775318}
+    .ear-feedback.info{background:#edf6ff;color:#24517a}
+    .ear-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;margin:12px 0}
+    .ear-stat{border-radius:11px;border:1px solid #e4ebf2;background:#fff;text-align:center;padding:10px 4px}
+    .ear-stat strong{display:block;font-size:20px;color:#1f5077}
+    .ear-stat span{font-size:11px;color:#60758b}
+    .ear-history{display:flex;gap:5px;flex-wrap:wrap;min-height:29px;margin-top:8px}
+    .ear-history span{font-size:11px;border-radius:99px;border:1px solid #d8e5ef;padding:3px 8px;background:#f2f7fb;color:#527086}
+    .ear-history span.pass{border-color:#a8d8c6;background:#e7f7f0;color:#176146}
+    .ear-history span.miss{border-color:#f1d3a3;background:#fff8ec;color:#8b5c17}
+    .ear-history span.help{border-style:dashed}
+    .relative-choices{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:12px 0}
+    .relative-choices .btn{white-space:normal;padding:13px 4px}
+    .relative-choices .btn:disabled{opacity:.65}
+    .relative-marks{display:flex;justify-content:center;align-items:center;gap:12px;font-size:13px;color:#527086;font-weight:700}
+    .relative-marks b{display:inline-flex;width:43px;height:43px;border-radius:50%;background:#dcecf8;align-items:center;justify-content:center;color:#23567c}
+    .trainer-divider{margin:18px 0;border:0;border-top:1px solid #e2ebf2}
+    .ear-muted{color:var(--muted);font-size:12px}
+    .btn.warn-outline{color:#925c17;background:#fff9ec;border-color:#edd6aa}
+
+    /* v5 청음 게임: 음정 크기 A/B 비교와 첫 청취 기록 */
+    .cmp-heading{display:flex;justify-content:space-between;align-items:start;gap:12px;flex-wrap:wrap}
+    .cmp-heading h3{font-size:17px;margin:12px 0 5px}.cmp-keyhint{font-size:11px;color:#66829a;padding-top:16px}
+    .cmp-panel{background:#f5f9fe;border:1px solid #d8e6f3;border-radius:14px;padding:15px;margin-top:8px}
+    .cmp-settings{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:11px}
+    .cmp-custom{display:flex;gap:10px;margin-top:10px;flex-wrap:wrap;align-items:end}.cmp-custom[hidden]{display:none}
+    .cmp-setting-note{color:#476884;font-size:12px;margin:10px 0 0}
+    .cmp-pair-config{background:#eaf3fd;border:1px solid #c8def2;border-radius:12px;padding:11px;margin-top:12px}
+    .cmp-pair-config[hidden],.cmp-pair-play[hidden],.cmp-pair-guide[hidden]{display:none!important}
+    .cmp-pair-config .control{min-width:175px}
+    .cmp-pair-guide{font-size:12px;color:#315d82;margin-top:7px;line-height:1.6}
+    .cmp-pair-play{display:flex;gap:9px;flex-wrap:wrap;margin:3px 0 11px}
+    .cmp-pair-play .btn{flex:1}
+    .cmp-dots.pair-layout{flex-wrap:wrap;gap:9px}
+    .cmp-pair-group{display:flex;gap:7px;align-items:center;background:#f0f7fd;border:1px solid #dceaf6;border-radius:12px;padding:8px}
+    .cmp-group-label{color:#1b5f91;font-size:13px;font-weight:850;margin-right:3px}
+    .cmp-pair-divider{font-size:12px;color:#7494b0;font-weight:750}
+    .relative-choices.two{grid-template-columns:repeat(2,minmax(0,1fr))}
+    .cmp-first-note{color:#526d84;font-size:11px;margin:3px 0 0}
+    .cmp-stats.four-stats{grid-template-columns:repeat(4,minmax(0,1fr))}
+    @media(max-width:580px){.cmp-stats.four-stats{grid-template-columns:repeat(2,minmax(0,1fr))}.cmp-pair-divider{width:100%;text-align:center}.cmp-pair-group{flex:1;justify-content:center}}
+
+    .cmp-variety{border-top:1px solid #dce9f5;margin-top:12px;padding-top:12px}.cmp-variety .cmp-checkbox{font-weight:700;color:#2c5877}.cmp-variety .ear-muted{margin:5px 0 0 23px}
+    .cmp-stage{margin:13px 0 10px;border:1px solid #dbe8f3;border-radius:15px;background:linear-gradient(150deg,#fbfdff,#ecf5ff);padding:19px 13px;text-align:center}
+    .cmp-dots{display:flex;gap:12px;justify-content:center;align-items:center}.cmp-dot{border:1px solid #c6d9e9;background:#fff;color:#385976;border-radius:50%;width:49px;height:49px;display:flex;align-items:center;justify-content:center;font-weight:850;font-size:18px;transition:background .12s,transform .12s,box-shadow .12s}
+    .cmp-dot.now{background:#2775cc;color:#fff;border-color:#2775cc;box-shadow:0 0 0 5px #cfe6ff;transform:scale(1.06)}.cmp-dot.done{background:#e0f0fd;color:#1c598e}.cmp-dots-arrow{font-weight:800;color:#a0b5c8}
+    .cmp-task{margin-top:14px;font-size:16px;font-weight:800;color:#234d72}
+    .cmp-stage .ear-description{margin-top:5px}.cmp-play-actions .btn{flex-basis:40%}
+    .cmp-choice-label{margin-top:16px}.relative-choices{grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}.relative-choices.four{grid-template-columns:repeat(2,minmax(0,1fr))}
+    .relative-choices .btn{min-height:48px}.relative-choices .btn.correct{background:#e3f6ec;border-color:#299c69;color:#126644}.relative-choices .btn.incorrect{background:#fff0e2;border-color:#e2a05e;color:#8b4a0c}
+    .cmp-answer-notes{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:7px;padding:0 0 12px}.cmp-answer-notes[hidden]{display:none}
+    .cmp-answer-notes span{border:1px solid #c9dfee;background:#f1f8ff;border-radius:8px;color:#315c7d;font-size:13px;padding:4px 10px;font-weight:700}.cmp-answer-notes i{font-style:normal;color:#91aabc}
+    .cmp-bottom{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-top:13px}
+    .cmp-checkbox{font-size:12px;color:#3a5671;display:flex;gap:8px;align-items:center;cursor:pointer}.cmp-checkbox input{accent-color:var(--blue);width:16px;height:16px}
+    .cmp-stats{margin-top:13px}.cmp-history-head{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
+    .cmp-footnote{margin-top:13px;background:#f8fafc;border-radius:9px;padding:9px}
+    @media(max-width:500px){.cmp-settings{grid-template-columns:1fr 1fr;gap:8px}.cmp-settings .control{min-width:0}.cmp-settings select{font-size:12px;padding:9px 5px}.cmp-keyhint{font-size:10px;padding-top:0}.cmp-panel{padding:11px}.cmp-stage{padding:15px 9px}.cmp-dot{height:43px;width:43px}.cmp-task{font-size:14px}.cmp-checkbox{font-size:11px}.relative-choices .btn{font-size:12px}}
+    @media(max-width:500px){.ear-config{grid-template-columns:1fr}.ear-actions .btn{font-size:12px}.ear-note{font-size:34px}}
+    @media(max-width:760px){.cols{grid-template-columns:minmax(0,1fr)}.shell{padding:0 13px}.card{padding:17px}.top{padding-top:25px}.keyboard{height:135px}.white{min-width:45px;width:45px}.black{width:28px}.note{font-size:34px}}
+  </style>
+</head>
+<body>
+  <header class="top"><div class="shell"><div class="eyebrow">VOCAL PITCH LAB</div><h1>내 음정 연습실 <span style="font-size:17px;vertical-align:middle">♪</span></h1><p>기준음 듣기 → 따라 부르기 → 음정 확인 · 설치 없이 실행하는 개인용 보컬 연습 도구</p></div></header>
+  <main class="shell body">
+    <div class="cols">
+      <section>
+        <div class="card">
+          <h2>1. 기준음 듣기 <span class="pill">음 한 개씩</span></h2>
+          <p class="sub">피아노 건반을 누르면 그 음이 재생됩니다. 기준음을 듣고 소리가 멈춘 뒤 직접 불러보세요.</p>
+          <div class="toolbar">
+            <div class="control" style="flex:0 1 180px"><label class="label" for="octaveRange">건반 범위</label><select id="octaveRange"><option value="48">C3 ~ C5 (추천)</option><option value="36">C2 ~ C4</option><option value="55">G3 ~ G5</option></select></div>
+            <div class="control"><label class="label" for="timbre">음색</label><select id="timbre"><option value="piano">피아노 비슷한 소리</option><option value="pure">맑은 전자음</option><option value="soft">부드러운 오르간</option></select></div>
+          </div>
+          <div class="focus"><div><div class="label">선택한 기준음</div><div class="note" id="selectedNote">G3</div><div class="ko" id="selectedKo">1옥 솔</div></div><div class="hz"><div id="selectedHz">196.00 Hz</div><div class="small">A4 = 440 Hz</div></div></div>
+          <div class="toolbar"><button class="btn primary" id="playOne">▶ 기준음 1.2초</button><button class="btn secondary" id="holdOne">계속 듣기</button><div class="control" style="min-width:120px"><label class="label" for="volume">재생 음량 <span id="volText">60%</span></label><input type="range" min="0" max="100" value="60" id="volume"></div></div>
+          <div class="keyboard-wrap"><div class="keyboard" id="keyboard" role="group" aria-label="피아노 건반"></div></div>
+          <p class="small">검은 건반은 샵(♯)입니다. E3→F3은 반음, F3→G3은 온음 간격입니다.</p>
+        </div>
+        <div class="card ear-card" id="earTraining">
+          <h2>2. 듣고 맞히기 <span class="ear-tag">현재 추천 연습</span></h2>
+          <p class="sub">음이름을 보지 않고 소리만 듣는 훈련입니다. <strong>목소리로 따라 낸 첫 음</strong>을 확인하며, 맞혀야 할 음 이름은 결과를 볼 때 공개합니다.</p>
+          <div class="ear-config">
+            <div class="control"><label class="label" for="earRange">연습 음역</label><select id="earRange">
+              <option value="52,55">E3~G3 · 기초</option><option value="53,57">F3~A3 · 기초 확장</option><option value="55,59">G3~B3 · 상행 연습</option><option value="52,60">E3~C4 · 넓게</option>
+            </select></div>
+            <div class="control"><label class="label" for="earVowel">부를 발음</label><select id="earVowel"><option value="아">아 (기본)</option><option value="이">이 (턱·혀 힘 빼기)</option><option value="음">음 (허밍)</option><option value="립트릴">립트릴</option></select></div>
+          </div>
+          <div class="ear-hero" aria-live="polite">
+            <div class="label" id="earHeroLabel">새 문제를 시작해 보세요</div>
+            <div class="ear-note hidden-note" id="earHiddenNote">?</div>
+            <div class="ear-description" id="earHint">피아노 음을 듣고, 소리가 끝난 뒤 따라 부르세요.</div>
+          </div>
+          <div class="ear-actions">
+            <button class="btn primary" id="earNew">▶ 새 음 듣기</button>
+            <button class="btn" id="earReplay" disabled>다시 듣기</button>
+            <button class="btn" id="earName" disabled>음이름 힌트</button>
+          </div>
+          <div class="ear-actions" style="margin-top:0">
+            <button class="btn teal" id="earMic">마이크 켜고 채점</button>
+            <button class="btn secondary" id="earReveal" disabled>정답만 확인</button>
+          </div>
+          <p class="ear-muted" id="earMicInfo">마이크를 켠 상태에서 소리가 멈춘 뒤 약 1초간 안정적으로 부르면 자동 채점합니다. 마이크가 없으면 '정답만 확인'을 사용하세요.</p>
+          <div id="earFeedback" class="ear-feedback info" role="status" aria-live="polite">첫 문제를 누르면 목표 음은 숨겨집니다. 재생 중 나는 기준음은 채점하지 않습니다.</div>
+          <div class="ear-stats" aria-label="청음 연습 기록">
+            <div class="ear-stat"><strong id="earCount">0</strong><span>자동 채점 횟수</span></div>
+            <div class="ear-stat"><strong id="earHits">0</strong><span>±50센트 성공</span></div>
+            <div class="ear-stat"><strong id="earAvg">—</strong><span>평균 오차 절댓값</span></div>
+          </div>
+          <div class="label">최근 10회 (힌트 사용 시 표시)</div><div class="ear-history" id="earHistory"><span>연습 기록이 없습니다</span></div>
+          <div class="toolbar" style="margin-top:10px;justify-content:space-between"><span class="ear-muted">이 기기의 브라우저에만 저장됩니다.</span><button class="btn" id="earClear" type="button">기록 초기화</button></div>
+          <hr class="trainer-divider">
+          <div class="cmp-heading">
+            <div><h3>귀로만 청음 훈련 <span class="ear-tag">목소리·마이크 불필요</span></h3><p class="sub" style="margin-bottom:8px">쉬는 시간에는 듣고 고르기만 하세요. 정답을 고르기 전까지 음이름은 보이지 않습니다.</p></div>
+            <span class="cmp-keyhint">키보드: 1~4 답 · Space 재청취 · Enter 다음 문제</span>
+          </div>
+          <div class="cmp-panel">
+            <div class="cmp-settings">
+              <div class="control"><label for="cmpMode" class="label">문제 유형</label><select id="cmpMode"><option value="pair" selected>⚖ 두 간격 중 더 넓은 쪽 (추천)</option><option value="direction">↗ 두 음의 높낮이</option><option value="interval">♫ 반음 수 맞히기</option><option value="contour">∿ 세 음의 움직임</option><option value="mixed">⇄ 네 유형 섞어서</option></select></div>
+              <div class="control"><label for="cmpLevel" class="label">난이도</label><select id="cmpLevel"><option value="warmup">입문 · 5~9반음</option><option value="easy" selected>쉬움 · 3~7반음</option><option value="medium">보통 · 2~5반음</option><option value="hard">어려움 · 1~3반음</option><option value="expert">매우 어려움 · 1~2반음</option><option value="random">랜덤 · 1~12반음</option><option value="adaptive">자동 조절 · 정답률 반영</option></select></div>
+              <div class="control"><label for="cmpBase" class="label">비교 음역</label><select id="cmpBase"><option value="52,59">E3 ~ B3 · 좁은 음역</option><option value="48,60">C3 ~ C4</option><option value="55,64">G3 ~ E4</option><option value="36,48">C2 ~ C3 · 저음</option><option value="48,72" selected>C3 ~ C5 · 추천</option><option value="60,72">C4 ~ C5</option><option value="72,84">C5 ~ C6 · 고음</option><option value="36,72">C2 ~ C5 · 넓은 음역</option><option value="48,84">C3 ~ C6 · 넓은 음역</option><option value="36,84">C2 ~ C6 · 전체</option><option value="custom">직접 설정</option></select></div>
+              <div class="control"><label for="cmpTempo" class="label">듣는 속도</label><select id="cmpTempo"><option value="slow">느리게 · 편안하게</option><option value="normal" selected>보통</option><option value="fast">빠르게 · 도전</option></select></div>
+            </div>
+            <div class="cmp-custom" id="cmpCustom" hidden>
+              <div class="control"><label for="cmpLow" class="label">가장 낮은 음</label><select id="cmpLow"></select></div>
+              <div class="control"><label for="cmpHigh" class="label">가장 높은 음</label><select id="cmpHigh"></select></div>
+            </div>
+            <div class="cmp-pair-config" id="cmpPairConfig">
+              <div class="control"><label class="label" for="cmpPairStyle">두 간격의 시작음</label>
+                <select id="cmpPairStyle"><option value="same" selected>같은 시작음 · 입문 추천</option><option value="different">서로 다른 시작음 · 실전</option><option value="alternate">같은 음 / 다른 음 번갈아</option></select>
+              </div>
+              <div class="cmp-pair-guide" id="cmpPairGuide">먼저 A의 두 음, 잠깐 쉬고 B의 두 음을 듣습니다. 어느 쪽 음정 간격이 더 넓은지만 고르세요. 처음부터 몇 반음인지 맞힐 필요는 없습니다.</div>
+            </div>
+            <div class="cmp-variety"><label class="cmp-checkbox"><input id="cmpSpread" type="checkbox" checked> 저·중·고음역 고르게 섞기 <span class="ear-tag">추천</span></label><p class="ear-muted">넓은 범위에서는 출발 음역대가 바뀌고 최근 조합의 중복도 최대한 피합니다. 간격 비교에서도 실제 반음 차이는 선택한 난이도를 따릅니다.</p></div>
+            <p class="cmp-setting-note" id="cmpSettingNote">C3~C5 여러 음역에서 가까운 음 두 개의 차이를 비교합니다.</p>
+          </div>
+          <div class="cmp-stage" aria-label="청음 재생 상태">
+            <div class="cmp-dots" id="cmpDots"><span class="cmp-dot">①</span><span class="cmp-dots-arrow">→</span><span class="cmp-dot">②</span></div>
+            <div class="cmp-task" id="cmpTask">두 번째 음이 첫 번째보다 높을까요?</div>
+            <p class="ear-description" id="cmpPrompt" aria-live="polite">새 문제를 누르면 음을 연속해서 들려드립니다.</p>
+          </div>
+          <div class="ear-actions cmp-play-actions"><button class="btn primary" id="cmpNew">▶ 새 문제 듣기</button><button class="btn" id="cmpReplay" disabled>↺ 전체 다시 듣기</button></div>
+          <div class="cmp-pair-play" id="cmpPairPlay" hidden><button class="btn secondary" id="cmpReplayA" disabled>↺ A만 듣기</button><button class="btn secondary" id="cmpReplayB" disabled>↺ B만 듣기</button></div>
+          <div class="cmp-choice-label label">듣고 정답 선택하기</div>
+          <div class="relative-choices" id="cmpChoices"><button class="btn" data-comp="up" disabled>↗ 더 높다</button><button class="btn" data-comp="same" disabled>→ 같다</button><button class="btn" data-comp="down" disabled>↘ 더 낮다</button></div>
+          <div class="ear-feedback info" id="cmpFeedback" role="status" aria-live="polite">음높이 방향이 익숙해지면 간격이나 세 음의 움직임도 연습해 보세요.</div>
+          <div class="cmp-answer-notes" id="cmpAnswerNotes" hidden aria-label="정답 음표"></div>
+          <div class="cmp-bottom">
+            <label class="cmp-checkbox"><input id="cmpAutoNext" type="checkbox"> 정답 선택 후 자동으로 다음 문제</label>
+            <button class="btn secondary" id="cmpReset" type="button">청음 기록 초기화</button>
+          </div>
+          <div class="ear-stats cmp-stats four-stats" aria-label="청음 비교 연습 통계">
+            <div class="ear-stat"><strong id="cmpTotal">0</strong><span>총 도전</span></div>
+            <div class="ear-stat"><strong id="cmpAccuracy">—</strong><span>전체 정답률</span></div>
+            <div class="ear-stat"><strong id="cmpFirst">—</strong><span>재청취 없이 정답률</span></div>
+            <div class="ear-stat"><strong id="cmpStreak">0</strong><span>연속 정답</span></div>
+          </div>
+          <p class="cmp-first-note">재청취 없이 정답률은 v5에서 한 번만 듣고 답한 문제를 기준으로 계산합니다. 기존 v4 정답 기록은 그대로 유지합니다.</p>
+          <div class="cmp-history-head"><span class="label">최근 결과</span><span id="cmpStats" class="ear-muted">기록은 이 브라우저에 보관됩니다.</span></div>
+          <div class="ear-history" id="cmpHistory"></div>
+          <p class="ear-muted cmp-footnote">음높이를 구별하는 청음 연습입니다. 정확하게 목소리로 따라 부르는 능력은 기존 한 음 재현·스케일 연습과 함께 길러 주세요.</p>
+        </div>
+        <div class="card">
+          <h2>3. 스케일 연습 <span class="pill">3음 · 5음</span></h2>
+          <p class="sub">시작음과 스케일 길이만 선택하면 상행·하행 음형을 자동으로 만듭니다. 기존 패턴과 직접 입력도 그대로 이용할 수 있어요.</p>
+          <div class="scale-panel">
+            <div class="toolbar">
+              <div class="control"><label class="label" for="scaleSize">스케일 종류</label><select id="scaleSize"><option value="3" selected>3음 · 도레미레도</option><option value="5">5음 · 도레미파솔파미레도</option></select></div>
+              <div class="control"><label class="label" for="scaleRoot">시작음</label><div class="start-picker"><button type="button" class="btn" id="rootDown" aria-label="시작음 반음 내리기">−</button><select id="scaleRoot" aria-label="자동 스케일 시작음"></select><button type="button" class="btn" id="rootUp" aria-label="시작음 반음 올리기">+</button></div></div>
+            </div>
+            <p class="scale-help" id="scaleHelp">선택한 음을 '도'로 삼아 온음·반음 간격에 맞게 자동 생성합니다. 검은 건반도 포함됩니다.</p>
+          </div>
+          <label class="label" for="preset">연습 패턴 방식</label>
+          <select id="preset">
+            <option value="auto" selected>자동 생성 · 시작음 + 3음/5음</option>
+            <option value="E3 F3 G3 F3 E3">기존 패턴: E3 → F3 → G3 → F3 → E3</option>
+            <option value="C3 D3 E3 D3 C3">C3 → D3 → E3 → D3 → C3</option>
+            <option value="F3 G3 A3 G3 F3">F3 → G3 → A3 → G3 → F3</option>
+            <option value="G3 F3 E3">아로하 도입부 참고 음형 · -2키 (G3 → F3 → E3)</option>
+            <option value="A3 G3 F#3">아로하 도입부 참고 음형 · 원키 (A3 → G3 → F♯3)</option>
+            <option value="custom">직접 입력</option>
+          </select>
+          <div class="form-section"><label class="label" for="customNotes">생성된 음표 / 직접 입력</label><input type="text" id="customNotes" value="E3 F#3 G#3 F#3 E3" spellcheck="false" aria-describedby="seqHelp" readonly><div id="seqHelp" class="small" style="margin-top:5px">자동 생성 중에는 결과를 보여줍니다. 자유롭게 수정하려면 위에서 ‘직접 입력’을 선택하세요. (# 또는 ♯ 사용 가능)</div></div>
+          <div class="sequence"><div class="label">재생 순서</div><div class="chips" id="noteChips"></div></div>
+          <div class="range-row"><span class="label">음마다 길이</span><input type="range" min="500" max="2400" step="100" value="1300" id="speed"><output id="speedText">1.3초</output></div>
+          <div class="range-row"><span class="label">음 사이 쉬기</span><input type="range" min="0" max="1300" step="100" value="300" id="pause"><output id="pauseText">0.3초</output></div>
+          <div class="toolbar"><button class="btn teal" id="playSeq">▶ 스케일 재생</button><button class="btn secondary" id="stopSeq">■ 멈추기</button><button class="btn" id="repeatSeq" aria-pressed="false">반복 꺼짐</button></div>
+          <div class="status" id="seqStatus" aria-live="polite">재생 전 기준음을 먼저 들어보세요.</div>
+        </div>
+      </section>
+      <aside>
+        <div class="card">
+          <h2>4. 내 목소리 확인 <span class="pill">실시간 튜너</span></h2>
+          <p class="sub">PC 마이크를 켜고 소리를 내면 현재 음과 선택한 기준음의 차이를 보여줍니다.</p>
+          <div class="toolbar"><button class="btn primary" id="micToggle">마이크 켜기</button><span class="small" id="micState">마이크 사용 안 함</span></div>
+          <div class="tuner-box"><div class="label">지금 부르는 음</div><div class="heard faded" id="heardNote">—</div><div class="cents" id="heardDesc">마이크를 켜고 한 음을 길게 내보세요.</div><div class="cents-track"><div class="needle" id="needle"></div></div><div class="ticks"><span>기준보다 낮음</span><span>일치</span><span>기준보다 높음</span></div><div class="status" id="matchStatus">목표: G3</div></div>
+          <div class="warning">실시간 음정 측정은 학습용 간이 기능입니다. 잡음이나 강한 배음 때문에 옥타브가 잘못 인식될 수 있어요. 스피커로 기준음을 재생한 뒤 멈추고 노래하면 측정이 더 정확합니다.</div>
+        </div>
+        <div class="card">
+          <h2>추천 10분 루틴</h2>
+          <p class="sub">현재 목표: 음을 정확하게 시작하고, 내려갈 때 중간 음을 건너뛰지 않기</p>
+          <div style="display:grid;gap:10px;font-size:14px">
+            <div><strong>① 5분 · 한 음 듣고 따라 부르기</strong><div class="small">기초 음역(E3~G3)에서 음이름 숨기기 → 첫 음 따라 부르기 → 결과 확인</div></div>
+            <div><strong>② 쉬는 시간 · 청음 비교 연습</strong><div class="small">높낮이·반음 간격·세 음 움직임을 목소리 없이 훈련</div></div>
+            <div><strong>③ 3분 · 3음 스케일</strong><div class="small">상행·하행을 끝까지 연결하고 '이', '아' 모두 편안하게 부르기</div></div>
+          </div>
+          <div class="footer">소리를 억지로 굵게 만들거나 목에 힘을 줘 음을 올리지 마세요. 통증·쉰 목소리가 생기면 중단하세요. 기준음보다 크게 부르는 것은 목표가 아닙니다.</div>
+        </div>
+        <div class="card" style="background:#fafdff"><h2>Windows 사용법</h2><p class="sub" style="margin:0">이 HTML 파일을 <strong>Chrome 또는 Edge</strong>로 열면 바로 작동합니다. 인터넷이 없어도 기준음·스케일을 재생할 수 있습니다. 마이크 권한을 요청하면 허용해 주세요. 보안 설정상 로컬 파일에서 마이크가 차단되는 브라우저는 <code>localhost</code>로 열어야 합니다.</p></div>
+      </aside>
+    </div>
+  </main>
+<script>
+(()=>{'use strict';
+  const $=id=>document.getElementById(id);
+  const names=['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
+  const korean=['도','도♯','레','레♯','미','파','파♯','솔','솔♯','라','라♯','시'];
+  let selected=55; // G3
+  let audio=null, activeVoices=[], held=false, seqTimers=[], sequencePlaying=false, repeat=false, micStream=null, analyser=null, micSource=null, micTimer=null;
+  const freqOf=m=>440*Math.pow(2,(m-69)/12);
+  const nameOf=m=>names[(m%12+12)%12]+(Math.floor(m/12)-1);
+  const korOf=m=>`${Math.floor(m/12)-3}옥 ${korean[(m%12+12)%12]}`;
+  function parseNote(str){let s=str.trim().toUpperCase().replace(/♯/g,'#').replace(/♭/g,'B');let mat=/^([A-G])([#B]?)(-?\d)$/.exec(s);if(!mat)return null;let off={'C':0,'D':2,'E':4,'F':5,'G':7,'A':9,'B':11}[mat[1]];if(mat[2]==='#')off++;if(mat[2]==='B')off--;let m=(Number(mat[3])+1)*12+off;return m>=24&&m<=108?m:null}
+  const ctx=()=>{if(!audio)audio=new (window.AudioContext||window.webkitAudioContext)();if(audio.state==='suspended')audio.resume();return audio};
+  function stopVoices(){const now=audio?.currentTime||0;activeVoices.forEach(v=>{try{v.gain.gain.cancelScheduledValues(now);v.gain.gain.setTargetAtTime(.0001,now,.025);v.oscs.forEach(o=>o.stop(now+.14))}catch(e){}});activeVoices=[]}
+  function playTone(m,duration=1.2){const c=ctx();const now=c.currentTime;const vol=Number($('volume').value)/100;const timbre=$('timbre').value;const gain=c.createGain();gain.gain.value=.0001;gain.connect(c.destination);let partials=timbre==='pure'?[[1,1,'sine']]:timbre==='soft'?[[1,.75,'sine'],[2,.15,'sine'],[3,.06,'sine']]:[[1,.75,'sine'],[2,.20,'sine'],[3,.09,'sine'],[4,.04,'sine']];let oscs=[];
+    partials.forEach(([mul,amp,type])=>{let o=c.createOscillator(),g=c.createGain();o.type=type;o.frequency.value=freqOf(m)*mul;g.gain.value=amp;o.connect(g);g.connect(gain);o.start(now);oscs.push(o)});
+    const level=Math.min(.8,vol*.68);gain.gain.setTargetAtTime(level,now,.012);
+    if(duration!==null){const end=now+duration;gain.gain.setTargetAtTime(.0001,end-.09,.035);oscs.forEach(o=>o.stop(end+.15))}
+    const voice={gain,oscs};activeVoices.push(voice);return voice;
+  }
+  function choose(m){selected=m;$('selectedNote').textContent=nameOf(m);$('selectedKo').textContent=korOf(m);$('selectedHz').textContent=freqOf(m).toFixed(2)+' Hz';$('matchStatus').textContent='목표: '+nameOf(m);document.querySelectorAll('[data-note]').forEach(el=>el.classList.toggle('active',Number(el.dataset.note)===m));}
+  function buildKeyboard(){const start=Number($('octaveRange').value),end=start+24,root=$('keyboard');root.replaceChildren();let whites=[];for(let m=start;m<=end;m++){if(![1,3,6,8,10].includes(m%12)){const b=document.createElement('button');b.className='white';b.dataset.note=m;b.type='button';b.title=nameOf(m)+' · '+korOf(m);b.innerHTML='<span>'+nameOf(m)+'</span>';b.addEventListener('click',()=>{stopVoices();held=false;$('holdOne').textContent='계속 듣기';choose(m);playTone(m,1.15)});root.appendChild(b);whites.push(m)}}
+    let whiteWidth=49;const media=window.matchMedia('(max-width:760px)');if(media.matches)whiteWidth=45;
+    for(let m=start;m<=end;m++){if([1,3,6,8,10].includes(m%12)){const leftCount=whites.filter(n=>n<m).length;const b=document.createElement('button');b.className='black';b.dataset.note=m;b.type='button';b.style.left=(leftCount*whiteWidth-15)+'px';b.title=nameOf(m)+' · '+korOf(m);b.innerHTML='<span>'+nameOf(m)+'</span>';b.addEventListener('click',()=>{stopVoices();held=false;$('holdOne').textContent='계속 듣기';choose(m);playTone(m,1.15)});root.appendChild(b)}}
+    root.style.minWidth=(whites.length*whiteWidth)+'px';choose(selected);
+  }
+  $('octaveRange').addEventListener('change',buildKeyboard);window.addEventListener('resize',()=>{clearTimeout(window._kbResize);window._kbResize=setTimeout(buildKeyboard,200)});
+  $('playOne').addEventListener('click',()=>{stopVoices();held=false;$('holdOne').textContent='계속 듣기';playTone(selected,1.2)});
+  $('holdOne').addEventListener('click',()=>{held=!held;stopVoices();if(held){playTone(selected,null);$('holdOne').textContent='■ 소리 끄기'}else{$('holdOne').textContent='계속 듣기'}});
+  $('volume').addEventListener('input',()=>{$('volText').textContent=$('volume').value+'%';if(held){stopVoices();playTone(selected,null)}});
+  // 도레미(3음) 또는 도레미파솔(5음)을 시작음 기준 장음계 음정으로 생성합니다.
+  // 한 번 올라간 뒤 내려오므로 3음 패턴은 5개, 5음 패턴은 9개 음표로 재생됩니다.
+  const scaleSteps=[0,2,4,5,7];
+  const minScaleRoot=36,maxScaleRoot=83;
+  function buildRootOptions(){const root=$('scaleRoot');for(let m=minScaleRoot;m<=maxScaleRoot;m++){let opt=document.createElement('option');opt.value=String(m);opt.textContent=nameOf(m)+' · '+korOf(m);root.appendChild(opt)}root.value='52';updateRootButtons()}
+  function updateRootButtons(){const n=Number($('scaleRoot').value);$('rootDown').disabled=n<=minScaleRoot;$('rootUp').disabled=n>=maxScaleRoot}
+  function autoScale(){const start=Number($('scaleRoot').value),count=Number($('scaleSize').value),up=scaleSteps.slice(0,count).map(step=>start+step);return up.concat(up.slice(0,-1).reverse())}
+  function syncPattern(){const mode=$('preset').value,field=$('customNotes');field.readOnly=mode!=='custom';field.classList.toggle('readonly-notes',field.readOnly);
+    if(mode==='auto')field.value=autoScale().map(nameOf).join(' ');
+    else if(mode!=='custom')field.value=mode;
+    const count=$('scaleSize').value;
+    $('scaleHelp').textContent=mode==='auto'?`${count}음 스케일 · ${Number(count)*2-1}개 음표로 왕복합니다. 시작음을 바꾸면 반음 단위로 전체 패턴이 이동합니다.`:'시작음 또는 스케일 종류를 바꾸면 자동 생성 패턴으로 전환됩니다.';
+    updateRootButtons();drawChips();
+  }
+  function onAutoChanged(){stopSeq();$('preset').value='auto';syncPattern();choose(Number($('scaleRoot').value));$('seqStatus').textContent='자동 스케일 생성됨. ▶ 스케일 재생을 눌러보세요.'}
+  function sequence(){const notes=$('customNotes').value.trim().split(/[\s,;]+/).filter(Boolean);if(!notes.length)return null;const ms=notes.map(parseNote);return ms.some(m=>m===null)?null:ms}
+  function drawChips(activeIndex=-1){const root=$('noteChips');root.replaceChildren();const seq=sequence();if(!seq){root.textContent='음 이름을 확인하세요 (예: E3 F#3 G#3 F#3 E3)';root.style.color='#a73b3b';return}root.style.color='';seq.forEach((m,i)=>{let div=document.createElement('span');div.className='chip'+(i===activeIndex?' active':'');div.textContent=nameOf(m);root.appendChild(div)})}
+  $('scaleSize').addEventListener('change',onAutoChanged);
+  $('scaleRoot').addEventListener('change',onAutoChanged);
+  $('rootDown').addEventListener('click',()=>{const n=Number($('scaleRoot').value);$('scaleRoot').value=String(Math.max(minScaleRoot,n-1));onAutoChanged()});
+  $('rootUp').addEventListener('click',()=>{const n=Number($('scaleRoot').value);$('scaleRoot').value=String(Math.min(maxScaleRoot,n+1));onAutoChanged()});
+  $('preset').addEventListener('change',()=>{stopSeq();syncPattern()});
+  $('customNotes').addEventListener('input',()=>{stopSeq();drawChips()});
+  ['speed','pause'].forEach(id=>$(id).addEventListener('input',()=>{$(id+'Text').textContent=(Number($(id).value)/1000).toFixed(1)+'초'}));
+  function stopSeq(){sequencePlaying=false;seqTimers.forEach(clearTimeout);seqTimers=[];stopVoices();drawChips();$('seqStatus').textContent='재생 준비됨.'}
+  function startSeq(){const seq=sequence();if(!seq){$('seqStatus').textContent='음 입력을 확인해 주세요. 예: E3 F3 G3 F3 E3';return}stopSeq();held=false;$('holdOne').textContent='계속 듣기';sequencePlaying=true;let dur=Number($('speed').value),gap=Number($('pause').value);
+    function run(){if(!sequencePlaying)return;let i=0;function next(){if(!sequencePlaying)return;if(i>=seq.length){if(repeat){seqTimers.push(setTimeout(run,450));}else{sequencePlaying=false;drawChips();$('seqStatus').textContent='재생 완료. 이번엔 화면을 보지 않고 따라 불러보세요.'}return}stopVoices();let m=seq[i];choose(m);playTone(m,dur/1000);drawChips(i);$('seqStatus').textContent=`${i+1}/${seq.length} · ${nameOf(m)} (${korOf(m)})`;i++;seqTimers.push(setTimeout(next,dur+gap))}next()};run()}
+  $('playSeq').addEventListener('click',startSeq);$('stopSeq').addEventListener('click',stopSeq);$('repeatSeq').addEventListener('click',()=>{repeat=!repeat;$('repeatSeq').textContent=repeat?'반복 켜짐 ✓':'반복 꺼짐';$('repeatSeq').setAttribute('aria-pressed',String(repeat))});
+  function pitchYin(buf,rate){const size=buf.length;let rms=0;for(let i=0;i<size;i++){rms+=buf[i]*buf[i]}rms=Math.sqrt(rms/size);if(rms<.013)return null;const minTau=Math.floor(rate/850),maxTau=Math.min(Math.floor(rate/75),Math.floor(size/3));const n=Math.min(2500,size-maxTau);const diff=new Float32Array(maxTau+1);for(let tau=minTau;tau<=maxTau;tau++){let d=0;for(let i=0;i<n;i++){let z=buf[i]-buf[i+tau];d+=z*z}diff[tau]=d}let sum=0,cmndf=new Float32Array(maxTau+1);let best=1,bestTau=-1;for(let tau=minTau;tau<=maxTau;tau++){sum+=diff[tau];let val=diff[tau]*((tau-minTau+1)/Math.max(sum,1e-10));cmndf[tau]=val;if(val<best){best=val;bestTau=tau}if(val<.19){while(tau+1<=maxTau && diff[tau+1]<diff[tau])tau++;bestTau=tau;best=cmndf[tau];break}}if(bestTau<0||best>.32)return null;
+    let tau=bestTau;if(tau>minTau&&tau<maxTau){const a=diff[tau-1],b=diff[tau],c=diff[tau+1],denom=2*(2*b-a-c);if(Math.abs(denom)>1e-8){let correction=(c-a)/denom;if(Math.abs(correction)<1)tau+=correction}}return rate/tau}
+  let prevFreq=null;function readMic(){if(!analyser)return;const data=new Float32Array(analyser.fftSize);analyser.getFloatTimeDomainData(data);const f=pitchYin(data,audio.sampleRate);
+    if(f!==null&&f>=70&&f<=950){
+      if(earTrial&&!earTrial.done){
+        earOnPitch(f);
+        if(earTrial&&!earTrial.done){
+          $('heardNote').textContent='···';$('heardNote').classList.add('faded');
+          $('heardDesc').textContent='음이름은 첫 시도 채점 후 공개됩니다.';
+          $('needle').style.left='50%';$('matchStatus').textContent='청음 연습 중 · 화면의 음을 보지 마세요.';return;
+        }
+      }
+      let midi=69+12*Math.log2(f/440),nearest=Math.round(midi),cents=(midi-nearest)*100;$('heardNote').textContent=nameOf(nearest);$('heardNote').classList.remove('faded');$('heardDesc').textContent=`${f.toFixed(1)} Hz · 음 중심에서 ${cents>=0?'+':''}${cents.toFixed(0)} cent`;let targetCents=1200*Math.log2(f/freqOf(selected));$('needle').style.left=(50+Math.max(-50,Math.min(50,targetCents/2)))+'%';if(Math.abs(targetCents)<=20)$('matchStatus').innerHTML='<span class="on">목표 '+nameOf(selected)+'에 가까워요!</span>';else $('matchStatus').textContent=`목표 ${nameOf(selected)}보다 ${Math.abs(targetCents).toFixed(0)} cent ${targetCents<0?'낮아요':'높아요'}`;prevFreq=f;
+    }else{$('heardNote').textContent='—';$('heardNote').classList.add('faded');$('heardDesc').textContent=earTrial&&!earTrial.done?'숨이 아닌 목소리로 한 음을 내보세요.':'목소리를 1~2초 안정적으로 내보세요.';$('needle').style.left='50%';$('matchStatus').textContent=earTrial&&!earTrial.done?'청음 연습 중 · 결과는 첫 시도 후 공개됩니다.':'목표: '+nameOf(selected)} }
+  $('micToggle').addEventListener('click',async()=>{if(micStream){micStream.getTracks().forEach(t=>t.stop());micStream=null;analyser=null;micSource?.disconnect();micSource=null;clearInterval(micTimer);micTimer=null;earOnMicOff();$('micToggle').textContent='마이크 켜기';$('micState').textContent='마이크 사용 안 함';$('heardNote').textContent='—';return}try{if(!navigator.mediaDevices?.getUserMedia)throw new Error('브라우저 보안 설정 때문에 마이크를 열 수 없습니다. localhost로 실행해 주세요.');const stream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false},video:false});let c=ctx();micStream=stream;micSource=c.createMediaStreamSource(stream);analyser=c.createAnalyser();analyser.fftSize=4096;micSource.connect(analyser);$('micToggle').textContent='■ 마이크 끄기';$('micState').textContent='마이크 측정 중';micTimer=setInterval(readMic,130);earOnMicOn()}catch(err){$('micState').textContent='사용 불가: '+err.message}});
+
+  // ──────────────────────────────────────────────────────────────────────────
+  // 음 이름 표시를 가린 단일음 재현·두 음 비교 (기존 건반/튜너와 독립적으로 작동)
+  // ──────────────────────────────────────────────────────────────────────────
+  const earKey='vocal_pitch_lab_ear_stats_v2';
+  let earStats={attempts:[]};
+  try{const saved=JSON.parse(localStorage.getItem(earKey)||'{}');if(Array.isArray(saved.attempts))earStats.attempts=saved.attempts.filter(x=>Number.isFinite(x.cents)).slice(-300)}catch(e){}
+  let earTrial=null,earPlayTimer=null,earSamples=[],earId=0;
+  let cmpTrial=null,cmpPlayTimers=[],cmpTotals={right:0,total:0},cmpId=0;
+  const randInt=(a,b)=>Math.floor(Math.random()*(b-a+1))+a;
+  const centsLabel=c=>`${c>0?'+':''}${Math.round(c)}센트`;
+  function saveEar(){try{localStorage.setItem(earKey,JSON.stringify(earStats))}catch(e){}}
+  function renderEarStats(){
+    const list=earStats.attempts;const hits=list.filter(x=>Math.abs(x.cents)<=50).length;
+    $('earCount').textContent=String(list.length);$('earHits').textContent=String(hits);
+    const avg=list.length?list.reduce((a,x)=>a+Math.abs(x.cents),0)/list.length:null;
+    $('earAvg').textContent=avg===null?'—':`${Math.round(avg)}¢`;
+    const history=$('earHistory');history.replaceChildren();
+    if(!list.length){let x=document.createElement('span');x.textContent='연습 기록이 없습니다';history.appendChild(x);return}
+    list.slice(-10).reverse().forEach(x=>{const el=document.createElement('span');el.className=(Math.abs(x.cents)<=50?'pass':'miss')+(x.hint?' help':'');el.textContent=`${x.hint?'힌트 · ':''}${nameOf(x.note)} ${centsLabel(x.cents)}`;history.appendChild(el)})
+  }
+  function setEarMessage(txt,tone='info'){$('earFeedback').className='ear-feedback '+tone;$('earFeedback').textContent=txt}
+  function clearEarPlayback(){if(earPlayTimer!==null){clearTimeout(earPlayTimer);earPlayTimer=null}stopVoices()}
+  function completeEar(revealOnly=false,frequency=null){
+    if(!earTrial||earTrial.done)return;
+    const t=earTrial;t.done=true;t.listening=false;earSamples=[];earId++;
+    $('earHiddenNote').textContent=nameOf(t.note);$('earHiddenNote').classList.remove('hidden-note');
+    choose(t.note); // 채점/정답 확인이 끝난 뒤에만 기존 튜너 기준음을 공개합니다.
+    $('earHeroLabel').textContent=revealOnly?'정답 확인':'첫 시도 채점 완료';
+    $('earHint').textContent=korOf(t.note)+' · '+freqOf(t.note).toFixed(1)+' Hz';
+    $('earReveal').disabled=true;$('earName').disabled=true;
+    if(revealOnly){setEarMessage('정답은 '+nameOf(t.note)+'입니다. 마이크 채점 없이 정답만 확인했으므로 기록에는 포함하지 않았습니다.');return}
+    const cents=1200*Math.log2(frequency/freqOf(t.note));
+    earStats.attempts.push({note:t.note,cents:Math.round(cents),hint:t.hint,t:Date.now()});earStats.attempts=earStats.attempts.slice(-300);saveEar();renderEarStats();
+    const direction=Math.abs(cents)<12?'거의 일치합니다':cents>0?'목표보다 높게 불렀습니다':'목표보다 낮게 불렀습니다';
+    const result=Math.abs(cents)<=50?'성공 (±50센트 이내)':'다음에는 다시 기준음을 듣고 시도해 보세요';
+    setEarMessage(`목표 ${nameOf(t.note)} · 내 첫 음 ${nameOf(Math.round(69+12*Math.log2(frequency/440)))} · 오차 ${centsLabel(cents)}. ${direction}. ${result}${t.hint?' · 음이름 힌트 사용':''}`,Math.abs(cents)<=50?'success':'needs-work');
+  }
+  function earOnMicOn(){
+    if(earTrial&&!earTrial.done){$('earMicInfo').textContent='마이크 켜짐 · 기준음 재생이 끝난 뒤 1초가량 안정적으로 불러주세요.'}
+    $('earMic').textContent='마이크 켜짐 ✓'
+  }
+  function earOnMicOff(){
+    $('earMic').textContent='마이크 켜고 채점';
+    $('earMicInfo').textContent='마이크를 켠 뒤 소리가 멈추면 첫 음을 안정적으로 부르세요. 마이크 없이도 정답 확인은 가능합니다.';
+    earSamples=[]
+  }
+  function earOnPitch(freq){
+    const t=earTrial;
+    if(!t||t.done||!t.listening||!micStream||performance.now()<t.readyAt)return;
+    const midi=69+12*Math.log2(freq/440);
+    const samples=earSamples;
+    samples.push({m:midi,time:performance.now()});
+    // 마이크 130ms 샘플 중 처음 두 프레임은 소리 진입의 불안정을 피합니다.
+    while(samples.length>12)samples.shift();
+    const recent=samples.slice(-8);
+    if(recent.length<8)return;
+    const sort=recent.map(x=>x.m).sort((a,b)=>a-b);
+    const mid=(sort[3]+sort[4])/2;
+    const tolerance=0.5; // 반음의 절반 안에 8프레임이 들어오면 안정된 첫 음으로 간주
+    if(recent.some(x=>Math.abs(x.m-mid)>tolerance))return;
+    completeEar(false,freqOf(mid))
+  }
+  function stopEarTrial(){
+    if(earPlayTimer!==null){clearTimeout(earPlayTimer);earPlayTimer=null}
+    if(earTrial){earTrial.listening=false;earTrial.done=true}earId++;earSamples=[]
+  }
+  function playEarNote(){
+    if(!earTrial)return;
+    stopSeq();stopVoices();held=false;$('holdOne').textContent='계속 듣기';
+    if(earPlayTimer!==null)clearTimeout(earPlayTimer);
+    const id=++earId,t=earTrial;t.listening=false;t.readyAt=Infinity;earSamples=[];
+    playTone(t.note,1.05);
+    $('earHeroLabel').textContent=t.done?'확인한 음 다시 듣기':'기준음 듣는 중';
+    if(!t.done)setEarMessage('기준음을 듣는 중입니다. 끝나면 같은 높이로 편안하게 따라 부르세요.','info');
+    earPlayTimer=setTimeout(()=>{
+      if(id!==earId||t!==earTrial)return;
+      earPlayTimer=null;
+      if(!t.done){t.listening=true;t.readyAt=performance.now()+150;$('earHeroLabel').textContent='이제 부르세요';setEarMessage(micStream?'지금 '+$('earVowel').value+' 발음으로 한 음을 약 1초 유지하세요. 자동으로 첫 음을 채점합니다.':'지금 따라 불러보세요. 자동 채점은 마이크를 켜야 가능합니다.','info')}
+    },1280)
+  }
+  function newEarTrial(){
+    stopEarTrial();clearCmpPlayback();cmpTrial=null;
+    $('cmpReplay').disabled=true;setCmpButtons(false);
+    const [low,high]=$('earRange').value.split(',').map(Number);
+    const old=earTrial?.note;let note=randInt(low,high);if(high>low&&old!==undefined&&note===old)note=low+((note-low+1)%(high-low+1));
+    earTrial={note,done:false,hint:false,listening:false,readyAt:Infinity};
+    $('earHiddenNote').textContent='?';$('earHiddenNote').classList.add('hidden-note');
+    $('earHeroLabel').textContent='음이름은 아직 비공개';$('earHint').textContent='들은 소리만으로 음높이를 맞춰보세요.';
+    $('heardNote').textContent='···';$('heardNote').classList.add('faded');
+    $('heardDesc').textContent='첫 시도를 마치면 음이름을 확인할 수 있습니다.';
+    $('needle').style.left='50%';$('matchStatus').textContent='청음 연습 중 · 정답은 비공개';
+    $('earReplay').disabled=false;$('earName').disabled=false;$('earReveal').disabled=false;
+    playEarNote()
+  }
+  $('earNew').addEventListener('click',newEarTrial);
+  $('earReplay').addEventListener('click',playEarNote);
+  $('earName').addEventListener('click',()=>{
+    if(!earTrial||earTrial.done)return;
+    earTrial.hint=true;$('earHiddenNote').textContent=nameOf(earTrial.note);$('earHiddenNote').classList.remove('hidden-note');
+    $('earHeroLabel').textContent='음이름 힌트 사용';$('earName').disabled=true;
+    setEarMessage('음이름 '+nameOf(earTrial.note)+'을 확인했습니다. 이 시도의 채점 기록에는 힌트 사용으로 표시됩니다.','info')
+  });
+  $('earReveal').addEventListener('click',()=>completeEar(true));
+  $('earMic').addEventListener('click',()=>{if(micStream){$('earMicInfo').textContent='마이크가 켜져 있습니다. 새 음 듣기 후 약 1초간 같은 높이로 불러주세요.'}else $('micToggle').click()});
+  $('earClear').addEventListener('click',()=>{if(!confirm('저장된 단일음 연습 기록을 모두 지울까요?'))return;earStats={attempts:[]};saveEar();renderEarStats()});
+  renderEarStats();
+  // ────────────────────────────────────────────────────────────────────
+  // v4 청음 게임. 기존 한 음 재현/건반/스케일과 분리된 문제 생성·재생·기록.
+  // 두 간격 A/B 비교 · 방향 · 반음 수 · 세 음 궤적 · 혼합.
+  // ────────────────────────────────────────────────────────────────────
+  const cmpHistoryKey='vocal_pitch_lab_compare_v3'; // 기존 v3 결과 이어받기
+  let cmpHistory=[];
+  try{const data=JSON.parse(localStorage.getItem(cmpHistoryKey)||'[]');if(Array.isArray(data))cmpHistory=data.filter(x=>typeof x.correct==='boolean'&&typeof x.mode==='string').slice(-500)}catch(e){}
+  let cmpAutoTimer=null,cmpAdaptiveIndex=1,cmpCorrectRun=0,cmpWrongRun=0;
+  // 현재 페이지에서 출제했던 실제 음 조합. 이전 게임 기록은 v3 키를 그대로 이어받습니다.
+  let cmpRecentTrials=[];
+  let cmpPairIndex=0;
+  let cmpZoneDeck=[];
+  let cmpZoneConfig='';
+  const cmpLevelTable=[
+    {name:'입문',jumps:[5,6,7,8,9]},
+    {name:'쉬움',jumps:[3,4,5,6,7]},
+    {name:'보통',jumps:[2,3,4,5]},
+    {name:'어려움',jumps:[1,2,3]},
+    {name:'매우 어려움',jumps:[1,2]}
+  ];
+  const cmpModes=['direction','interval','contour','pair'];
+  const cmpLabels={up:'↗ 더 높다',same:'→ 같다',down:'↘ 더 낮다',rise:'↗↗ 계속 올라감',fall:'↘↘ 계속 내려감',peak:'↗↘ 올라갔다 내려감',valley:'↘↗ 내려갔다 올라감',pairA:'A가 더 넓음',pairB:'B가 더 넓음'};
+  const cmpModeNames={direction:'높낮이',interval:'반음 수',contour:'세 음',pair:'간격 비교'};
+  function cmpRand(arr){return arr[randInt(0,arr.length-1)]}
+  function cmpShuffle(arr){for(let i=arr.length-1;i>0;i--){let j=randInt(0,i);[arr[i],arr[j]]=[arr[j],arr[i]]}return arr}
+  function cmpRange(){
+    let raw=$('cmpBase').value;
+    if(raw==='custom'){
+      const a=Number($('cmpLow').value),b=Number($('cmpHigh').value);
+      return [Math.min(a,b),Math.max(a,b)];
+    }
+    return raw.split(',').map(Number)
+  }
+  function cmpJumps(){
+    const lev=$('cmpLevel').value;
+    if(lev==='random')return Array.from({length:12},(_,i)=>i+1);
+    if(lev==='adaptive')return cmpLevelTable[cmpAdaptiveIndex].jumps;
+    return cmpLevelTable[{warmup:0,easy:1,medium:2,hard:3,expert:4}[lev]||0].jumps;
+  }
+  function cmpConfigLabel(){
+    const [lo,hi]=cmpRange(),lev=$('cmpLevel').value;
+    const levelText=lev==='adaptive'?'자동 조절 · 현재 '+cmpLevelTable[cmpAdaptiveIndex].name:lev==='random'?'1~12반음 혼합':cmpLevelTable[{warmup:0,easy:1,medium:2,hard:3,expert:4}[lev]||0].name;
+    const spreading=$('cmpSpread').checked&&hi-lo>=16;
+    const isPair=$('cmpMode').value==='pair'||$('cmpMode').value==='mixed';
+    $('cmpPairConfig').hidden=!isPair;
+    $('cmpPairGuide').textContent=$('cmpPairStyle').value==='same'?'같은 시작음에서 두 간격을 비교합니다. A와 B가 둘 다 올라가거나 둘 다 내려가는 음형으로 나옵니다.':$('cmpPairStyle').value==='different'?'A와 B가 서로 다른 음에서 시작합니다. 높낮이 자체보다 음 사이의 거리 차이에 집중하세요.':'같은 시작음과 다른 시작음을 번갈아 연습합니다. 정답은 간격이 더 넓은 쪽입니다.';
+    const guidance=lev==='warmup'?'아주 다른 간격 (1~2 vs 6~9반음)':lev==='easy'?'확실히 다른 간격 (1~3 vs 5~8반음)':lev==='medium'?'간격 차이 2반음 이상':lev==='hard'?'간격 차이 1반음 이상':lev==='expert'?'정확히 1반음 차이':lev==='random'?'무작위 차이':('현재 '+cmpLevelTable[cmpAdaptiveIndex].name+' 단계');
+    $('cmpSettingNote').textContent=`${nameOf(lo)}~${nameOf(hi)} · ${levelText} · ${$('cmpMode').selectedOptions[0].textContent}. `+(isPair?'간격 비교 난이도: '+guidance+'. ':'')+(spreading?'저·중·고음역 순환 출제.':(hi-lo<16?'좁은 범위에서는 가능한 조합만 출제됩니다.':'전체 범위에서 무작위 출제.'));
+  }
+  function cmpFillCustom(){
+    for(const id of ['cmpLow','cmpHigh']){
+      const el=$(id);for(let m=36;m<=84;m++){let op=document.createElement('option');op.value=String(m);op.textContent=nameOf(m);el.appendChild(op)}
+    }
+    $('cmpLow').value='52';$('cmpHigh').value='64';
+  }
+  function cmpSave(){try{localStorage.setItem(cmpHistoryKey,JSON.stringify(cmpHistory.slice(-500)))}catch(e){}}
+  function cmpRenderStats(){
+    const total=cmpHistory.length,correct=cmpHistory.filter(x=>x.correct).length;
+    $('cmpTotal').textContent=String(total);
+    $('cmpAccuracy').textContent=total?Math.round(correct/total*100)+'%':'—';
+    const firsts=cmpHistory.filter(x=>x.replays===0);$('cmpFirst').textContent=firsts.length?Math.round(firsts.filter(x=>x.correct).length/firsts.length*100)+'%':'—';
+    let streak=0;for(let i=total-1;i>=0&&cmpHistory[i].correct;i--)streak++;
+    $('cmpStreak').textContent=String(streak);
+    const last=cmpHistory.slice(-20).reverse(),root=$('cmpHistory');root.replaceChildren();
+    if(!last.length){const s=document.createElement('span');s.textContent='아직 푼 문제가 없습니다';root.appendChild(s)}
+    else for(const x of last){const s=document.createElement('span');s.className=x.correct?'pass':'miss';s.textContent=(x.correct?'✓ ':'× ')+(cmpModeNames[x.mode]||x.mode)+' · '+x.level+(Number.isInteger(x.replays)?(x.replays?' · ↺'+x.replays:' · 첫 청취'):'');root.appendChild(s)}
+    const recent=cmpHistory.slice(-20),recentHits=recent.filter(x=>x.correct).length;
+    $('cmpStats').textContent=total?`최근 ${recent.length}문제 정답 ${recentHits}개 · 브라우저에 자동 저장`:'기록은 이 브라우저에 보관됩니다.';
+  }
+  function clearCmpPlayback(){
+    cmpPlayTimers.forEach(clearTimeout);cmpPlayTimers=[];cmpId++;
+    if(cmpAutoTimer!==null){clearTimeout(cmpAutoTimer);cmpAutoTimer=null}
+    stopVoices();
+    document.querySelectorAll('#cmpDots .cmp-dot').forEach(x=>x.classList.remove('now','done'));
+  }
+  function setCmpButtons(enabled){document.querySelectorAll('#cmpChoices [data-comp]').forEach(b=>b.disabled=!enabled)}
+  function cmpResetChoices(){
+    const root=$('cmpChoices');root.replaceChildren();root.classList.toggle('four',!!cmpTrial&&cmpTrial.mode!=='direction'&&cmpTrial.mode!=='pair');root.classList.toggle('two',cmpTrial?.mode==='pair');
+    let keys;
+    if(!cmpTrial||cmpTrial.mode==='direction')keys=['up','same','down'];
+    else if(cmpTrial.mode==='contour')keys=['rise','fall','peak','valley'];
+    else if(cmpTrial.mode==='pair')keys=['pairA','pairB'];
+    else keys=cmpTrial.options.map(String);
+    for(const [i,key] of keys.entries()){
+      let b=document.createElement('button');b.type='button';b.className='btn';b.dataset.comp=key;
+      b.textContent=`${i+1}. ${cmpTrial?.mode==='interval'?key+'반음':cmpLabels[key]}`;
+      b.disabled=!cmpTrial||cmpTrial.done;b.addEventListener('click',()=>cmpAnswer(key));root.appendChild(b);
+    }
+  }
+  function cmpCanDo(jump,lo,hi){return hi-lo>=jump}
+  function cmpCreateDirection(lo,hi,jumps){
+    // 같은 음 빈도는 20%로 제한하여 실제 음높이 변화를 더 많이 연습합니다.
+    const direction=cmpRand(['up','up','down','down','same']);
+    const sizes=jumps.filter(k=>cmpCanDo(k,lo,hi));
+    const step=direction==='same'?0:cmpRand(sizes.length?sizes:[1]);
+    const aMin=direction==='down'?lo+step:lo,aMax=direction==='up'?hi-step:hi;
+    const a=randInt(Math.min(aMin,aMax),Math.max(aMin,aMax));
+    const b=a+(direction==='up'?step:direction==='down'?-step:0);
+    return {notes:[a,b],answer:direction};
+  }
+  function cmpCreateInterval(lo,hi,jumps){
+    // 음정 거리 맞히기: 선택 난이도 안에서 1개의 정답과 가까운 3개의 오답.
+    // 0반음(같음)도 1/7 정도 출제해 같은 음과 미세한 차이를 구별합니다.
+    const maxDiff=Math.min(12,hi-lo);
+    const jumpPool=jumps.filter(k=>k<=maxDiff);
+    const step=(Math.random()<1/7)?0:cmpRand(jumpPool.length?jumpPool:[Math.max(1,maxDiff)]);
+    const a=randInt(lo,hi-step),b=Math.random()<.5?a+step:a-step;
+    // 뺄셈 방향을 랜덤으로 하되 음역 초과를 방지.
+    let n1=a,n2=b;
+    if(n2<lo||n2>hi){n1=a+step;n2=a}
+    const distractors=Array.from({length:13},(_,i)=>i).filter(x=>x!==step);
+    distractors.sort((x,y)=>Math.abs(x-step)-Math.abs(y-step));
+    const shortlist=distractors.slice(0,7);
+    const options=cmpShuffle([step,...cmpShuffle(shortlist).slice(0,3)]);
+    return {notes:[n1,n2],answer:String(step),options};
+  }
+  // 두 음을 비교하는 것이 아니라 A(2음)와 B(2음)의 '간격 크기'를 비교합니다.
+  // 상하 방향은 양쪽이 같게 하여 방향 힌트가 정답이 되지 않게 합니다.
+  function cmpPairSizes(level,span){
+    let candidates=[],minGap=1,maxGap=12;
+    if(level==='warmup'){
+      for(const a of [1,2])for(const b of [6,7,8,9])if(b<=span)candidates.push([a,b]);
+    }else if(level==='easy'){
+      for(const a of [1,2,3])for(const b of [5,6,7,8])if(b<=span&&b-a>=3)candidates.push([a,b]);
+    }else{
+      if(level==='medium'){maxGap=7;minGap=2}
+      if(level==='hard'){maxGap=6;minGap=1}
+      if(level==='expert'){maxGap=5;minGap=1}
+      for(let a=1;a<=Math.min(span,maxGap);a++)for(let b=a+1;b<=Math.min(span,maxGap);b++){
+        if((level==='expert'&&b-a===1)||(level!=='expert'&&b-a>=minGap))candidates.push([a,b]);
+      }
+    }
+    return candidates;
+  }
+  function cmpCreatePair(lo,hi,desiredStyle){
+    const level=$('cmpLevel').value==='adaptive'?['warmup','easy','medium','hard','expert'][cmpAdaptiveIndex]:$('cmpLevel').value;
+    const choices=cmpPairSizes(level,hi-lo);
+    if(!choices.length)return null;
+    const pair=cmpRand(choices),gaps=Math.random()<.5?[pair[0],pair[1]]:[pair[1],pair[0]];
+    const dir=Math.random()<.5?1:-1, maxGap=Math.max(...gaps);
+    const validStart=g=>{
+      const list=[];for(let m=lo;m<=hi;m++)if(m+dir*g>=lo&&m+dir*g<=hi)list.push(m);
+      return list;
+    };
+    const listA=validStart(gaps[0]),listB=validStart(gaps[1]);
+    if(!listA.length||!listB.length)return null;
+    let a,b;
+    if(desiredStyle==='same'){
+      const same=listA.filter(m=>listB.includes(m));if(!same.length)return null;
+      a=b=cmpRand(same);
+    }else{
+      const separation=(hi-lo>=18?7:hi-lo>=10?4:2);
+      // 시작음이 실제로 달라지도록 가능한 쌍을 고른다.
+      const possibilities=[];
+      for(const x of listA)for(const y of listB)if(Math.abs(x-y)>=separation)possibilities.push([x,y]);
+      if(!possibilities.length)return null;
+      [a,b]=cmpRand(possibilities);
+    }
+    return {notes:[a,a+dir*gaps[0],b,b+dir*gaps[1]],answer:gaps[0]>gaps[1]?'pairA':'pairB',gaps,style:desiredStyle};
+  }
+  function cmpCreateContour(lo,hi,jumps){
+    const shape=cmpRand(['rise','fall','peak','valley']);
+    let pairs=[];
+    const pool=jumps.filter(k=>k<=hi-lo);
+    for(const u of pool)for(const v of pool){
+      const steps=shape==='rise'?[u,v]:shape==='fall'?[-u,-v]:shape==='peak'?[u,-v]:[-u,v];
+      const offsets=[0,steps[0],steps[0]+steps[1]];
+      const lowO=Math.min(...offsets),highO=Math.max(...offsets);
+      if(highO-lowO<=hi-lo)pairs.push(offsets);
+    }
+    if(!pairs.length){
+      // 매우 좁은 직접 설정 음역에서도 재생할 수 있게 가능한 작은 패턴 선택.
+      const d=Math.max(1,Math.floor((hi-lo)/2));
+      const choices={rise:[0,d,d*2],fall:[0,-d,-d*2],peak:[0,d,0],valley:[0,-d,0]};
+      let usable=Object.entries(choices).filter(([_,a])=>Math.max(...a)-Math.min(...a)<=hi-lo);
+      if(!usable.length)return null;
+      const chosen=cmpRand(usable);return cmpFinalizeOffsets(chosen[0],chosen[1],lo,hi)
+    }
+    return cmpFinalizeOffsets(shape,cmpRand(pairs),lo,hi)
+  }
+  function cmpFinalizeOffsets(shape,offsets,lo,hi){
+    const a=randInt(lo-Math.min(...offsets),hi-Math.max(...offsets));
+    return {notes:offsets.map(x=>a+x),answer:shape}
+  }
+  function cmpCreateCandidate(lo,hi,desiredPairStyle){
+    const chosen=$('cmpMode').value;
+    const mode=chosen==='mixed'?cmpRand(cmpModes):chosen;
+    const jumps=cmpJumps();
+    const data=mode==='pair'?cmpCreatePair(lo,hi,desiredPairStyle):mode==='direction'?cmpCreateDirection(lo,hi,jumps):mode==='interval'?cmpCreateInterval(lo,hi,jumps):cmpCreateContour(lo,hi,jumps);
+    if(!data)return null;
+    const level=$('cmpLevel').value==='adaptive'?cmpLevelTable[cmpAdaptiveIndex].name:$('cmpLevel').selectedOptions[0].textContent.split(' · ')[0];
+    return {...data,mode,level,done:false,replays:0};
+  }
+  // 음역이 충분히 넓을 때 세 구간을 섞어 출제합니다. 음과 음 사이의 반음 간격은
+  // 선택한 난이도를 유지하며, 무작위 후보 중 다른 음역·새 음 조합을 우선합니다.
+  function cmpZoneOf(notes,lo,hi,mode){
+    const mid=mode==='pair'?notes[0]:notes.reduce((a,b)=>a+b,0)/notes.length;
+    return Math.max(0,Math.min(2,Math.floor(3*(mid-lo)/(hi-lo+0.001))));
+  }
+  function cmpCreateTrial(){
+    const [lo,hi]=cmpRange();if(hi-lo<1)return null;
+    const spread=$('cmpSpread').checked&&hi-lo>=16;
+    const zoneKey=[lo,hi,$('cmpMode').value,$('cmpLevel').value,$('cmpPairStyle').value,spread].join('/');
+    if(cmpZoneConfig!==zoneKey){cmpZoneConfig=zoneKey;cmpZoneDeck=[];cmpRecentTrials=[]}
+    if(spread&&!cmpZoneDeck.length){
+      cmpZoneDeck=cmpShuffle([0,1,2]);
+      const previous=cmpRecentTrials[cmpRecentTrials.length-1]?.zone;
+      if(cmpZoneDeck.length>1&&cmpZoneDeck[0]===previous){[cmpZoneDeck[0],cmpZoneDeck[1]]=[cmpZoneDeck[1],cmpZoneDeck[0]]}
+    }
+    const targetZone=spread?cmpZoneDeck[0]:null;
+    const desiredPairStyle=$('cmpPairStyle').value==='alternate'?(cmpPairIndex%2===0?'same':'different'):$('cmpPairStyle').value;
+    const recent=cmpRecentTrials.slice(-9);
+    let best=null,bestScore=-Infinity;
+    const attempts=spread?150:55;
+    for(let i=0;i<attempts;i++){
+      const candidate=cmpCreateCandidate(lo,hi,desiredPairStyle);
+      if(!candidate)continue;
+      candidate.zone=cmpZoneOf(candidate.notes,lo,hi,candidate.mode);
+      const key=candidate.mode+'/'+candidate.notes.join(',');
+      const canonical=candidate.mode==='pair'?candidate.style+'/'+[candidate.notes.slice(0,2).join(','),candidate.notes.slice(2).join(',')].sort().join('|'):key;
+      const reversed=candidate.mode+'/'+[...candidate.notes].reverse().join(',');
+      const duplicate=recent.some(t=>t.canonical===canonical||t.key===key||t.key===reversed);
+      const sameAnswerRecently=recent.slice(-2).filter(t=>t.mode===candidate.mode&&t.answer===candidate.answer).length;
+      const previous=recent[recent.length-1];
+      const noteDistance=previous?Math.abs(candidate.notes[0]-previous.notes[0]):0;
+      const score=(spread?(candidate.zone===targetZone?100:-80):0)
+        +(duplicate?-100:38)
+        -(sameAnswerRecently*9)
+        +(spread&&previous&&candidate.zone!==previous.zone?16:0)
+        +(previous?Math.min(16,noteDistance):0)
+        +Math.random()*3;
+      if(score>bestScore){best=candidate;bestScore=score}
+      if(spread&&bestScore>155&&i>=18)break;
+    }
+    if(!best)return null;
+    if(spread)cmpZoneDeck.shift();
+    if(best.mode==='pair')cmpPairIndex++;
+    const canonical=best.mode==='pair'?best.style+'/'+[best.notes.slice(0,2).join(','),best.notes.slice(2).join(',')].sort().join('|'):best.mode+'/'+best.notes.join(',');
+    cmpRecentTrials.push({mode:best.mode,notes:[...best.notes],zone:best.zone,answer:best.answer,key:best.mode+'/'+best.notes.join(','),canonical});
+    cmpRecentTrials=cmpRecentTrials.slice(-18);
+    return best;
+  }
+  function cmpDrawDots(active=-1){
+    const root=$('cmpDots');root.replaceChildren();const pair=cmpTrial?.mode==='pair';
+    root.classList.toggle('pair-layout',pair);
+    const mkDot=(i)=>{const el=document.createElement('span');el.className='cmp-dot'+(i===active?' now':i<active?' done':'');el.textContent=['①','②','③','④'][i];return el};
+    const mkArrow=()=>{const el=document.createElement('span');el.className='cmp-dots-arrow';el.textContent='→';return el};
+    if(pair){
+      for(let j=0;j<2;j++){
+        if(j){const mid=document.createElement('span');mid.className='cmp-pair-divider';mid.textContent='잠깐 쉬고';root.appendChild(mid)}
+        const group=document.createElement('div');group.className='cmp-pair-group';
+        const label=document.createElement('span');label.className='cmp-group-label';label.textContent=j===0?'A':'B';group.appendChild(label);
+        group.appendChild(mkDot(j*2));group.appendChild(mkArrow());group.appendChild(mkDot(j*2+1));root.appendChild(group);
+      }
+    }else{
+      const len=cmpTrial?.notes.length||2;
+      for(let i=0;i<len;i++){if(i)root.appendChild(mkArrow());root.appendChild(mkDot(i))}
+    }
+  }
+  function cmpDrawAnswers(){
+    const root=$('cmpAnswerNotes');root.replaceChildren();if(!cmpTrial?.done){root.hidden=true;return}
+    root.hidden=false;
+    if(cmpTrial.mode==='pair'){
+      for(let j=0;j<2;j++){
+        const lab=document.createElement('span');lab.textContent=(j===0?'A: ':'B: ')+nameOf(cmpTrial.notes[2*j])+' → '+nameOf(cmpTrial.notes[2*j+1])+' ('+cmpTrial.gaps[j]+'반음)';root.appendChild(lab);
+      }
+    }else for(let i=0;i<cmpTrial.notes.length;i++){
+      if(i){const t=document.createElement('i');t.textContent='→';root.appendChild(t)}
+      const sp=document.createElement('span');sp.textContent=nameOf(cmpTrial.notes[i]);root.appendChild(sp)
+    }
+  }
+  function playCmp(which=null){
+    if(!cmpTrial)return;
+    clearCmpPlayback();stopEarTrial();stopSeq();held=false;$('holdOne').textContent='계속 듣기';
+    const id=cmpId,notes=cmpTrial.notes;
+    const pace={slow:{tone:1.05,gap:.55},normal:{tone:.72,gap:.34},fast:{tone:.45,gap:.15}}[$('cmpTempo').value];
+    const isPair=cmpTrial.mode==='pair';
+    const indices=which===null?notes.map((_,i)=>i):which==='A'?[0,1]:[2,3];
+    const stepMs=(pace.tone+pace.gap)*1000;
+    const breakMs=isPair&&which===null?Math.max(650,pace.gap*1600):0;
+    let elapsed=0;
+    setCmpButtons(false);cmpDrawDots();
+    $('cmpPrompt').textContent=cmpTrial.done?'정답을 확인하며 다시 듣는 중입니다':which?'간격 '+which+'를 다시 듣는 중입니다.':'음을 재생하고 있습니다. 순서대로 들어보세요.';
+    for(let i=0;i<indices.length;i++){
+      const noteIndex=indices[i],delay=Math.round(elapsed);
+      const play=()=>{if(id!==cmpId)return;stopVoices();cmpDrawDots(noteIndex);playTone(notes[noteIndex],pace.tone)};
+      if(i===0)play();else cmpPlayTimers.push(setTimeout(play,delay));
+      elapsed+=stepMs;
+      if(isPair&&which===null&&i===1)elapsed+=breakMs;
+    }
+    cmpPlayTimers.push(setTimeout(()=>{
+      if(id!==cmpId)return;cmpDrawDots();
+      $('cmpPrompt').textContent=cmpTrial.done?'정답과 음이름을 확인했습니다.':'소리를 다 들었습니다. 정답을 골라보세요.';
+      if(!cmpTrial.done)setCmpButtons(true)
+    },Math.round(elapsed-pace.gap*1000+100)));
+  }
+  function cmpReplayPart(which){
+    if(!cmpTrial)return;
+    if(!cmpTrial.done)cmpTrial.replays++;
+    playCmp(which);
+  }
+  function cmpNewTrial(){
+    stopEarTrial();earTrial=null;clearCmpPlayback();
+    $('earReplay').disabled=true;$('earName').disabled=true;$('earReveal').disabled=true;
+    $('earHeroLabel').textContent='한 음 연습 일시 종료';$('earHiddenNote').textContent='—';$('earHint').textContent='한 음 연습은 새 음 듣기로 다시 시작할 수 있습니다.';
+    $('matchStatus').textContent='목표: '+nameOf(selected);
+    cmpTrial=cmpCreateTrial();
+    if(!cmpTrial){$('cmpFeedback').textContent='이 난이도와 시작음 방식에서는 출제할 간격이 부족합니다. 비교 음역을 넓히거나 난이도를 낮춰 주세요.';setCmpButtons(false);$('cmpReplay').disabled=true;$('cmpPairPlay').hidden=true;return}
+    const descriptions={pair:'A와 B 중, 음 사이 간격이 더 넓은 쪽은?',direction:'두 번째 음은 첫 음보다?',interval:'두 음은 몇 반음 떨어져 있을까요?',contour:'세 음의 움직임은 어떤 모양일까요?'};
+    $('cmpTask').textContent=descriptions[cmpTrial.mode];
+    $('cmpReplay').disabled=false;
+    $('cmpPairPlay').hidden=cmpTrial.mode!=='pair';
+    $('cmpReplayA').disabled=cmpTrial.mode!=='pair';$('cmpReplayB').disabled=cmpTrial.mode!=='pair';
+    $('cmpFeedback').className='ear-feedback info';
+    $('cmpFeedback').textContent=cmpTrial.mode==='pair'?'A의 두 음을 듣고, B의 두 음을 듣습니다. 처음에는 몇 반음인지 계산하지 말고 더 넓게 들리는 쪽을 선택하세요.':'듣고 정답을 골라보세요. 어려우면 여러 번 재청취해도 좋습니다.';
+    cmpResetChoices();cmpDrawAnswers();cmpConfigLabel();playCmp()
+  }
+  function cmpAnswer(pick){
+    if(!cmpTrial||cmpTrial.done)return;
+    cmpTrial.done=true;clearCmpPlayback();
+    const good=pick===cmpTrial.answer;
+    const answer=cmpTrial.mode==='interval'?cmpTrial.answer+'반음':cmpLabels[cmpTrial.answer];
+    const differences=cmpTrial.notes.slice(1).map((n,i)=>Math.abs(n-cmpTrial.notes[i]));
+    const detail=cmpTrial.mode==='pair'?`A: ${cmpTrial.gaps[0]}반음 · B: ${cmpTrial.gaps[1]}반음 · 시작음: ${cmpTrial.style==='same'?'동일':'서로 다름'}`:cmpTrial.mode==='contour'?`이동 간격: ${differences.join('반음, ')}반음`:`두 음의 차이: ${differences[0]}반음`;
+    $('cmpFeedback').className='ear-feedback '+(good?'success':'needs-work');
+    $('cmpFeedback').textContent=`${good?'정답입니다.':'이번에는 다르게 들렸습니다.'} 정답: ${answer}. ${detail}. 다시 들으면서 음이 바뀌는 지점을 확인해 보세요.`;
+    $('cmpPrompt').textContent='정답 공개 · 같은 문제를 다시 들을 수도 있습니다.';
+    cmpHistory.push({mode:cmpTrial.mode,level:cmpTrial.level,correct:good,replays:cmpTrial.replays,time:Date.now()});cmpHistory=cmpHistory.slice(-500);cmpSave();cmpRenderStats();
+    cmpDrawAnswers();
+    document.querySelectorAll('#cmpChoices [data-comp]').forEach(btn=>{
+      btn.disabled=true;
+      if(btn.dataset.comp===cmpTrial.answer)btn.classList.add('correct');
+      else if(btn.dataset.comp===pick)btn.classList.add('incorrect');
+    });
+    if($('cmpLevel').value==='adaptive'){
+      if(good){cmpCorrectRun++;cmpWrongRun=0;if(cmpCorrectRun>=4){cmpAdaptiveIndex=Math.min(4,cmpAdaptiveIndex+1);cmpCorrectRun=0}}
+      else{cmpWrongRun++;cmpCorrectRun=0;if(cmpWrongRun>=2){cmpAdaptiveIndex=Math.max(0,cmpAdaptiveIndex-1);cmpWrongRun=0}}
+      cmpConfigLabel();
+    }
+    if($('cmpAutoNext').checked){cmpAutoTimer=setTimeout(()=>{cmpAutoTimer=null;cmpNewTrial()},1550)}
+  }
+  cmpFillCustom();cmpRenderStats();cmpResetChoices();cmpConfigLabel();
+  $('cmpBase').addEventListener('change',()=>{$('cmpCustom').hidden=$('cmpBase').value!=='custom';cmpConfigLabel()});
+  $('cmpSpread').addEventListener('change',cmpConfigLabel);
+  $('cmpPairStyle').addEventListener('change',cmpConfigLabel);
+  for(const id of ['cmpLow','cmpHigh','cmpLevel','cmpMode']){
+    $(id).addEventListener('change',()=>{
+      if(id==='cmpLevel'){cmpAdaptiveIndex=1;cmpCorrectRun=0;cmpWrongRun=0}
+      cmpConfigLabel()
+    })
+  }
+  $('cmpNew').addEventListener('click',cmpNewTrial);
+  $('cmpReplay').addEventListener('click',()=>cmpReplayPart(null));
+  $('cmpReplayA').addEventListener('click',()=>cmpReplayPart('A'));
+  $('cmpReplayB').addEventListener('click',()=>cmpReplayPart('B'));
+  $('cmpReset').addEventListener('click',()=>{
+    if(!confirm('저장된 청음 비교 기록을 초기화할까요? (한 음 재현 기록은 유지됩니다.)'))return;
+    cmpHistory=[];cmpSave();cmpRenderStats();cmpAdaptiveIndex=1;cmpCorrectRun=0;cmpWrongRun=0;cmpConfigLabel()
+  });
+  document.addEventListener('keydown',e=>{
+    if(e.altKey||e.ctrlKey||e.metaKey||e.repeat||['INPUT','SELECT','TEXTAREA'].includes(document.activeElement?.tagName)||document.activeElement?.isContentEditable)return;
+    if(e.key==='Enter'){e.preventDefault();cmpNewTrial();return}
+    if(!cmpTrial)return;
+    if(e.code==='Space'){e.preventDefault();cmpReplayPart(null);return}
+    if(e.key>='1'&&e.key<='4'&&!cmpTrial.done){
+      const btn=$(`cmpChoices`).querySelectorAll('[data-comp]')[Number(e.key)-1];
+      if(btn&&!btn.disabled){e.preventDefault();btn.click()}
+    }
+  });
+  window.addEventListener('pagehide',()=>{stopEarTrial();clearCmpPlayback();stopSeq();if(micStream)micStream.getTracks().forEach(t=>t.stop())});
+  buildRootOptions();buildKeyboard();syncPattern();choose(Number($('scaleRoot').value));
+})();
+</script>
+</body>
+</html>
