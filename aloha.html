@@ -131,6 +131,19 @@ html,body{width:100%;max-width:100%;overflow-x:clip}
 .rangeLegend .playLegend{font-size:11px}
 @media(min-width:900px){.practicePanels{grid-template-columns:minmax(0,1fr) minmax(0,1.15fr)}}
 @media(max-width:600px){.practicePanels .lyricEditRow button{min-height:40px}.practicePanels .quickRangeControls .tiny{width:34px;height:40px}.practicePanels .quickRangeControls #quickPlay{min-height:40px}.rangePickTools button{min-height:40px}}
+/* On touch-sized screens playback comes first; lyrics expand on demand. */
+.practicePanels details.lyricSettings{display:block}
+.lyricPanelSummary{cursor:pointer;font-weight:750;font-size:14px;color:#204674;line-height:1.4}
+.lyricPanelBody{display:grid;gap:7px;margin-top:8px}
+.lyricMobileHint{display:none;font-weight:400;font-size:11px;color:#69768a}
+@media(max-width:899px){
+ .practicePanels .quickRange{order:0}
+ .practicePanels .lyricSettings{order:1}
+ .lyricMobileHint{display:inline}
+ #lyricPanel[open] .lyricMobileHint{display:none}
+ .lyricPanelSummary{min-height:24px}
+ .rangePickTools .sub{display:none}
+}
 /* Compact note buttons stay within the score width, including on phones. */
 .scoreLine .noteStrip{display:flex;flex-wrap:wrap;align-items:stretch;gap:4px;overflow:visible;padding:10px 0 4px;scroll-behavior:auto}
 .scoreLine .token{flex:0 0 clamp(36px,4vw,44px);width:clamp(36px,4vw,44px);min-width:0;max-width:44px;min-height:66px;padding:6px 2px;gap:3px;border-radius:7px;touch-action:manipulation}
@@ -179,8 +192,9 @@ html,body{width:100%;max-width:100%;overflow-x:clip}
 <div id="rangePickFeedback" class="sub" role="status" style="margin-top:7px">끝점을 지정하면 음표 수가 자동 계산됩니다.</div>
 <div class="rangeLegend" style="margin-top:9px"><span><strong>▶ 시작</strong> / <em>■ 끝</em> : 선택한 연속 재생 범위</span><span class="playLegend">♪ 분홍색: 현재 재생 중인 음</span></div>
 <div class="practicePanels">
-<div class="lyricSettings" role="group" aria-label="음표별 가사 확인 및 수정">
-  <h3>선택 음표의 가사</h3>
+<details class="lyricSettings" id="lyricPanel" open>
+  <summary class="lyricPanelSummary">선택 음표의 가사 <span class="lyricMobileHint">· 수정하려면 펼치기</span></summary>
+  <div class="lyricPanelBody">
   <div class="lyricEditRow">
     <label for="lyricInput" id="lyricEditLabel" class="label">가사 수정</label>
     <input type="text" id="lyricInput" maxlength="24" aria-label="선택 음표 아래에 표시할 가사" placeholder="예: 어, 두, 운" autocomplete="off" spellcheck="false" />
@@ -188,7 +202,8 @@ html,body{width:100%;max-width:100%;overflow-x:clip}
     <button type="button" id="lyricResetAll" title="직접 수정한 가사를 모두 원래대로 되돌리기">전체 초기화</button>
   </div>
   <details class="lyricHelp"><summary>가사 수정 도움말</summary><div>악보에서 음표를 클릭하면 이 칸에서 해당 가사를 바꿀 수 있습니다. 입력과 동시에 아래 음표 칸에 반영됩니다. 빈칸은 이어 부르는 음·가사 없는 음으로 취급합니다. 직접 수정한 가사는 이 브라우저에 저장됩니다. 자동 판독한 음표 위치와 실제 가사 음절이 다를 수 있으므로 악보와 비교해 주세요.</div></details>
-</div>
+  </div>
+</details>
 <div class="quickRange" role="group" aria-label="선택한 음표부터 원하는 개수만큼 연속 듣기">
   <div class="quickRangeIntro">
     <div class="quickRangeHeading">선택한 음부터 바로 이어 듣기 <span class="quickNew">v9</span></div>
@@ -488,6 +503,11 @@ function updatePhraseUI(){
  updateQuickUI();
 }
 
+const practiceWideScreen=window.matchMedia('(min-width:900px)');
+function adaptLyricPanel(){ $('lyricPanel').open=practiceWideScreen.matches; }
+adaptLyricPanel();
+if(practiceWideScreen.addEventListener)practiceWideScreen.addEventListener('change',adaptLyricPanel);
+else practiceWideScreen.addListener(adaptLyricPanel);
 let rangePickMode='start';
 function setRangePickMode(mode){
  rangePickMode=mode;
