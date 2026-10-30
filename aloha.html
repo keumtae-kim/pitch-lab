@@ -107,6 +107,30 @@ html,body{width:100%;max-width:100%;overflow-x:clip}
 @media(max-width:530px){.scoreStacks{gap:9px}.scoreLine{padding:7px}.scoreLineHead{font-size:12px}.token.nowPlaying::before{font-size:9px;top:-11px}}
 .rangePickTools button{padding:8px 12px;min-height:42px;font-size:13px}
 .rangePickTools button[aria-pressed="true"]{background:#edf3ff;border-color:#2965dc;color:#194daf;box-shadow:inset 0 0 0 1px #2965dc}
+/* Keep frequently used controls beside each other and close to the score. */
+.practicePanels{display:grid;grid-template-columns:minmax(0,1fr);gap:9px;margin-top:9px;align-items:start}
+.practicePanels .lyricSettings,.practicePanels .quickRange{margin:0;padding:11px 12px;gap:7px;min-width:0;border-radius:10px}
+.practicePanels h3,.practicePanels .quickRangeHeading{font-size:14px;line-height:1.35;margin:0}
+.practicePanels .quickNew{display:none}
+.practicePanels .lyricEditRow,.practicePanels .quickRangeControls{gap:5px}
+.practicePanels .lyricEditRow input{width:90px;min-width:65px;max-width:130px;padding:6px 7px;font-size:14px}
+.practicePanels .lyricEditRow button{font-size:11px;padding:6px 7px;min-height:32px}
+.practicePanels .label,.practicePanels .quickRangeControls label{font-size:12px}
+.practicePanels .lyricHelp{font-size:11px;line-height:1.5}
+.practicePanels .lyricHelp summary{cursor:pointer;color:#60728b}
+.practicePanels .lyricHelp div{margin-top:5px}
+.practicePanels .quickRangeControls input[type=number]{width:50px;padding:6px 4px;font-size:14px}
+.practicePanels .quickRangeControls .tiny{width:30px;height:32px;min-height:32px;padding:3px;font-size:16px}
+.practicePanels .quickRangeControls #quickPlay{width:auto;min-height:34px;padding:6px 10px;font-size:13px;margin:0}
+.practicePanels .quickRangeStatus{font-size:12px;line-height:1.4}
+.rangePickTools{margin-top:7px!important;gap:5px!important}
+.rangePickTools button{font-size:12px;min-height:32px;padding:5px 9px}
+.rangePickTools .sub{font-size:11px}
+#rangePickFeedback{font-size:11px;line-height:1.4;margin-top:4px!important}
+.rangeLegend{margin-top:4px!important;gap:9px;font-size:11px;line-height:1.4}
+.rangeLegend .playLegend{font-size:11px}
+@media(min-width:900px){.practicePanels{grid-template-columns:minmax(0,1fr) minmax(0,1.15fr)}}
+@media(max-width:600px){.practicePanels .lyricEditRow button{min-height:40px}.practicePanels .quickRangeControls .tiny{width:34px;height:40px}.practicePanels .quickRangeControls #quickPlay{min-height:40px}.rangePickTools button{min-height:40px}}
 /* Compact note buttons stay within the score width, including on phones. */
 .scoreLine .noteStrip{display:flex;flex-wrap:wrap;align-items:stretch;gap:4px;overflow:visible;padding:10px 0 4px;scroll-behavior:auto}
 .scoreLine .token{flex:0 0 clamp(36px,4vw,44px);width:clamp(36px,4vw,44px);min-width:0;max-width:44px;min-height:66px;padding:6px 2px;gap:3px;border-radius:7px;touch-action:manipulation}
@@ -146,37 +170,39 @@ html,body{width:100%;max-width:100%;overflow-x:clip}
     <div class="noteStrip" id="stripNext" aria-label="다음 악보 줄의 음이름과 가사"></div>
   </div>
 </div>
-<div class="sub" style="margin-top:10px">◀ 이전 악보 / 다음 악보 ▶ 는 <b>화면만 이동</b>하며 재생 시작점은 바꾸지 않습니다. 두 줄 모두 음표나 가사 버튼을 클릭하면 그 음을 선택할 수 있습니다. 누락된 음표는 ‘추가’ 체크 후 악보를 클릭하세요.</div>
+
 <div class="rangePickTools" role="group" aria-label="음표로 재생 범위 지정" style="display:flex;flex-wrap:wrap;align-items:center;gap:7px;margin-top:10px">
  <button type="button" id="rangePickStart" aria-pressed="true">시작점 지정</button>
  <button type="button" id="rangePickEnd" aria-pressed="false">끝점 지정</button>
- <span class="sub">PC: 왼쪽 클릭은 시작 · 오른쪽 클릭은 끝 / 터치: 끝점 지정 → 음표 터치</span>
+ <span class="sub">왼쪽 클릭: 시작 · 오른쪽 클릭: 끝 · 터치: 지정 버튼 사용</span>
 </div>
-<div id="rangePickFeedback" class="sub" role="status" style="margin-top:7px">끝 음표를 오른쪽 클릭하면 재생할 음 개수가 자동으로 계산됩니다.</div>
+<div id="rangePickFeedback" class="sub" role="status" style="margin-top:7px">끝점을 지정하면 음표 수가 자동 계산됩니다.</div>
 <div class="rangeLegend" style="margin-top:9px"><span><strong>▶ 시작</strong> / <em>■ 끝</em> : 선택한 연속 재생 범위</span><span class="playLegend">♪ 분홍색: 현재 재생 중인 음</span></div>
+<div class="practicePanels">
 <div class="lyricSettings" role="group" aria-label="음표별 가사 확인 및 수정">
   <h3>선택 음표의 가사</h3>
   <div class="lyricEditRow">
     <label for="lyricInput" id="lyricEditLabel" class="label">가사 수정</label>
     <input type="text" id="lyricInput" maxlength="24" aria-label="선택 음표 아래에 표시할 가사" placeholder="예: 어, 두, 운" autocomplete="off" spellcheck="false" />
-    <button type="button" id="lyricResetOne" title="선택 음의 악보 기준 가사로 되돌리기">이 음 원래대로</button>
-    <button type="button" id="lyricResetAll" title="직접 수정한 가사를 모두 원래대로 되돌리기">모든 수정 초기화</button>
+    <button type="button" id="lyricResetOne" title="선택 음의 악보 기준 가사로 되돌리기">이 음 초기화</button>
+    <button type="button" id="lyricResetAll" title="직접 수정한 가사를 모두 원래대로 되돌리기">전체 초기화</button>
   </div>
-  <div class="lyricHelp">악보에서 음표를 클릭하면 이 칸에서 해당 가사를 바꿀 수 있습니다. 입력과 동시에 아래 음표 칸에 반영됩니다. 빈칸은 이어 부르는 음·가사 없는 음으로 취급합니다. 직접 수정한 가사는 이 브라우저에 저장됩니다. 자동 판독한 음표 위치와 실제 가사 음절이 다를 수 있으므로 악보와 비교해 주세요.</div>
+  <details class="lyricHelp"><summary>가사 수정 도움말</summary><div>악보에서 음표를 클릭하면 이 칸에서 해당 가사를 바꿀 수 있습니다. 입력과 동시에 아래 음표 칸에 반영됩니다. 빈칸은 이어 부르는 음·가사 없는 음으로 취급합니다. 직접 수정한 가사는 이 브라우저에 저장됩니다. 자동 판독한 음표 위치와 실제 가사 음절이 다를 수 있으므로 악보와 비교해 주세요.</div></details>
 </div>
 <div class="quickRange" role="group" aria-label="선택한 음표부터 원하는 개수만큼 연속 듣기">
   <div class="quickRangeIntro">
     <div class="quickRangeHeading">선택한 음부터 바로 이어 듣기 <span class="quickNew">v9</span></div>
-    <div class="sub">위의 음표 버튼 또는 악보에서 <b>왼쪽 클릭으로 시작점, 오른쪽 클릭으로 끝점</b>을 지정하세요. 음표 수는 자동 계산되며 직접 변경할 수도 있습니다. <b>악보 넘기기는 시작점을 변경하지 않으며</b>, 재생 중인 음표는 <b>분홍색</b>으로 표시됩니다.</div>
+    
   </div>
   <div class="quickRangeControls">
-    <label for="quickCount">들을 음표 수</label>
+    <label for="quickCount">음표 수</label>
     <button type="button" class="tiny" id="quickCountDown" aria-label="연속 재생 음표 수 1개 줄이기">−</button>
     <input id="quickCount" type="number" min="1" max="244" step="1" value="6" inputmode="numeric" aria-label="선택 음부터 재생할 음표 개수" />
     <button type="button" class="tiny" id="quickCountUp" aria-label="연속 재생 음표 수 1개 늘리기">+</button>
     <button type="button" class="primary" id="quickPlay" title="선택한 음부터 지정한 음표 개수만큼 연속 듣기">▶ 선택 음부터 듣기</button>
   </div>
   <div class="quickRangeStatus" id="quickRangeStatus" aria-live="polite">시작 음을 선택하고 개수를 설정하세요.</div>
+</div>
 </div>
 </section>
 <section class="card"><div class="notewrap"><div><div class="label">지금 따라 부를 음</div><div class="bigNote" id="noteName">F3</div><div class="noteLyricPreview" id="selectedLyric"></div><div class="status" id="noteDesc">기준음을 먼저 듣고, 마이크로 따라 부르세요.</div></div><p class="sub" style="margin:8px 0 0">아래 고정 버튼으로 한 음씩 이동하며 듣거나, 현재 음을 다시 들을 수 있습니다. 음표 칸과 악보 음표도 클릭하면 즉시 재생됩니다.</p></div>
@@ -471,7 +497,7 @@ function setRangePickMode(mode){
 function pickRangeNote(i){
  if(rangePickMode==='end'){setQuickEnd(i);return;}
  go(i,true);
- $('rangePickFeedback').textContent=`${i+1}번 음을 시작점으로 지정했습니다. 끝 음표를 오른쪽 클릭하거나 끝점 지정 버튼을 사용하세요.`;
+ $('rangePickFeedback').textContent=`시작 ${i+1}번 · 끝 음표를 오른쪽 클릭해 범위를 지정하세요.`;
 }
 function setQuickEnd(i){
  if(i<0||i>=notes.length)return;
