@@ -105,6 +105,8 @@ html,body{width:100%;max-width:100%;overflow-x:clip}
 .token.nowPlaying::before{content:'♪ 지금 재생';background:#c21f69;color:#fff;font-weight:800;font-size:10px;padding:3px 6px;border-radius:5px;white-space:nowrap;position:absolute;left:50%;top:-13px;transform:translateX(-50%);z-index:3}
 .token.nowPlaying .lyric{color:#8d154c}
 @media(max-width:530px){.scoreStacks{gap:9px}.scoreLine{padding:7px}.scoreLineHead{font-size:12px}.token.nowPlaying::before{font-size:9px;top:-11px}}
+.rangePickTools button{padding:8px 12px;min-height:42px;font-size:13px}
+.rangePickTools button[aria-pressed="true"]{background:#edf3ff;border-color:#2965dc;color:#194daf;box-shadow:inset 0 0 0 1px #2965dc}
 /* Compact note buttons stay within the score width, including on phones. */
 .scoreLine .noteStrip{display:flex;flex-wrap:wrap;align-items:stretch;gap:4px;overflow:visible;padding:10px 0 4px;scroll-behavior:auto}
 .scoreLine .token{flex:0 0 clamp(36px,4vw,44px);width:clamp(36px,4vw,44px);min-width:0;max-width:44px;min-height:66px;padding:6px 2px;gap:3px;border-radius:7px;touch-action:manipulation}
@@ -145,6 +147,12 @@ html,body{width:100%;max-width:100%;overflow-x:clip}
   </div>
 </div>
 <div class="sub" style="margin-top:10px">◀ 이전 악보 / 다음 악보 ▶ 는 <b>화면만 이동</b>하며 재생 시작점은 바꾸지 않습니다. 두 줄 모두 음표나 가사 버튼을 클릭하면 그 음을 선택할 수 있습니다. 누락된 음표는 ‘추가’ 체크 후 악보를 클릭하세요.</div>
+<div class="rangePickTools" role="group" aria-label="음표로 재생 범위 지정" style="display:flex;flex-wrap:wrap;align-items:center;gap:7px;margin-top:10px">
+ <button type="button" id="rangePickStart" aria-pressed="true">시작점 지정</button>
+ <button type="button" id="rangePickEnd" aria-pressed="false">끝점 지정</button>
+ <span class="sub">PC: 왼쪽 클릭은 시작 · 오른쪽 클릭은 끝 / 터치: 끝점 지정 → 음표 터치</span>
+</div>
+<div id="rangePickFeedback" class="sub" role="status" style="margin-top:7px">끝 음표를 오른쪽 클릭하면 재생할 음 개수가 자동으로 계산됩니다.</div>
 <div class="rangeLegend" style="margin-top:9px"><span><strong>▶ 시작</strong> / <em>■ 끝</em> : 선택한 연속 재생 범위</span><span class="playLegend">♪ 분홍색: 현재 재생 중인 음</span></div>
 <div class="lyricSettings" role="group" aria-label="음표별 가사 확인 및 수정">
   <h3>선택 음표의 가사</h3>
@@ -159,12 +167,12 @@ html,body{width:100%;max-width:100%;overflow-x:clip}
 <div class="quickRange" role="group" aria-label="선택한 음표부터 원하는 개수만큼 연속 듣기">
   <div class="quickRangeIntro">
     <div class="quickRangeHeading">선택한 음부터 바로 이어 듣기 <span class="quickNew">v9</span></div>
-    <div class="sub">위의 음표 버튼 또는 악보에서 <b>시작 음을 클릭</b>하세요. 선택한 음부터 지정한 개수만큼 연속 재생합니다. <b>악보 넘기기는 시작점을 변경하지 않으며</b>, 재생 중인 음표는 <b>분홍색</b>으로 표시됩니다.</div>
+    <div class="sub">위의 음표 버튼 또는 악보에서 <b>왼쪽 클릭으로 시작점, 오른쪽 클릭으로 끝점</b>을 지정하세요. 음표 수는 자동 계산되며 직접 변경할 수도 있습니다. <b>악보 넘기기는 시작점을 변경하지 않으며</b>, 재생 중인 음표는 <b>분홍색</b>으로 표시됩니다.</div>
   </div>
   <div class="quickRangeControls">
     <label for="quickCount">들을 음표 수</label>
     <button type="button" class="tiny" id="quickCountDown" aria-label="연속 재생 음표 수 1개 줄이기">−</button>
-    <input id="quickCount" type="number" min="1" max="48" step="1" value="6" inputmode="numeric" aria-label="선택 음부터 재생할 음표 개수" />
+    <input id="quickCount" type="number" min="1" max="244" step="1" value="6" inputmode="numeric" aria-label="선택 음부터 재생할 음표 개수" />
     <button type="button" class="tiny" id="quickCountUp" aria-label="연속 재생 음표 수 1개 늘리기">+</button>
     <button type="button" class="primary" id="quickPlay" title="선택한 음부터 지정한 음표 개수만큼 연속 듣기">▶ 선택 음부터 듣기</button>
   </div>
@@ -332,7 +340,10 @@ function renderStrip(){
    const pitch=document.createElement('b');pitch.textContent=midiName(n.midi+shift+octave);b.appendChild(pitch);
    const lyricEl=document.createElement('span');lyricEl.className='lyric'+(lyric?'':' empty');lyricEl.textContent=lyric||'—';b.appendChild(lyricEl);
    if(isStart||isEnd){const marker=document.createElement('span');marker.className='rangeBadge '+(isStart&&isEnd?'both':isStart?'start':'end');marker.textContent=isStart&&isEnd?'시작·끝':isStart?'▶ 시작':'■ 끝';b.appendChild(marker);}
-   b.onclick=()=>go(i,true);list.appendChild(b);
+   b.onclick=()=>pickRangeNote(i);
+   b.oncontextmenu=e=>{e.preventDefault();setQuickEnd(i);};
+   b.onkeydown=e=>{if(e.shiftKey&&(e.key==='Enter'||e.key===' ')){e.preventDefault();setQuickEnd(i);}};
+   list.appendChild(b);
   });
   let el=list.querySelector('.nowPlaying')||list.querySelector('.sel');
   if(el){const desired=el.offsetLeft-(list.clientWidth-el.offsetWidth)/2;list.scrollLeft=Math.max(0,Math.min(list.scrollWidth-list.clientWidth,desired));}
@@ -385,10 +396,10 @@ function drawOneStaff(id,row){
   }
  }
 }
-function handleScoreClick(e,row){
+function handleScoreClick(e,row,asEnd=false){
  const c=e.currentTarget,box=c.getBoundingClientRect(),px=(e.clientX-box.left)*c.width/box.width,py=(e.clientY-box.top)*c.height/box.height,rect=scoreRect(row);
  const x=rect.left+px*rect.w/c.width,y=rect.top+py*rect.h/c.height;
- if($('addToggle').checked){
+ if($('addToggle').checked&&!asEnd){
   const newN={id:Math.max(...notes.map(n=>n.id),1)+1,row,x:Math.round(x),y:Math.round(y),midi:naturalMidi(row,y),kind:'manual'};
   notes.push(newN);notes.sort((a,b)=>a.row-b.row||a.x-b.x);
   current=notes.indexOf(newN);quickAnchor=current;$('addToggle').checked=false;
@@ -396,10 +407,12 @@ function handleScoreClick(e,row){
  }
  let best=-1,dist=Infinity;
  notes.forEach((n,i)=>{if(n.row!==row)return;const d=Math.abs(n.x-x)+Math.abs(n.y-y)*.5;if(d<dist){dist=d;best=i;}});
- if(best>=0&&dist<40)go(best,true);
+ if(best>=0&&dist<40){if(asEnd)setQuickEnd(best);else pickRangeNote(best);}
 }
 $('staff').addEventListener('click',e=>handleScoreClick(e,shownScoreRows().main));
 $('staffNext').addEventListener('click',e=>{const row=shownScoreRows().next;if(row!==null)handleScoreClick(e,row);});
+$('staff').addEventListener('contextmenu',e=>{e.preventDefault();handleScoreClick(e,shownScoreRows().main,true);});
+$('staffNext').addEventListener('contextmenu',e=>{e.preventDefault();const row=shownScoreRows().next;if(row!==null)handleScoreClick(e,row,true);});
 $('down').onclick=()=>{if(phrasePlaying)stopPhrase('키 변경으로 재생을 중지했습니다.');shift=Math.max(-12,shift-1);render()};$('up').onclick=()=>{if(phrasePlaying)stopPhrase('키 변경으로 재생을 중지했습니다.');shift=Math.min(12,shift+1);render()};$('oct').onchange=e=>{if(phrasePlaying)stopPhrase('옥타브 변경으로 재생을 중지했습니다.');octave=Number(e.target.value);render()};$('prev').onclick=()=>go(current-1,true);$('next').onclick=()=>go(current+1,true);$('play').onclick=()=>playTone(targetMidi());$('nDown').onclick=()=>{if(phrasePlaying)stopPhrase();note().midi--;render()};$('nUp').onclick=()=>{if(phrasePlaying)stopPhrase();note().midi++;render()};$('resetCorrections').onclick=()=>{if(confirm('추가/수정한 음표를 모두 초기화할까요?')){if(phrasePlaying)stopPhrase();manualPhrase=null;notes=baseNotes.map(n=>({...n}));current=0;quickAnchor=0;render()}};
 // YIN pitch estimator, 75~850 Hz with silence detection
 function yin(buf,rate){const rms=Math.sqrt(buf.reduce((s,x)=>s+x*x,0)/buf.length);if(rms<.012)return null;const tauMin=Math.floor(rate/850),tauMax=Math.min(Math.floor(rate/75),Math.floor(buf.length/2)-1),N=buf.length-tauMax;const diff=new Float32Array(tauMax+1);for(let t=1;t<=tauMax;t++){let sum=0;for(let j=0;j<N;j++){const d=buf[j]-buf[j+t];sum+=d*d}diff[t]=sum}let rolling=0,candidate=-1,best=1;for(let t=1;t<=tauMax;t++){rolling+=diff[t];diff[t]=rolling>0?diff[t]*t/rolling:1}for(let t=tauMin;t<=tauMax;t++){if(diff[t]<.16){while(t+1<=tauMax&&diff[t+1]<diff[t])t++;candidate=t;best=diff[t];break}}if(candidate<0){for(let t=tauMin;t<=tauMax;t++)if(diff[t]<best){best=diff[t];candidate=t}if(best>.30)return null}let refined=candidate;if(candidate>1&&candidate<tauMax){let x0=diff[candidate-1],x1=diff[candidate],x2=diff[candidate+1],den=2*(2*x1-x0-x2);if(Math.abs(den)>1e-9)refined+=(x0-x2)/den}const hz=rate/refined;return hz>=75&&hz<=850?{hz,rms,quality:Math.max(0,1-best)}:null}
@@ -449,9 +462,34 @@ function updatePhraseUI(){
  updateQuickUI();
 }
 
+let rangePickMode='start';
+function setRangePickMode(mode){
+ rangePickMode=mode;
+ $('rangePickStart').setAttribute('aria-pressed',String(mode==='start'));
+ $('rangePickEnd').setAttribute('aria-pressed',String(mode==='end'));
+}
+function pickRangeNote(i){
+ if(rangePickMode==='end'){setQuickEnd(i);return;}
+ go(i,true);
+ $('rangePickFeedback').textContent=`${i+1}번 음을 시작점으로 지정했습니다. 끝 음표를 오른쪽 클릭하거나 끝점 지정 버튼을 사용하세요.`;
+}
+function setQuickEnd(i){
+ if(i<0||i>=notes.length)return;
+ if(i<quickAnchor){
+  $('rangePickFeedback').textContent=`끝점은 시작점(${quickAnchor+1}번)과 같거나 뒤의 음표를 선택해 주세요. 기존 범위는 유지됩니다.`;
+  return;
+ }
+ if(phrasePlaying)stopPhrase('재생 범위가 변경되어 재생을 중지했습니다.');
+ $('quickCount').value=String(i-quickAnchor+1);
+ go(i,true,true);
+ setRangePickMode('start');
+ $('rangePickFeedback').textContent=`${quickAnchor+1}~${i+1}번 음 · ${i-quickAnchor+1}개 음표로 재생 범위를 지정했습니다.`;
+}
+$('rangePickStart').onclick=()=>{setRangePickMode('start');$('rangePickFeedback').textContent='시작 음표를 클릭하거나 터치해 주세요.';};
+$('rangePickEnd').onclick=()=>{setRangePickMode('end');$('rangePickFeedback').textContent='끝 음표를 클릭하거나 터치해 주세요. 음표 수가 자동 계산됩니다.';};
 function getQuickCount(){
  const n=Number($('quickCount').value);
- return Number.isFinite(n)?Math.max(1,Math.min(48,Math.round(n))):6;
+ return Number.isFinite(n)?Math.max(1,Math.min(notes.length,Math.round(n))):6;
 }
 function quickRange(){
  const start=Math.max(0,Math.min(notes.length-1,quickAnchor));
@@ -459,6 +497,7 @@ function quickRange(){
 }
 function updateQuickUI(){
  if(!notes.length)return;
+ $('quickCount').max=String(notes.length);
  const p=quickRange(),count=p.end-p.start+1;
  const first=midiName(notes[p.start].midi+shift+octave),last=midiName(notes[p.end].midi+shift+octave);
  const quickActive=phrasePlaying&&activePlayback?.kind==='quick';
@@ -469,7 +508,7 @@ function updateQuickUI(){
  $('quickPlay').setAttribute('aria-pressed',String(quickActive));
 }
 function changeQuickCount(value){
- const normalized=Math.max(1,Math.min(48,Math.round(Number(value)||6)));
+ const normalized=Math.max(1,Math.min(notes.length,Math.round(Number(value)||6)));
  $('quickCount').value=String(normalized);
  if(phrasePlaying)stopPhrase('재생 개수가 변경되어 재생을 중지했습니다.');
  updateQuickUI();
