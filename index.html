@@ -4,17 +4,17 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#15324e">
-  <meta name="description" content="음정·청음 연습과 아로하 음정 트레이너를 한곳에서 여는 보컬 연습실">
+  <meta name="description" content="음정·청음 연습과 아로하·봄봄봄 음정 트레이너를 한곳에서 여는 보컬 연습실">
   <title>보컬 연습실</title>
   <style>
     :root { color-scheme: light; --ink:#15324e; --muted:#5c6d7b; --line:#dce5eb; }
     * { box-sizing:border-box; }
     body { margin:0; min-height:100vh; background:#f4f7f9; color:var(--ink); font-family:system-ui,-apple-system,"Apple SD Gothic Neo","Malgun Gothic",sans-serif; line-height:1.6; }
-    main { max-width:860px; margin:auto; padding:70px 24px 48px; }
+    main { max-width:1100px; margin:auto; padding:70px 24px 48px; }
     .eyebrow { margin:0 0 12px; color:#52718a; font-size:12px; font-weight:700; letter-spacing:.14em; }
     h1 { margin:0; font-size:clamp(30px,6vw,44px); line-height:1.25; letter-spacing:-.04em; }
     .intro { margin:16px 0 32px; color:var(--muted); font-size:16px; }
-    .grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:18px; }
+    .grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:18px; }
     .card { display:flex; flex-direction:column; padding:28px; background:#fff; border:1px solid var(--line); border-radius:22px; box-shadow:0 8px 26px #15324e06; }
     .badge { align-self:flex-start; padding:4px 10px; border-radius:99px; background:#eef4fc; color:#245fa1; font-size:12px; font-weight:700; }
     .song .badge { background:#eaf6f2; color:#20735d; }
@@ -44,10 +44,16 @@
         <a class="open" href="./pitch.html">음정·청음 연습 열기 <span aria-hidden="true">→</span></a>
       </section>
       <section class="card song" aria-labelledby="aloha-title">
-        <span class="badge">ALOHA · v9</span>
+        <span class="badge">ALOHA · 원키</span>
         <h2 id="aloha-title">아로하 음정 트레이너</h2>
-        <p>아로하의 멜로디를 들으며, 구간별로 음정을 익히고 연습해 보세요.</p>
+        <p>원키로 듣고, 시작·끝점을 골라 구간별로 연습하세요.</p>
         <a class="open" href="./aloha.html">아로하 연습 열기 <span aria-hidden="true">→</span></a>
+      </section>
+      <section class="card song" aria-labelledby="bom-title">
+        <span class="badge">봄봄봄 · 원키</span>
+        <h2 id="bom-title">봄봄봄 음정 트레이너</h2>
+        <p>로이킴 봄봄봄을 악보와 함께 듣고, 원하는 구간을 연습하세요.</p>
+        <a class="open" href="./bom.html">봄봄봄 연습 열기 <span aria-hidden="true">→</span></a>
       </section>
     </div>
     <aside aria-label="사용 안내">
