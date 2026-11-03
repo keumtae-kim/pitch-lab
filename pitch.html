@@ -96,6 +96,15 @@
 #practice-nav span{font-size:12px;color:#607080;text-align:center}
 @media(max-width:380px){#practice-nav{gap:5px;padding:7px 8px}#practice-nav a{font-size:12px;padding:8px}#practice-nav span{font-size:11px}}
 </style>
+<style>
+.jump-panel{border:1px solid #cde0ed;background:#f7fbff;border-radius:12px;padding:13px;margin:0 0 13px}
+.jump-panel[hidden],#autoRootControl[hidden]{display:none}
+.jump-options{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);gap:8px;margin-bottom:10px}
+.jump-notes{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.jump-options>div,.jump-notes>div{min-width:0}.jump-panel select{font-size:13px;padding:9px 6px}
+.jump-panel .label{margin-bottom:5px}.jump-panel p{margin:9px 0 0;line-height:1.5}
+@media(max-width:480px){.jump-options{grid-template-columns:minmax(0,1fr)}.jump-notes{gap:5px}.jump-panel{padding:10px}}
+</style>
 </head>
 <body>
 <nav id="practice-nav" aria-label="연습 도구 이동"><a href="./">← 연습 목록으로</a><span>음정·청음 v5</span><a href="./aloha.html">아로하 →</a></nav>
@@ -199,18 +208,37 @@
           <p class="ear-muted cmp-footnote">음높이를 구별하는 청음 연습입니다. 정확하게 목소리로 따라 부르는 능력은 기존 한 음 재현·스케일 연습과 함께 길러 주세요.</p>
         </div>
         <div class="card">
-          <h2>3. 스케일 연습 <span class="pill">3음 · 5음</span></h2>
-          <p class="sub">시작음과 스케일 길이만 선택하면 상행·하행 음형을 자동으로 만듭니다. 기존 패턴과 직접 입력도 그대로 이용할 수 있어요.</p>
+          <h2>3. 스케일 연습 <span class="pill">3음 · 5음 · 도약</span></h2>
+          <p class="sub">가까운 음의 스케일 또는 큰 음정 간격의 3음 도약을 선택하세요.</p>
           <div class="scale-panel">
             <div class="toolbar">
-              <div class="control"><label class="label" for="scaleSize">스케일 종류</label><select id="scaleSize"><option value="3" selected>3음 · 도레미레도</option><option value="5">5음 · 도레미파솔파미레도</option></select></div>
-              <div class="control"><label class="label" for="scaleRoot">시작음</label><div class="start-picker"><button type="button" class="btn" id="rootDown" aria-label="시작음 반음 내리기">−</button><select id="scaleRoot" aria-label="자동 스케일 시작음"></select><button type="button" class="btn" id="rootUp" aria-label="시작음 반음 올리기">+</button></div></div>
+              <div class="control"><label class="label" for="scaleSize">스케일 종류</label><select id="scaleSize"><option value="3" selected>3음 · 도레미레도</option><option value="5">5음 · 도레미파솔파미레도</option><option value="jump">3음 도약 · 음 직접 선택</option></select></div>
+              <div class="control" id="autoRootControl"><label class="label" for="scaleRoot">시작음</label><div class="start-picker"><button type="button" class="btn" id="rootDown" aria-label="시작음 반음 내리기">−</button><select id="scaleRoot" aria-label="자동 스케일 시작음"></select><button type="button" class="btn" id="rootUp" aria-label="시작음 반음 올리기">+</button></div></div>
             </div>
             <p class="scale-help" id="scaleHelp">선택한 음을 '도'로 삼아 온음·반음 간격에 맞게 자동 생성합니다. 검은 건반도 포함됩니다.</p>
           </div>
+          <div id="jumpPanel" class="jump-panel" hidden>
+            <div class="jump-options">
+              <div><label class="label" for="jumpExample">도약 예제</label><select id="jumpExample">
+                <option value="53,62,76" selected>F3 → D4 → E5 · 요청 예제</option>
+                <option value="48,55,60">C3 → G3 → C4 · 5도·옥타브</option>
+                <option value="53,60,65">F3 → C4 → F4 · 5도·옥타브</option>
+                <option value="53,62,53">F3 → D4 → F3 · 올라갔다 돌아오기</option>
+                <option value="60,55,48">C4 → G3 → C3 · 내려가기</option>
+                <option value="custom">세 음 직접 선택</option>
+              </select></div>
+              <div><label class="label" for="jumpOrder">재생 방향</label><select id="jumpOrder"><option value="once">입력 순서 · 3음</option><option value="return">왕복 · 5음</option></select></div>
+            </div>
+            <div class="jump-notes">
+              <div><label class="label" for="jumpNote1">첫 음</label><select id="jumpNote1"></select></div>
+              <div><label class="label" for="jumpNote2">둘째 음</label><select id="jumpNote2"></select></div>
+              <div><label class="label" for="jumpNote3">셋째 음</label><select id="jumpNote3"></select></div>
+            </div>
+            <p id="jumpIntervals" class="small" aria-live="polite"></p>
+          </div>
           <label class="label" for="preset">연습 패턴 방식</label>
           <select id="preset">
-            <option value="auto" selected>자동 생성 · 시작음 + 3음/5음</option>
+            <option value="auto" selected>자동 생성 · 시작음 + 3음/5음</option><option value="jump">3음 도약 · 선택한 음으로 생성</option>
             <option value="E3 F3 G3 F3 E3">기존 패턴: E3 → F3 → G3 → F3 → E3</option>
             <option value="C3 D3 E3 D3 C3">C3 → D3 → E3 → D3 → C3</option>
             <option value="F3 G3 A3 G3 F3">F3 → G3 → A3 → G3 → F3</option>
@@ -284,21 +312,48 @@
   function buildRootOptions(){const root=$('scaleRoot');for(let m=minScaleRoot;m<=maxScaleRoot;m++){let opt=document.createElement('option');opt.value=String(m);opt.textContent=nameOf(m)+' · '+korOf(m);root.appendChild(opt)}root.value='52';updateRootButtons()}
   function updateRootButtons(){const n=Number($('scaleRoot').value);$('rootDown').disabled=n<=minScaleRoot;$('rootUp').disabled=n>=maxScaleRoot}
   function autoScale(){const start=Number($('scaleRoot').value),count=Number($('scaleSize').value),up=scaleSteps.slice(0,count).map(step=>start+step);return up.concat(up.slice(0,-1).reverse())}
+  function buildJumpOptions(){
+    [53,62,76].forEach((initial,i)=>{
+      const select=$('jumpNote'+(i+1));
+      for(let m=36;m<=84;m++){const option=document.createElement('option');option.value=String(m);option.textContent=nameOf(m);select.appendChild(option)}
+      select.value=String(initial);
+    });
+  }
+  function jumpScale(){
+    const notes=[1,2,3].map(i=>Number($('jumpNote'+i).value));
+    return $('jumpOrder').value==='return'?notes.concat(notes.slice(0,-1).reverse()):notes;
+  }
+  function updateJumpIntervals(){
+    const notes=[1,2,3].map(i=>Number($('jumpNote'+i).value));
+    const describe=(a,b)=>{const d=b-a;return d===0?'같은 음':`${d>0?'↑':'↓'} ${Math.abs(d)}반음`};
+    $('jumpIntervals').textContent=`${nameOf(notes[0])} → ${nameOf(notes[1])}: ${describe(notes[0],notes[1])} · ${nameOf(notes[1])} → ${nameOf(notes[2])}: ${describe(notes[1],notes[2])}`;
+  }
+  function onJumpChanged(){stopSeq();$('preset').value='jump';syncPattern();choose(Number($('jumpNote1').value));$('seqStatus').textContent='도약 패턴 준비됨. ▶ 도약 재생을 눌러보세요.'}
+  $('jumpExample').addEventListener('change',()=>{
+    const value=$('jumpExample').value;if(value==='custom')return;
+    value.split(',').forEach((n,i)=>$('jumpNote'+(i+1)).value=n);onJumpChanged();
+  });
+  [1,2,3].forEach(i=>$('jumpNote'+i).addEventListener('change',()=>{$('jumpExample').value='custom';onJumpChanged()}));
+  $('jumpOrder').addEventListener('change',onJumpChanged);
   function syncPattern(){const mode=$('preset').value,field=$('customNotes');field.readOnly=mode!=='custom';field.classList.toggle('readonly-notes',field.readOnly);
+    if(mode==='jump')$('scaleSize').value='jump';else if($('scaleSize').value==='jump')$('scaleSize').value='3';
+    $('jumpPanel').hidden=mode!=='jump';$('autoRootControl').hidden=mode==='jump';
+    $('playSeq').textContent=mode==='jump'?'▶ 도약 재생':'▶ 스케일 재생';
     if(mode==='auto')field.value=autoScale().map(nameOf).join(' ');
+    else if(mode==='jump'){field.value=jumpScale().map(nameOf).join(' ');updateJumpIntervals();}
     else if(mode!=='custom')field.value=mode;
     const count=$('scaleSize').value;
-    $('scaleHelp').textContent=mode==='auto'?`${count}음 스케일 · ${Number(count)*2-1}개 음표로 왕복합니다. 시작음을 바꾸면 반음 단위로 전체 패턴이 이동합니다.`:'시작음 또는 스케일 종류를 바꾸면 자동 생성 패턴으로 전환됩니다.';
+    $('scaleHelp').textContent=mode==='jump'?'C2~C6에서 세 음을 각각 고릅니다. 음 길이·쉬는 시간·반복은 아래에서 조절하세요.':mode==='auto'?`${count}음 스케일 · ${Number(count)*2-1}개 음표로 왕복합니다. 시작음을 바꾸면 반음 단위로 전체 패턴이 이동합니다.`:'시작음 또는 스케일 종류를 바꾸면 자동 생성 패턴으로 전환됩니다.';
     updateRootButtons();drawChips();
   }
-  function onAutoChanged(){stopSeq();$('preset').value='auto';syncPattern();choose(Number($('scaleRoot').value));$('seqStatus').textContent='자동 스케일 생성됨. ▶ 스케일 재생을 눌러보세요.'}
+  function onAutoChanged(){stopSeq();const jumping=$('scaleSize').value==='jump';$('preset').value=jumping?'jump':'auto';syncPattern();choose(Number($(jumping?'jumpNote1':'scaleRoot').value));$('seqStatus').textContent=jumping?'도약 패턴 준비됨. ▶ 도약 재생을 눌러보세요.':'자동 스케일 생성됨. ▶ 스케일 재생을 눌러보세요.'}
   function sequence(){const notes=$('customNotes').value.trim().split(/[\s,;]+/).filter(Boolean);if(!notes.length)return null;const ms=notes.map(parseNote);return ms.some(m=>m===null)?null:ms}
   function drawChips(activeIndex=-1){const root=$('noteChips');root.replaceChildren();const seq=sequence();if(!seq){root.textContent='음 이름을 확인하세요 (예: E3 F#3 G#3 F#3 E3)';root.style.color='#a73b3b';return}root.style.color='';seq.forEach((m,i)=>{let div=document.createElement('span');div.className='chip'+(i===activeIndex?' active':'');div.textContent=nameOf(m);root.appendChild(div)})}
   $('scaleSize').addEventListener('change',onAutoChanged);
   $('scaleRoot').addEventListener('change',onAutoChanged);
   $('rootDown').addEventListener('click',()=>{const n=Number($('scaleRoot').value);$('scaleRoot').value=String(Math.max(minScaleRoot,n-1));onAutoChanged()});
   $('rootUp').addEventListener('click',()=>{const n=Number($('scaleRoot').value);$('scaleRoot').value=String(Math.min(maxScaleRoot,n+1));onAutoChanged()});
-  $('preset').addEventListener('change',()=>{stopSeq();syncPattern()});
+  $('preset').addEventListener('change',()=>{stopSeq();syncPattern();if($('preset').value==='jump')choose(Number($('jumpNote1').value))});
   $('customNotes').addEventListener('input',()=>{stopSeq();drawChips()});
   ['speed','pause'].forEach(id=>$(id).addEventListener('input',()=>{$(id+'Text').textContent=(Number($(id).value)/1000).toFixed(1)+'초'}));
   function stopSeq(){sequencePlaying=false;seqTimers.forEach(clearTimeout);seqTimers=[];stopVoices();drawChips();$('seqStatus').textContent='재생 준비됨.'}
@@ -797,7 +852,7 @@
     }
   });
   window.addEventListener('pagehide',()=>{stopEarTrial();clearCmpPlayback();stopSeq();if(micStream)micStream.getTracks().forEach(t=>t.stop())});
-  buildRootOptions();buildKeyboard();syncPattern();choose(Number($('scaleRoot').value));
+  buildRootOptions();buildJumpOptions();buildKeyboard();syncPattern();choose(Number($('scaleRoot').value));
 })();
 </script>
 </body>
