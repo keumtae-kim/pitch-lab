@@ -183,12 +183,46 @@ header{padding:12px 16px 8px}header h1{font-size:21px;margin:0}
 .navDock{width:min(780px,calc(100vw - 24px));padding:7px;gap:5px;grid-template-columns:1fr 1fr 1fr 1.15fr}.navDock button{min-height:42px;font-size:12px;padding:6px 4px}.navDock .dockHead{font-size:11px}
 @media(max-width:600px){header{padding-top:8px}header h1{font-size:19px}.wrap{padding:0 8px 130px}.wrap>.card{padding:8px}.toolbar .group{gap:4px}.toolbar select{max-width:190px}.quickRange{grid-template-columns:minmax(0,1fr);padding:7px 8px}.quickRangeIntro{display:none}.quickRangeControls{justify-content:flex-start}.quickRangeControls #quickPlay{width:auto;margin:0;min-height:40px}.quickRangeControls .tiny{width:34px;height:38px}.quickRangeStatus{font-size:10px}.scoreLine{padding:4px}.scorePaging button{min-height:36px;font-size:11px}.rangePickTools button{min-height:38px}.navDock{width:calc(100vw - 12px);padding:6px;gap:4px}.navDock button{min-height:44px;font-size:11px}.rangeLegend .playLegend{font-size:10px}}
 </style>
+<style>
+/* Compact, full-width notation: space savings come from margins and controls. */
+header{padding:6px 12px 4px}header h1{font-size:18px}
+#practice-nav{padding:4px 10px;gap:6px}#practice-nav a{min-height:28px;font-size:12px;padding:5px 9px;border-radius:7px}#practice-nav span{font-size:12px}
+.wrap{gap:6px;padding-bottom:102px}.wrap>.card{padding:8px;border-radius:11px}
+.toolbar{gap:6px}.toolbar .group{gap:4px}.toolbar .label,.toolbar .sub{font-size:11px}.toolbar .pill{font-size:11px;padding:4px 7px}
+.toolbar button,.toolbar select{padding:4px 7px;font-size:12px;min-height:26px}
+.quickRange{margin:0 0 4px;padding:6px 8px;gap:3px 8px}.quickRangeHeading{font-size:12px}.quickRangeControls label{font-size:11px}
+.quickRangeControls .tiny{height:27px;width:27px;min-height:27px;padding:1px;font-size:15px}.quickRangeControls input[type=number]{padding:3px;width:44px;font-size:13px}
+.quickRangeControls #quickPlay{min-height:28px;padding:4px 8px;font-size:12px}.quickRangeStatus{font-size:11px;line-height:1.3}
+.rangePickTools{display:inline-flex!important;gap:4px!important;margin:0!important}.rangePickTools button{min-height:26px;padding:4px 8px;font-size:11px}
+#rangePickFeedback{display:inline;font-size:10px;margin-left:6px!important}#rangePickFeedback:empty{display:none}
+.scorePaging{grid-template-columns:auto minmax(0,1fr) auto;gap:5px;padding:4px;margin-top:4px}
+.scorePaging button{min-height:26px;padding:4px 8px;font-size:11px}.scorePagingInfo{display:flex;justify-content:center;align-items:center;gap:8px;flex-wrap:wrap}.scorePagingInfo strong{font-size:11px;white-space:nowrap}
+.score-count-label,.score-notes-label{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:600;white-space:nowrap;color:#52647c}
+#scoreLineCount{width:60px;min-height:25px;padding:3px 4px;font-size:11px;border-radius:6px}.score-notes-label input{width:14px;height:14px;margin:0}
+.scoreStacks{gap:4px;margin-top:4px}.scoreLine{padding:4px 5px;border-radius:8px}.scoreLine[hidden]{display:none}.scoreLineHead{margin-bottom:2px;font-size:11px;gap:4px;line-height:1.25}.scoreLineHead .lineTag{display:none}.scoreLineHead .sub{font-size:10px}
+.scoreLine .noteStrip{gap:2px;padding:4px 0 0;margin-top:0;overflow:visible}.scoreStacks.hide-note-buttons .noteStrip{display:none}
+.scoreLine .token{flex:1 1 28px;width:auto;min-width:28px;max-width:36px;min-height:42px;padding:3px 1px;gap:1px;border-radius:5px}
+.scoreLine .token .num{font-size:8px;line-height:9px;margin:0}.scoreLine .token b{font-size:10px;line-height:11px;letter-spacing:-.3px}.scoreLine .token .lyric{font-size:11px;line-height:12px}
+.scoreLine .token .rangeBadge{position:absolute;top:-3px;right:-1px;font-size:7px;line-height:1;padding:1px 2px}.scoreLine .token.rangeStart .num,.scoreLine .token.rangeEnd .num{visibility:hidden}.scoreLine .token.nowPlaying::before{display:none}
+.scoreStacks[data-lines="4"] .token{min-height:32px}.scoreStacks[data-lines="4"] .token .num{display:none}.scoreStacks[data-lines="4"] .token .rangeBadge{display:none}
+.practicePanels{margin-top:4px}.practicePanels .lyricSettings{padding:4px 7px}.lyricPanelSummary{min-height:18px;font-size:11px}
+.navDock{bottom:calc(6px + env(safe-area-inset-bottom,0px));padding:5px;gap:4px;border-radius:11px}.navDock button{min-height:32px;padding:3px;font-size:11px;line-height:1.15}.navDock .dockHead{font-size:10px;line-height:1.2}
+.score-edit-tools{margin:8px 0}.extraPractice{font-size:11px;padding:6px 9px}
+@media(max-width:600px){
+ #practice-nav a{min-height:34px}.wrap{padding:0 6px 105px}.wrap>.card{padding:6px}.toolbar button,.toolbar select{min-height:32px;font-size:12px}
+ .quickRange{padding:6px}.quickRangeControls .tiny{width:32px;height:34px}.quickRangeControls #quickPlay{min-height:34px;font-size:12px}.quickRangeStatus{font-size:10px}
+ .rangePickTools button{min-height:34px;font-size:12px}.scorePaging{gap:3px;padding:3px}.scorePaging button{min-height:32px;padding:4px;font-size:10px}.scorePagingInfo{gap:3px 6px}.scorePagingInfo strong{font-size:10px}
+ .score-notes-label{font-size:10px}.score-count-label{font-size:10px}#scoreLineCount{min-height:30px;width:54px}
+ .scoreLine{padding:4px}.scoreLine .token,.scoreStacks[data-lines="4"] .token{flex:0 0 34px;width:34px;min-width:34px;max-width:34px;min-height:44px;padding:4px 1px}
+ .scoreLine .token b{font-size:11px}.scoreLine .token .lyric{font-size:11px}.navDock button{min-height:40px;font-size:11px}
+}
+</style>
 </head><body>
 <nav id="practice-nav" aria-label="연습 도구 이동"><a href="./">← 연습 목록</a><span>봄봄봄</span><a href="./aloha.html">아로하 →</a></nav>
 <header><h1>봄봄봄 <span style="font-weight:400;color:#59718a">·</span> 음정 트레이너</h1></header>
 <main class="wrap">
 <section class="card"><div class="toolbar"><div class="group"><span class="label">조옮김</span><button class="tiny" id="down">−</button><b id="shiftName" style="min-width:42px;text-align:center">원키</b><button class="tiny" id="up">+</button><span class="sub">반음</span></div><div class="group"><span class="label">옥타브</span><select id="oct"><option value="-12" selected>남성 보컬 음역</option><option value="0">한 옥타브 위</option><option value="12">두 옥타브 위</option></select></div><div class="group"><label class="label" for="soundStyle">기준음 소리</label><select id="soundStyle" aria-label="기준음 소리 종류"><option value="piano" selected>피아노 느낌</option><option value="classic">기존 전자음</option><option value="sine">순수음 · 사인파</option><option value="organ">오르간 느낌</option></select></div><div class="group"><span class="label">기준음 A4</span><span class="pill">440Hz</span><span class="pill">원키 E · 악보 C / 카포 4</span></div></div></section>
-<section class="card"><div class="display"><div><div class="label" id="lineTitle">보컬 도입부</div><div class="sub" id="progressTxt">1 / 1</div></div><div class="tools"><label class="sub"><input type="checkbox" id="addToggle"> 악보 클릭으로 누락 음표 추가</label><button class="tiny" id="resetCorrections">음표 수정 초기화</button></div></div>
+<section class="card"><div hidden><span id="lineTitle"></span><span id="progressTxt"></span></div>
 <div class="quickRange" role="group" aria-label="선택한 음표부터 원하는 개수만큼 연속 듣기">
   <div class="quickRangeIntro">
     <div class="quickRangeHeading">선택 음부터 듣기</div>
@@ -206,15 +240,14 @@ header{padding:12px 16px 8px}header h1{font-size:21px;margin:0}
 <div class="rangePickTools" role="group" aria-label="음표로 재생 범위 지정" style="display:flex;flex-wrap:wrap;align-items:center;gap:7px;margin-top:10px">
  <button type="button" id="rangePickStart" aria-pressed="true">시작점 지정</button>
  <button type="button" id="rangePickEnd" aria-pressed="false">끝점 지정</button>
- <span class="sub">왼쪽 클릭: 시작 · 오른쪽 클릭: 끝 · 터치: 지정 버튼 사용</span>
 </div>
-<div id="rangePickFeedback" class="sub" role="status" style="margin-top:7px">끝점을 지정하면 음표 수가 자동 계산됩니다.</div>
+<div id="rangePickFeedback" class="sub" role="status" style="margin-top:7px"></div>
 <div class="scorePaging" role="group" aria-label="악보 화면 이동 (선택 음표는 그대로 유지)">
   <button type="button" id="scorePrev" title="보이는 악보를 한 줄 앞으로 이동 (재생 시작점 유지)">◀ 이전 악보</button>
-  <div class="scorePagingInfo" aria-live="polite"><strong id="scorePageTitle">악보 두 줄 보기</strong><span id="scorePageCount">1~2 / 9</span></div>
+  <div class="scorePagingInfo" aria-live="polite"><strong id="scorePageTitle">악보</strong><label class="score-count-label" for="scoreLineCount">보기 <select id="scoreLineCount" aria-label="한 번에 볼 악보 줄 수"><option value="2" selected>2줄</option><option value="4">4줄</option></select></label><label class="score-notes-label"><input id="scoreNoteButtons" type="checkbox" checked>음표 버튼</label><span id="scorePageCount" hidden></span></div>
   <button type="button" id="scoreNext" title="보이는 악보를 한 줄 뒤로 이동 (재생 시작점 유지)">다음 악보 ▶</button>
 </div>
-<div class="scoreStacks" aria-label="현재 악보와 다음 악보를 한 번에 보기">
+<div class="scoreStacks" aria-label="선택한 줄 수의 악보 보기">
   <div class="scoreLine" id="scoreLineMain">
     <div class="scoreLineHead"><span><span class="lineTag">현재 악보</span><span id="scoreMainLabel">첫 악보 줄</span></span><span class="sub" id="scoreMainCount"></span></div>
     <div class="scorebox"><canvas id="staff" width="1150" height="167" title="악보 음표를 클릭해 시작 음을 선택하세요"></canvas></div>
@@ -225,9 +258,19 @@ header{padding:12px 16px 8px}header h1{font-size:21px;margin:0}
     <div class="scorebox"><canvas id="staffNext" width="1150" height="167" title="미리보기 악보 음표를 클릭해 시작 음을 선택하세요"></canvas></div>
     <div class="noteStrip" id="stripNext" aria-label="다음 악보 줄의 음이름과 가사"></div>
   </div>
+  <div class="scoreLine preview isHidden" id="scoreLine3" hidden>
+    <div class="scoreLineHead"><span id="scoreLabel3"></span><span class="sub" id="scoreCount3"></span></div>
+    <div class="scorebox"><canvas id="staff3" width="1150" height="167" title="악보 음표 선택"></canvas></div>
+    <div class="noteStrip" id="strip3" aria-label="3번째 악보 줄의 음이름과 가사"></div>
+  </div>
+  <div class="scoreLine preview isHidden" id="scoreLine4" hidden>
+    <div class="scoreLineHead"><span id="scoreLabel4"></span><span class="sub" id="scoreCount4"></span></div>
+    <div class="scorebox"><canvas id="staff4" width="1150" height="167" title="악보 음표 선택"></canvas></div>
+    <div class="noteStrip" id="strip4" aria-label="4번째 악보 줄의 음이름과 가사"></div>
+  </div>
 </div>
 
-<div class="rangeLegend" style="margin-top:9px"><span><strong>▶ 시작</strong> / <em>■ 끝</em> : 선택한 연속 재생 범위</span><span class="playLegend">♪ 분홍색: 현재 재생 중인 음</span></div>
+
 <div class="practicePanels">
 <details class="lyricSettings" id="lyricPanel" open>
   <summary class="lyricPanelSummary">선택 음표의 가사 </summary>
@@ -238,7 +281,7 @@ header{padding:12px 16px 8px}header h1{font-size:21px;margin:0}
     <button type="button" id="lyricResetOne" title="선택 음의 악보 기준 가사로 되돌리기">이 음 초기화</button>
     <button type="button" id="lyricResetAll" title="직접 수정한 가사를 모두 원래대로 되돌리기">전체 초기화</button>
   </div>
-  <details class="lyricHelp"><summary>가사 수정 도움말</summary><div>악보에서 음표를 클릭하면 이 칸에서 해당 가사를 바꿀 수 있습니다. 입력과 동시에 아래 음표 칸에 반영됩니다. 빈칸은 이어 부르는 음·가사 없는 음으로 취급합니다. 직접 수정한 가사는 이 브라우저에 저장됩니다. 자동 판독한 음표 위치와 실제 가사 음절이 다를 수 있으므로 악보와 비교해 주세요.</div></details>
+  
   </div>
 </details>
 
@@ -246,7 +289,7 @@ header{padding:12px 16px 8px}header h1{font-size:21px;margin:0}
 </section>
 <section class="card"><div class="notewrap"><div><div class="label">지금 따라 부를 음</div><div class="bigNote" id="noteName">F3</div><div class="noteLyricPreview" id="selectedLyric"></div><div class="status" id="noteDesc">기준음을 먼저 듣고, 마이크로 따라 부르세요.</div></div><p class="sub" style="margin:8px 0 0">아래 고정 버튼으로 한 음씩 이동하며 듣거나, 현재 음을 다시 들을 수 있습니다. 음표 칸과 악보 음표도 클릭하면 즉시 재생됩니다.</p></div>
 <div class="toolbar" style="margin-top:18px"><div class="group"><span class="label">현재 음표 보정</span><button id="nDown" class="tiny">♭ −1</button><button id="nUp" class="tiny">♯ +1</button></div><div class="group"><span class="label">맞으면 자동으로 다음 음</span><input id="autoNext" type="checkbox"><span class="sub">허용오차</span><select id="tolerance"><option value="20">±20센트</option><option value="30" selected>±30센트</option><option value="50">±50센트</option></select></div></div><div class="progress-track" style="margin-top:14px"><div class="progress" id="progress"></div></div></section>
-<details class="extraPractice"><summary>속도·반복·마이크 설정</summary>
+<details class="extraPractice"><summary>추가 설정</summary><div class="tools score-edit-tools"><label class="sub"><input type="checkbox" id="addToggle"> 악보 클릭으로 누락 음표 추가</label><button class="tiny" id="resetCorrections">음표 수정 초기화</button></div>
 <section class="card phraseCard" id="phrasePanel" aria-label="짧은 구간 멜로디 연습">
  <div class="phraseHeader"><div><div class="label">짧은 구간으로 멜로디 익히기</div><div class="phraseTitle" id="phraseTitle">연습 구간 준비 중</div><div class="phraseInfo" id="phraseInfo">구간을 듣고 같은 음 순서로 따라 불러보세요.</div></div><span class="pill" id="phraseCount">—</span></div>
  <div class="phraseActions" role="group" aria-label="구간 재생 컨트롤">
@@ -355,29 +398,47 @@ function playTone(midi,ms=850){
 function render(){if(!notes.length)return;const n=note();updateScorePaging();$('shiftName').textContent=shift===0?'원키':(shift>0?'+':'')+shift;$('noteName').textContent=midiName(targetMidi());$('selectedLyric').textContent=getLyric(n)||'가사 미지정 · 이어 부름';$('lyricEditLabel').textContent=`${current+1}번 ${midiName(targetMidi())} 가사`;if(document.activeElement!==$('lyricInput'))$('lyricInput').value=getLyric(n);$('noteDesc').textContent=`악보 ${midiName(n.midi)} → 현재 ${midiName(targetMidi())} · ${freq(targetMidi()).toFixed(1)} Hz`;$('lineTitle').textContent=rows[n.row].label;$('progressTxt').textContent=`${current+1} / ${notes.length}음 · ${n.row+1}번째 악보 줄`;$('progress').style.width=`${100*(current+1)/notes.length}%`;$('dockNote').textContent=`${midiName(targetMidi())} · ${current+1}/${notes.length}음`;$('prev').disabled=current===0;$('next').disabled=current===notes.length-1;drawStaff();renderStrip();successSince=0;updatePhraseUI();}
 // v9: score viewport is independent of selected note and quick playback anchor.
 let viewRow=1;
+const scoreSlots=[
+ {box:'scoreLineMain',canvas:'staff',strip:'strip',label:'scoreMainLabel',count:'scoreMainCount'},
+ {box:'scoreLinePreview',canvas:'staffNext',strip:'stripNext',label:'scoreNextLabel',count:'scoreNextCount'},
+ {box:'scoreLine3',canvas:'staff3',strip:'strip3',label:'scoreLabel3',count:'scoreCount3'},
+ {box:'scoreLine4',canvas:'staff4',strip:'strip4',label:'scoreLabel4',count:'scoreCount4'}
+];
+const scoreViewKey='vocal_practice_score_view_v1';
+try{const saved=JSON.parse(localStorage.getItem(scoreViewKey)||'{}');if(saved.lines===4)$('scoreLineCount').value='4';if(saved.buttons===false)$('scoreNoteButtons').checked=false;}catch(e){}
+function scoreViewCount(){return $('scoreLineCount').value==='4'?4:2;}
+function applyScoreView(){
+ const count=scoreViewCount();
+ document.querySelector('.scoreStacks').dataset.lines=String(count);
+ document.querySelector('.scoreStacks').classList.toggle('hide-note-buttons',!$('scoreNoteButtons').checked);
+ try{localStorage.setItem(scoreViewKey,JSON.stringify({lines:count,buttons:$('scoreNoteButtons').checked}));}catch(e){}
+ updateScorePaging();drawStaff();renderStrip();
+}
+$('scoreLineCount').addEventListener('change',applyScoreView);
+$('scoreNoteButtons').addEventListener('change',applyScoreView);
 function availableScoreRows(){return [...new Set(notes.map(n=>n.row))].sort((a,b)=>a-b);}
 function shownScoreRows(){
  const available=availableScoreRows();
  let index=available.indexOf(viewRow);
  if(index<0){index=0;viewRow=available[0];}
- return {main:available[index],next:available[index+1]??null,index,total:available.length};
+ const visible=available.slice(index,index+scoreViewCount());
+ return {main:visible[0],next:visible[1]??null,visible,index,total:available.length};
 }
 function ensureNoteRowVisible(row){
- const shown=shownScoreRows();
- if(row!==shown.main&&row!==shown.next){viewRow=row;}
+ if(!shownScoreRows().visible.includes(row))viewRow=row;
 }
 function updateScorePaging(){
  if(!notes.length)return;
- const {main,next,index,total}=shownScoreRows();
- $('scorePageTitle').textContent=next!==null?`악보 ${index+1}~${index+2} / ${total}줄`:`악보 ${index+1} / ${total}줄`;
- $('scorePageCount').textContent='화면 이동해도 선택한 시작음 유지';
- $('scoreMainLabel').textContent=rows[main].label;
- $('scoreMainCount').textContent=`${notes.filter(n=>n.row===main).length}음`;
- $('scoreLinePreview').classList.toggle('isHidden',next===null);
- if(next!==null){
-  $('scoreNextLabel').textContent=rows[next].label;
-  $('scoreNextCount').textContent=`${notes.filter(n=>n.row===next).length}음`;
- }
+ const {visible,index,total}=shownScoreRows();
+ $('scorePageTitle').textContent=visible.length>1?`악보 ${index+1}~${index+visible.length} / ${total}`:`악보 ${index+1} / ${total}`;
+ scoreSlots.forEach((slot,i)=>{
+  const row=visible[i]??null;
+  $(slot.box).hidden=row===null;$(slot.box).classList.toggle('isHidden',row===null);
+  if(row===null)return;
+  $(slot.label).textContent=rows[row].label;
+  $(slot.count).textContent=`${notes.filter(n=>n.row===row).length}음`;
+  $(slot.strip).setAttribute('aria-label',`${row+1}번째 악보 줄의 음이름과 가사`);
+ });
  $('scorePrev').disabled=index<=0;
  $('scoreNext').disabled=index>=total-1;
 }
@@ -392,7 +453,7 @@ function jumpScoreRow(direction){
 $('scorePrev').onclick=()=>jumpScoreRow(-1);
 $('scoreNext').onclick=()=>jumpScoreRow(1);
 function renderStrip(){
- const {main,next}=shownScoreRows();
+ const {visible}=shownScoreRows();
  const range=quickRange();
  function fillStrip(stripId,row){
   const list=$(stripId);list.innerHTML='';if(row===null)return;
@@ -416,7 +477,7 @@ function renderStrip(){
   let el=list.querySelector('.nowPlaying')||list.querySelector('.sel');
   if(el){const desired=el.offsetLeft-(list.clientWidth-el.offsetWidth)/2;list.scrollLeft=Math.max(0,Math.min(list.scrollWidth-list.clientWidth,desired));}
  }
- fillStrip('strip',main);fillStrip('stripNext',next);
+ scoreSlots.forEach((slot,i)=>fillStrip(slot.strip,visible[i]??null));
 }
 function go(i,withSound=false,fromPhrase=false){
  if(i<0||i>=notes.length)return;
@@ -428,13 +489,14 @@ function go(i,withSound=false,fromPhrase=false){
 }
 function scoreRect(row){return {left:45,top:rows[row].top-24,w:805,h:110};}
 function drawStaff(){
- if(!scoreImage.complete||!notes.length)return;
- const {main,next}=shownScoreRows();
- drawOneStaff('staff',main);
- if(next!==null)drawOneStaff('staffNext',next);
+ if(!scoreImage.complete||!scoreImage.naturalWidth||!notes.length)return;
+ const {visible}=shownScoreRows();
+ visible.forEach((row,i)=>drawOneStaff(scoreSlots[i].canvas,row));
 }
 function drawOneStaff(id,row){
- const c=$(id),ct=c.getContext('2d'),rect=scoreRect(row);
+ const c=$(id),rect=scoreRect(row);
+ const height=Math.round(c.width*rect.h/rect.w);if(c.height!==height)c.height=height;
+ const ct=c.getContext('2d');
  ct.clearRect(0,0,c.width,c.height);
  ct.fillStyle='#fff';ct.fillRect(0,0,c.width,c.height);
  ct.drawImage(scoreImage,rect.left,rect.top,rect.w,rect.h,0,0,c.width,c.height);
@@ -477,10 +539,10 @@ function handleScoreClick(e,row,asEnd=false){
  notes.forEach((n,i)=>{if(n.row!==row)return;const d=Math.abs(n.x-x)+Math.abs(n.y-y)*.5;if(d<dist){dist=d;best=i;}});
  if(best>=0&&dist<40){if(asEnd)setQuickEnd(best);else pickRangeNote(best);}
 }
-$('staff').addEventListener('click',e=>handleScoreClick(e,shownScoreRows().main));
-$('staffNext').addEventListener('click',e=>{const row=shownScoreRows().next;if(row!==null)handleScoreClick(e,row);});
-$('staff').addEventListener('contextmenu',e=>{e.preventDefault();handleScoreClick(e,shownScoreRows().main,true);});
-$('staffNext').addEventListener('contextmenu',e=>{e.preventDefault();const row=shownScoreRows().next;if(row!==null)handleScoreClick(e,row,true);});
+scoreSlots.forEach((slot,i)=>{
+ $(slot.canvas).addEventListener('click',e=>{const row=shownScoreRows().visible[i];if(row!==undefined)handleScoreClick(e,row);});
+ $(slot.canvas).addEventListener('contextmenu',e=>{e.preventDefault();const row=shownScoreRows().visible[i];if(row!==undefined)handleScoreClick(e,row,true);});
+});
 $('down').onclick=()=>{if(phrasePlaying)stopPhrase('키 변경으로 재생을 중지했습니다.');shift=Math.max(-12,shift-1);render()};$('up').onclick=()=>{if(phrasePlaying)stopPhrase('키 변경으로 재생을 중지했습니다.');shift=Math.min(12,shift+1);render()};$('oct').onchange=e=>{if(phrasePlaying)stopPhrase('옥타브 변경으로 재생을 중지했습니다.');octave=Number(e.target.value);render()};$('prev').onclick=()=>go(current-1,true);$('next').onclick=()=>go(current+1,true);$('play').onclick=()=>playTone(targetMidi());$('nDown').onclick=()=>{if(phrasePlaying)stopPhrase();note().midi--;render()};$('nUp').onclick=()=>{if(phrasePlaying)stopPhrase();note().midi++;render()};$('resetCorrections').onclick=()=>{if(confirm('추가/수정한 음표를 모두 초기화할까요?')){if(phrasePlaying)stopPhrase();manualPhrase=null;notes=baseNotes.map(n=>({...n}));current=0;quickAnchor=0;render()}};
 // YIN pitch estimator, 75~850 Hz with silence detection
 function yin(buf,rate){const rms=Math.sqrt(buf.reduce((s,x)=>s+x*x,0)/buf.length);if(rms<.012)return null;const tauMin=Math.floor(rate/850),tauMax=Math.min(Math.floor(rate/75),Math.floor(buf.length/2)-1),N=buf.length-tauMax;const diff=new Float32Array(tauMax+1);for(let t=1;t<=tauMax;t++){let sum=0;for(let j=0;j<N;j++){const d=buf[j]-buf[j+t];sum+=d*d}diff[t]=sum}let rolling=0,candidate=-1,best=1;for(let t=1;t<=tauMax;t++){rolling+=diff[t];diff[t]=rolling>0?diff[t]*t/rolling:1}for(let t=tauMin;t<=tauMax;t++){if(diff[t]<.16){while(t+1<=tauMax&&diff[t+1]<diff[t])t++;candidate=t;best=diff[t];break}}if(candidate<0){for(let t=tauMin;t<=tauMax;t++)if(diff[t]<best){best=diff[t];candidate=t}if(best>.30)return null}let refined=candidate;if(candidate>1&&candidate<tauMax){let x0=diff[candidate-1],x1=diff[candidate],x2=diff[candidate+1],den=2*(2*x1-x0-x2);if(Math.abs(den)>1e-9)refined+=(x0-x2)/den}const hz=rate/refined;return hz>=75&&hz<=850?{hz,rms,quality:Math.max(0,1-best)}:null}
@@ -556,10 +618,10 @@ function setQuickEnd(i){
  $('quickCount').value=String(i-quickAnchor+1);
  go(i,true,true);
  setRangePickMode('start');
- $('rangePickFeedback').textContent=`${quickAnchor+1}~${i+1}번 음 · ${i-quickAnchor+1}개 음표로 재생 범위를 지정했습니다.`;
+ $('rangePickFeedback').textContent=`${quickAnchor+1}~${i+1}번 · ${i-quickAnchor+1}음`;
 }
-$('rangePickStart').onclick=()=>{setRangePickMode('start');$('rangePickFeedback').textContent='시작 음표를 클릭하거나 터치해 주세요.';};
-$('rangePickEnd').onclick=()=>{setRangePickMode('end');$('rangePickFeedback').textContent='끝 음표를 클릭하거나 터치해 주세요. 음표 수가 자동 계산됩니다.';};
+$('rangePickStart').onclick=()=>{setRangePickMode('start');$('rangePickFeedback').textContent='시작점 선택';};
+$('rangePickEnd').onclick=()=>{setRangePickMode('end');$('rangePickFeedback').textContent='끝점 선택';};
 function getQuickCount(){
  const n=Number($('quickCount').value);
  return Number.isFinite(n)?Math.max(1,Math.min(notes.length,Math.round(n))):6;
@@ -704,10 +766,11 @@ $('phraseMarkEnd').onclick=()=>{
  phraseInfoMessage='끝 음을 지정했습니다. 범위가 맞으면 구간 연속 듣기를 누르세요.';updatePhraseUI();
 };
 $('phraseDefault').onclick=()=>{stopPhrase();manualPhrase=null;phraseInfoMessage='자동 구간으로 돌아왔습니다.';updatePhraseUI();};
-render();
+applyScoreView();render();
 $('soundStyle').addEventListener('change',()=>{
  if(phrasePlaying)stopPhrase('소리 종류를 변경했습니다. 새 소리로 구간을 다시 들어보세요.');
  playTone(targetMidi());
 });
 </script></body></html>
+
 
