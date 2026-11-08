@@ -217,6 +217,21 @@ header{padding:6px 12px 4px}header h1{font-size:18px}
  .scoreLine .token b{font-size:11px}.scoreLine .token .lyric{font-size:11px}.navDock button{min-height:40px;font-size:11px}
 }
 </style>
+<style>
+/* Keep note buttons under their score positions without increasing their height. */
+@media(min-width:601px){
+ .scoreLine .noteStrip{display:block;position:relative;width:calc(100% - 2px);margin-left:1px;min-height:46px;padding:4px 0 0;overflow:visible}
+ .scoreLine .token{position:absolute;left:var(--note-x);top:4px;transform:translateX(-50%);width:var(--note-width);min-width:0;max-width:none;min-height:42px;padding:3px 0;overflow:hidden}
+ .scoreLine .token.nowPlaying{position:absolute;transform:translate(-50%,-1px)}
+ .scoreLine .token.tight b{font-size:8px;letter-spacing:-.5px}.scoreLine .token.tight .num{font-size:7px}
+ .scoreLine .token .rangeBadge{max-width:100%;overflow:hidden}
+ .scoreStacks[data-lines="4"] .noteStrip{min-height:36px}
+}
+@media(max-width:600px){
+ .scoreLine .noteStrip{flex-wrap:wrap}
+ .scoreLine .token,.scoreStacks[data-lines="4"] .token{flex:1 0 34px;width:auto;max-width:none}
+}
+</style>
 </head><body>
 <nav id="practice-nav" aria-label="연습 도구 이동"><a href="./">← 연습 목록</a><span>봄봄봄</span><a href="./aloha.html">아로하 →</a></nav>
 <header><h1>봄봄봄 <span style="font-weight:400;color:#59718a">·</span> 음정 트레이너</h1></header>
@@ -457,11 +472,19 @@ function renderStrip(){
  const range=quickRange();
  function fillStrip(stripId,row){
   const list=$(stripId);list.innerHTML='';if(row===null)return;
-  notes.forEach((n,i)=>{
-   if(n.row!==row)return;
+  const rect=scoreRect(row);
+  const rowNotes=notes.map((n,i)=>({n,i})).filter(({n})=>n.row===row);
+  rowNotes.forEach(({n,i},index)=>{
+   const x=Math.max(0,Math.min(1,(n.x-rect.left)/rect.w));
+   const prev=index>0?(rowNotes[index-1].n.x-rect.left)/rect.w:0;
+   const next=index+1<rowNotes.length?(rowNotes[index+1].n.x-rect.left)/rect.w:1;
+   const width=Math.max(.001,Math.min(.07,(x-prev)-.001,(next-x)-.001,2*x,2*(1-x)));
    const b=document.createElement('button'),isStart=i===range.start,isEnd=i===range.end,inRange=i>=range.start&&i<=range.end;
    const isPlaying=phrasePlaying&&activePlayback&&playbackNote===i;
    b.type='button';b.className='token'+(i===current?' sel':'')+(i===quickAnchor?' anchor':'')+(inRange?' inRange':'')+(isStart?' rangeStart':'')+(isEnd?' rangeEnd':'')+(isPlaying?' nowPlaying':'');
+   b.style.setProperty('--note-x',`${x*100}%`);
+   b.style.setProperty('--note-width',`${width*100}%`);
+   if(width<.022)b.classList.add('tight');
    const lyric=getLyric(n);
    b.title=`${i+1}번 ${midiName(n.midi+shift+octave)} · ${lyric||'가사 없음/연장'}${isStart?' · 재생 시작':''}${isEnd?' · 재생 끝':''}${isPlaying?' · 지금 재생 중':''}`;
    if(isPlaying)b.setAttribute('aria-current','true');
