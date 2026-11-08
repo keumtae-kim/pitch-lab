@@ -287,7 +287,7 @@ header{padding:6px 12px 4px}header h1{font-size:18px}
 
 </div>
 </section>
-<section class="card"><div class="notewrap"><div><div class="label">지금 따라 부를 음</div><div class="bigNote" id="noteName">F3</div><div class="noteLyricPreview" id="selectedLyric"></div><div class="status" id="noteDesc">기준음을 먼저 듣고, 마이크로 따라 부르세요.</div></div><p class="sub" style="margin:8px 0 0">아래 고정 버튼으로 한 음씩 이동하며 듣거나, 현재 음을 다시 들을 수 있습니다. 음표 칸과 악보 음표도 클릭하면 즉시 재생됩니다.</p></div>
+<section class="card"><div class="notewrap"><div><div class="label">지금 따라 부를 음</div><div class="bigNote" id="noteName">F3</div><div class="noteLyricPreview" id="selectedLyric"></div><div class="status" id="noteDesc">기준음을 먼저 듣고, 마이크로 따라 부르세요.</div></div></div>
 <div class="toolbar" style="margin-top:18px"><div class="group"><span class="label">현재 음표 보정</span><button id="nDown" class="tiny">♭ −1</button><button id="nUp" class="tiny">♯ +1</button></div><div class="group"><span class="label">맞으면 자동으로 다음 음</span><input id="autoNext" type="checkbox"><span class="sub">허용오차</span><select id="tolerance"><option value="20">±20센트</option><option value="30" selected>±30센트</option><option value="50">±50센트</option></select></div></div><div class="progress-track" style="margin-top:14px"><div class="progress" id="progress"></div></div></section>
 <details class="extraPractice"><summary>추가 설정</summary><div class="tools score-edit-tools"><label class="sub"><input type="checkbox" id="addToggle"> 악보 클릭으로 누락 음표 추가</label><button class="tiny" id="resetCorrections">음표 수정 초기화</button></div>
 <section class="card phraseCard" id="phrasePanel" aria-label="짧은 구간 멜로디 연습">
@@ -311,17 +311,17 @@ header{padding:6px 12px 4px}header h1{font-size:18px}
  </div>
  <div class="phraseBar"><div id="phraseProgress"></div></div>
  <div class="phraseMeta" id="phraseMessage" aria-live="polite">기본 6음씩 연습합니다. 숫자를 바꾸면 구간이 다시 나뉩니다.</div>
- <details class="phraseEdit"><summary>구간 범위를 직접 지정하기 (선택 사항)</summary>
-  <div class="sub" style="margin-top:8px">원하는 음표를 먼저 선택한 뒤 시작·끝으로 지정할 수 있습니다. 선택한 범위만 반복 연습합니다.</div>
+ <details class="phraseEdit"><summary>구간 범위 지정</summary>
+  
   <div class="tools"><button id="phraseMarkStart">선택한 음을 시작으로</button><button id="phraseMarkEnd">선택한 음을 끝으로</button><button id="phraseDefault">기본 구간으로 되돌리기</button></div>
   <div class="phraseMeta" id="phraseMarkStatus">현재는 자동으로 나눈 짧은 구간을 사용 중입니다.</div>
  </details>
- <div class="sub" style="margin-top:11px">※ 피아노·오르간 등을 포함한 모든 소리는 브라우저에서 만든 전자 합성 기준음입니다. 선택한 구간 길이는 음표 개수 기준이며 가사 음절이나 마디의 경계와 일치하지 않을 수 있습니다. 연습용으로 각 음의 길이를 단순화해 재생합니다. <b>원곡의 정확한 리듬·반주 재현은 아닙니다.</b> 악보 자동 판독 오류가 있을 수 있어요.</div>
+ 
 </section>
 <section class="card"><div class="toolbar"><div><div class="label">마이크로 내 음정 확인</div><p id="micMsg" class="sub" style="margin:7px 0 0">시작 버튼을 눌러 브라우저 마이크 권한을 허용하세요.</p></div><div class="tools"><button class="primary" id="micStart">마이크 켜기</button><button id="micStop" disabled>끄기</button></div></div><div class="grided" style="margin-top:16px"><div class="card" style="padding:14px;box-shadow:none"><div class="label">내 목소리</div><div class="bigNote" style="font-size:32px;margin-top:7px" id="heard">—</div><div class="status" id="confidence">음정을 듣는 중</div></div><div class="card" style="padding:14px;box-shadow:none"><div class="label">목표 음과의 차이</div><div style="font-size:27px;font-weight:750;margin:6px 0" id="error">— 센트</div><div class="pitchbar"><div class="needle" id="needle"></div></div><div class="sub" style="margin-top:7px" id="judge">음을 맞추면 이곳에 결과가 표시됩니다.</div></div></div></section>
 </details>
-<section class="card"><details><summary style="cursor:pointer;font-weight:700">원본 악보 전체 보기</summary><div class="fullscore"><img id="full" alt="업로드한 아로하 악보 전체" /></div></details><div class="sub" style="margin-top:6px">음정 연습용 · 리듬과 반복기호는 단순화했습니다. 음표·가사는 직접 수정할 수 있습니다.</div></section>
-<footer>마이크 분석은 브라우저 안에서만 진행되며 서버로 전송하지 않습니다. 크롬에서 파일을 열고 마이크가 허용되지 않으면 HTTPS 또는 로컬 서버(localhost)에서 열어 주세요. 발성 중 목이 아프면 연습을 중단하세요.</footer>
+<section class="card"><details><summary style="cursor:pointer;font-weight:700">원본 악보 전체 보기</summary><div class="fullscore"><img id="full" alt="업로드한 아로하 악보 전체" /></div></details></section>
+
 </main>
 <nav class="navDock" role="group" aria-label="음표 이동과 기준음 재생">
 <div class="dockHead"><span>한 음 / 구간 듣기</span><strong id="dockNote" aria-live="polite">F3 · 1번 음</strong></div>
