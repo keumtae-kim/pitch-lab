@@ -23,6 +23,8 @@ let successSince=0, lastAdvance=0, lastDetected=null;
 
 const midiName=m=>NAMES[((m%12)+12)%12]+(Math.floor(m/12)-1);
 const freq=m=>440*Math.pow(2,(m-69)/12);
+function noteNameFor(n,offset=octave){if(n.kind==='spoken')return '말';const p=spellPitch(n.pitch,n.midi,SCORE_SONG.key,shift),acc=p.alter===1?'♯':p.alter===-1?'♭':p.alter===2?'𝄪':p.alter===-2?'𝄫':'';return p.step+acc+(p.octave+offset/12);}
+
 $('oct').value=String(octave);
 function note(){return notes[current]}
 function targetMidi(){return note().midi+shift+octave}
@@ -70,7 +72,7 @@ function playTone(midi,ms=850){
   ctx.resume();scheduleSynthTone(midi,ctx.currentTime+.008,Math.max(.14,ms/1000));
  }catch(e){$('micMsg').textContent='소리 재생 실패: '+e.message}
 }
-function render(){if(!notes.length)return;refreshScoreLayout();const n=note();updateScorePaging();document.querySelector('.song-key-tempo').textContent=transposedKey(SCORE_SONG.key,shift)+'장조 · ♩='+SCORE_SONG.bpm;$('shiftName').textContent=shift===0?'원키':(shift>0?'+':'')+shift;$('noteName').textContent=midiName(targetMidi());$('selectedLyric').textContent=getLyric(n)||'가사 미지정 · 이어 부름';$('lyricEditLabel').textContent=`${current+1}번 ${midiName(targetMidi())} 가사`;if(document.activeElement!==$('lyricInput'))$('lyricInput').value=getLyric(n);$('noteDesc').textContent=`악보 ${midiName(n.midi)} → 현재 ${midiName(targetMidi())} · ${freq(targetMidi()).toFixed(1)} Hz`;$('lineTitle').textContent=rows[n.row].label;$('progressTxt').textContent=`${current+1} / ${notes.length}음 · ${n.row+1}번째 악보 줄`;$('progress').style.width=`${100*(current+1)/notes.length}%`;$('dockNote').textContent=`${midiName(targetMidi())} · ${current+1}/${notes.length}음`;$('prev').disabled=current===0;$('next').disabled=current===notes.length-1;drawStaff();renderStrip();successSince=0;updatePhraseUI();}
+function render(){if(!notes.length)return;refreshScoreLayout();const n=note();updateScorePaging();document.querySelector('.song-key-tempo').textContent=transposedKey(SCORE_SONG.key,shift)+'장조 · ♩='+SCORE_SONG.bpm;$('shiftName').textContent=shift===0?'원키':(shift>0?'+':'')+shift;$('noteName').textContent=noteNameFor(note());$('selectedLyric').textContent=getLyric(n)||'가사 미지정 · 이어 부름';$('lyricEditLabel').textContent=`${current+1}번 ${noteNameFor(note())} 가사`;if(document.activeElement!==$('lyricInput'))$('lyricInput').value=getLyric(n);$('noteDesc').textContent=`악보 ${noteNameFor(n,0)} → 현재 ${noteNameFor(note())} · ${freq(targetMidi()).toFixed(1)} Hz`;$('lineTitle').textContent=rows[n.row].label;$('progressTxt').textContent=`${current+1} / ${notes.length}음 · ${n.row+1}번째 악보 줄`;$('progress').style.width=`${100*(current+1)/notes.length}%`;$('dockNote').textContent=`${noteNameFor(note())} · ${current+1}/${notes.length}음`;$('prev').disabled=current===0;$('next').disabled=current===notes.length-1;drawStaff();renderStrip();successSince=0;updatePhraseUI();}
 const nativeScore=new ScoreRenderer(SCORE_SONG),nativeAnchors=new Map();let scoreLayoutKey='';
 function refreshScoreLayout(){
  const available=Math.max(250,Math.floor(document.querySelector('.scoreStacks').clientWidth-12));
@@ -128,7 +130,7 @@ function updateScorePaging(){
   const row=visible[i]??null;
   $(slot.box).hidden=row===null;$(slot.box).classList.toggle('isHidden',row===null);
   if(row===null)return;
-  $(slot.label).textContent=rows[row].label+' · '+rows[row].firstMeasure+'~'+rows[row].lastMeasure+'마디';
+  $(slot.label).textContent=rows[row].label+' · '+rows[row].measures.map(m=>m.measure.sourceNumber).join('·')+'마디';
   $(slot.count).textContent=`${notes.filter(n=>n.row===row).length}음`;
   $(slot.strip).setAttribute('aria-label',`${row+1}번째 악보 줄의 음이름과 가사`);
  });
@@ -200,10 +202,10 @@ function renderStrip(){
    b.type='button';b.className='token'+(i===current?' sel':'')+(i===quickAnchor?' anchor':'')+(inRange?' inRange':'')+(isStart?' rangeStart':'')+(isEnd?' rangeEnd':'')+(isPlaying?' nowPlaying':'');
    b.dataset.scoreX=String(x);
    const lyric=getLyric(n);
-   b.title=`${i+1}번 ${midiName(n.midi+shift+octave)} · ${lyric||'가사 없음/연장'}${isStart?' · 재생 시작':''}${isEnd?' · 재생 끝':''}${isPlaying?' · 지금 재생 중':''}`;
+   b.title=`${i+1}번 ${noteNameFor(n)} · ${lyric||'가사 없음/연장'}${isStart?' · 재생 시작':''}${isEnd?' · 재생 끝':''}${isPlaying?' · 지금 재생 중':''}`;
    if(isPlaying)b.setAttribute('aria-current','true');
    const num=document.createElement('span');num.className='num';num.textContent=String(i+1);b.appendChild(num);
-   const pitch=document.createElement('b');pitch.textContent=n.kind==='spoken'?'말':midiName(n.midi+shift+octave);b.appendChild(pitch);
+   const pitch=document.createElement('b');pitch.textContent=n.kind==='spoken'?'말':noteNameFor(n);b.appendChild(pitch);
    const lyricEl=document.createElement('span');lyricEl.className='lyric'+(lyric?'':' empty');lyricEl.textContent=lyric||'—';b.appendChild(lyricEl);
    if(isStart||isEnd){const marker=document.createElement('span');marker.className='rangeBadge '+(isStart&&isEnd?'both':isStart?'start':'end');marker.textContent=isStart&&isEnd?'시작·끝':isStart?'▶ 시작':'■ 끝';b.appendChild(marker);}
    b.onclick=()=>pickRangeNote(i);
@@ -326,7 +328,7 @@ function updateQuickUI(){
  if(!notes.length)return;
  $('quickCount').max=String(notes.length);
  const p=quickRange(),count=p.end-p.start+1;
- const first=midiName(notes[p.start].midi+shift+octave),last=midiName(notes[p.end].midi+shift+octave);
+ const first=noteNameFor(notes[p.start]),last=noteNameFor(notes[p.end]);
  const quickActive=phrasePlaying&&activePlayback?.kind==='quick';
  const preview=`${p.start+1}번 (${first})부터 ${p.end+1}번 (${last})까지 · ${count}개`;
  const trimmed=count<getQuickCount()?' · 악보 끝까지 자동 조정':'';
