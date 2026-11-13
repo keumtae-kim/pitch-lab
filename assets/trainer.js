@@ -23,7 +23,7 @@ let successSince=0, lastAdvance=0, lastDetected=null;
 
 const midiName=m=>NAMES[((m%12)+12)%12]+(Math.floor(m/12)-1);
 const freq=m=>440*Math.pow(2,(m-69)/12);
-function noteNameFor(n,offset=octave){if(n.kind==='spoken')return '말';const p=spellPitch(n.pitch,n.midi,SCORE_SONG.key,shift),acc=p.alter===1?'♯':p.alter===-1?'♭':p.alter===2?'𝄪':p.alter===-2?'𝄫':'';return p.step+acc+(p.octave+offset/12);}
+function noteNameFor(n,offset=octave){return n.kind==='spoken'?'말':sharpNoteName(n.midi+shift+offset);}
 
 $('oct').value=String(octave);
 function note(){return notes[current]}
@@ -75,7 +75,7 @@ function playTone(midi,ms=850){
 function render(){if(!notes.length)return;refreshScoreLayout();const n=note();updateScorePaging();document.querySelector('.song-key-tempo').textContent=transposedKey(SCORE_SONG.key,shift)+'장조 · ♩='+SCORE_SONG.bpm;$('shiftName').textContent=shift===0?'원키':(shift>0?'+':'')+shift;$('noteName').textContent=noteNameFor(note());$('selectedLyric').textContent=getLyric(n)||'가사 미지정 · 이어 부름';$('lyricEditLabel').textContent=`${current+1}번 ${noteNameFor(note())} 가사`;if(document.activeElement!==$('lyricInput'))$('lyricInput').value=getLyric(n);$('noteDesc').textContent=`악보 ${noteNameFor(n,0)} → 현재 ${noteNameFor(note())} · ${freq(targetMidi()).toFixed(1)} Hz`;$('lineTitle').textContent=rows[n.row].label;$('progressTxt').textContent=`${current+1} / ${notes.length}음 · ${n.row+1}번째 악보 줄`;$('progress').style.width=`${100*(current+1)/notes.length}%`;$('dockNote').textContent=`${noteNameFor(note())} · ${current+1}/${notes.length}음`;$('prev').disabled=current===0;$('next').disabled=current===notes.length-1;drawStaff();renderStrip();successSince=0;updatePhraseUI();}
 const nativeScore=new ScoreRenderer(SCORE_SONG),nativeAnchors=new Map();let scoreLayoutKey='';
 function refreshScoreLayout(){
- const available=Math.max(250,Math.floor(document.querySelector('.scoreStacks').clientWidth-12));
+ const available=Math.max(160,Math.floor(document.querySelector('.scoreStacks').clientWidth-12));
  const key=available+'/'+shift+'/'+notes.map(n=>n.id+':'+n.midi+':'+getLyric(n)).join('|');
  if(key!==scoreLayoutKey){
   const anchor=rows[viewRow]?.noteIds[0]??note().id;
@@ -148,42 +148,23 @@ function jumpScoreRow(direction){
 }
 $('scorePrev').onclick=()=>jumpScoreRow(-1);
 $('scoreNext').onclick=()=>jumpScoreRow(1);
-// Project score anchors onto a row of bounded-width, non-overlapping buttons.
-function fitNoteButtons(anchors,minimumWidths,availableWidth){
- const gap=2,count=anchors.length;
- if(!count)return {left:[],width:[],trackWidth:availableWidth};
- const minimum=minimumWidths.reduce((sum,w)=>sum+w,0),gaps=gap*(count-1);
- const preferred=minimumWidths.map(w=>Math.max(w,36));
- const extra=preferred.reduce((sum,w,i)=>sum+w-minimumWidths[i],0);
- const fraction=extra?Math.max(0,Math.min(1,(availableWidth-gaps-minimum)/extra)):0;
- const width=minimumWidths.map((w,i)=>w+fraction*(preferred[i]-w));
- const total=width.reduce((a,b)=>a+b,0)+gaps,trackWidth=Math.max(availableWidth,total),slack=trackWidth-total;
- const prefix=[];let offset=0;
- for(const w of width){prefix.push(offset);offset+=w+gap;}
- const blocks=[];
- for(let i=0;i<count;i++){
-  blocks.push({first:i,last:i,sum:anchors[i]*trackWidth-width[i]/2-prefix[i],count:1});
-  while(blocks.length>1){
-   const right=blocks[blocks.length-1],left=blocks[blocks.length-2];
-   if(left.sum/left.count<=right.sum/right.count)break;
-   blocks.splice(-2,2,{first:left.first,last:right.last,sum:left.sum+right.sum,count:left.count+right.count});
-  }
- }
- const left=[];
- for(const block of blocks){const shift=Math.max(0,Math.min(slack,block.sum/block.count));for(let i=block.first;i<=block.last;i++)left[i]=prefix[i]+shift;}
- return {left,width,trackWidth};
-}
+// Keep consecutive runs readable; continue lower runs near the remaining notes.
 const noteButtonMeasure=document.createElement('canvas').getContext('2d');
 function layoutNoteStrip(list){
  const available=list.clientWidth;if(!available)return;
  const buttons=[...list.querySelectorAll('.token')];
  const measure=element=>{const style=getComputedStyle(element);noteButtonMeasure.font=`${style.fontWeight} ${style.fontSize} ${style.fontFamily}`;return noteButtonMeasure.measureText(element.textContent).width;};
  const touch=window.matchMedia('(max-width:600px)').matches;
- const minimum=buttons.map(b=>Math.max(touch?34:28,Math.ceil(Math.max(measure(b.querySelector('b')),measure(b.querySelector('.lyric'))))+8));
- const anchors=buttons.map(b=>Number(b.dataset.scoreX));
- const layout=fitNoteButtons(anchors,minimum,available);
- list.classList.toggle('is-scrollable',layout.trackWidth>available+.5);
- buttons.forEach((b,i)=>{b.style.setProperty('--button-left',`${layout.left[i]}px`);b.style.setProperty('--button-width',`${layout.width[i]}px`);});
+ const minimum=buttons.map(b=>Math.ceil(Math.max(measure(b.querySelector('b')),measure(b.querySelector('.lyric'))))+10);
+ const layout=fitNoteLanes(buttons.map(b=>Number(b.dataset.scoreX)),minimum,available,touch);
+ const compact=!touch&&scoreViewCount()===4,height=touch?44:compact?32:42,gap=touch?5:4;
+ list.dataset.lanes=String(layout.runs.length);list.classList.remove('is-scrollable');
+ list.style.setProperty('--note-strip-height',`${Math.max(1,layout.runs.length)*(height+gap)+3}px`);
+ list.querySelectorAll('.note-continuation').forEach(el=>el.remove());
+ layout.placements.forEach((p,i)=>{const b=buttons[i];b.style.setProperty('--button-left',p.left+'px');b.style.setProperty('--button-width',p.width+'px');b.style.setProperty('--button-top',(3+p.row*(height+gap))+'px');b.dataset.lane=String(p.row);});
+ for(let row=1;row<layout.runs.length;row++){
+  const p=layout.placements[layout.runs[row].from],mark=document.createElement('span');mark.className='note-continuation';mark.textContent='';mark.setAttribute('aria-hidden','true');mark.style.left=Math.max(0,p.left-13)+'px';mark.style.top=(3+row*(height+gap))+'px';list.append(mark);
+ }
 }
 const noteStripResizeObserver=new ResizeObserver(entries=>entries.forEach(entry=>layoutNoteStrip(entry.target)));
 scoreSlots.forEach(slot=>noteStripResizeObserver.observe($(slot.strip)));
@@ -214,8 +195,6 @@ function renderStrip(){
    list.appendChild(b);
   });
   layoutNoteStrip(list);
-  let el=list.querySelector('.nowPlaying')||list.querySelector('.sel');
-  if(el){const desired=el.offsetLeft-(list.clientWidth-el.offsetWidth)/2;list.scrollLeft=Math.max(0,Math.min(list.scrollWidth-list.clientWidth,desired));}
  }
  scoreSlots.forEach((slot,i)=>fillStrip(slot.strip,visible[i]??null));
 }

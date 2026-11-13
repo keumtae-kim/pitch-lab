@@ -217,7 +217,7 @@ header{padding:6px 12px 4px}header h1{font-size:18px}
 
 
 /* Single-row buttons: readable sizes, with flexible spacing around score anchors. */
-@media(min-width:1100px){header{max-width:1280px;width:calc(100% - 24px)}.wrap{max-width:1280px;width:calc(100% - 24px);padding-left:12px;padding-right:12px}.scoreLine .scorebox{max-width:1100px;margin-left:auto;margin-right:auto}}
+@media(min-width:1100px){header{max-width:1100px;width:calc(100% - 24px)}.wrap{max-width:1100px;width:calc(100% - 24px);padding-left:12px;padding-right:12px}.scoreLine .scorebox{max-width:1100px;margin-left:auto;margin-right:auto}}
 .scoreLine .noteStrip{--note-strip-height:46px;display:block;position:relative;flex-wrap:nowrap;width:calc(100% - 2px);margin-left:1px;height:var(--note-strip-height);min-height:0;padding:4px 0 0;overflow-x:auto;overflow-y:hidden;scrollbar-width:thin}
 .scoreLine .token{position:absolute;left:var(--button-left,0px);top:4px;transform:none;flex:none;width:var(--button-width,36px);min-width:0;max-width:none;min-height:42px;padding:3px 2px;gap:1px;border-width:1px!important;overflow:visible}
 .scoreLine .token.nowPlaying{position:absolute;transform:translateY(-1px)}
@@ -240,3 +240,13 @@ header{padding:6px 12px 4px}header h1{font-size:18px}
 .scoreLine .noteStrip{width:var(--system-width);margin-left:0;overflow:visible}.scoreLine .noteStrip.is-scrollable{height:var(--note-strip-height)}
 #scoreSection{max-width:220px;min-height:26px;font-size:11px;padding:3px;border-radius:6px}
 @media(max-width:600px){#scoreSection{max-width:135px}.scorePagingInfo{gap:4px}.scoreLine .token{min-height:44px}}
+
+/* Score density follows notation; readable controls can step into lower lanes. */
+.scoreLine{overflow-x:hidden}.scoreLine .scorebox,.scoreLine .noteStrip{max-width:100%}
+.native-staff{min-height:0}.scoreLine .noteStrip{height:var(--note-strip-height);padding:0;overflow:visible}
+.scoreLine .token{top:var(--button-top,3px);height:42px;min-height:42px;margin:0}
+.scoreStacks[data-lines="4"] .token{height:32px;min-height:32px}
+.note-continuation{position:absolute;line-height:18px;color:#7890ac;font-size:12px;pointer-events:none}
+@media(max-width:600px){.scoreLine .token,.scoreStacks[data-lines="4"] .token{height:44px;min-height:44px}.scorePagingInfo{min-width:0}#scoreSection{max-width:125px}.native-score .score-lyric{font-weight:650}}
+
+.note-continuation{width:8px;height:9px;margin-top:6px;border-left:1px solid #8b9eb9;border-bottom:1px solid #8b9eb9;border-radius:0 0 0 3px}.note-continuation::after{content:'';position:absolute;right:-1px;bottom:-3px;border-top:3px solid transparent;border-bottom:3px solid transparent;border-left:4px solid #8b9eb9}

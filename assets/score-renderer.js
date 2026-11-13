@@ -5,6 +5,40 @@ const LETTERS='CDEFGAB',NATURAL=[0,2,4,5,7,9,11],KEYS=['C','Db','D','Eb','E','F'
 const PC={C:0,D:2,E:4,F:5,G:7,A:9,B:11};
 const KEY_ALTERS={C:{},D:{F:1,C:1},E:{F:1,C:1,G:1,D:1},G:{F:1},A:{F:1,C:1,G:1},B:{F:1,C:1,G:1,D:1,A:1},F:{B:-1},Bb:{B:-1,E:-1},Eb:{B:-1,E:-1,A:-1},Ab:{B:-1,E:-1,A:-1,D:-1},Db:{B:-1,E:-1,A:-1,D:-1,G:-1},'F#':{F:1,C:1,G:1,D:1,A:1,E:1}};
 const mod=(a,b)=>(a%b+b)%b;
+function sharpNoteName(midi){const names=['C','C♯','D','D♯','E','F','F♯','G','G♯','A','A♯','B'];return names[mod(midi,12)]+(Math.floor(midi/12)-1);}
+// Partition into consecutive runs, then keep each run near its score anchors.
+// Later runs retain their horizontal position instead of wrapping to the left.
+function fitNoteLanes(anchors,minimumWidths,availableWidth,touch=false){
+ const count=anchors.length,available=Math.max(1,availableWidth),gap=3;
+ if(!count)return {placements:[],runs:[]};
+ const widths=minimumWidths.map(w=>Math.min(available,Math.max(touch?38:34,w)));
+ const segments=new Map();
+ function segment(from,to){
+  const key=from+':'+to;if(segments.has(key))return segments.get(key);
+  const prefix=[];let total=0;for(let i=from;i<to;i++){prefix.push(total);total+=widths[i]+(i+1<to?gap:0);}
+  if(total>available+.001){segments.set(key,null);return null;}
+  const blocks=[];for(let i=from;i<to;i++){
+   blocks.push({first:i,last:i,sum:anchors[i]*available-widths[i]/2-prefix[i-from],count:1});
+   while(blocks.length>1){const right=blocks.at(-1),left=blocks.at(-2);if(left.sum/left.count<=right.sum/right.count)break;blocks.splice(-2,2,{first:left.first,last:right.last,sum:left.sum+right.sum,count:left.count+right.count});}
+  }
+  const placements=[];let cost=0;for(const block of blocks){const shift=Math.max(0,Math.min(available-total,block.sum/block.count));for(let i=block.first;i<=block.last;i++){const left=prefix[i-from]+shift;placements[i-from]={left,width:widths[i]};cost+=Math.pow(left+widths[i]/2-anchors[i]*available,2);}}
+  const result={placements,cost};segments.set(key,result);return result;
+ }
+ const total=widths.reduce((a,b)=>a+b,0)+gap*(count-1),maxRows=Math.min(count,Math.max(3,Math.ceil(total/available)+1));
+ const penalty=count*Math.pow(touch?18:20,2),dp=Array.from({length:maxRows+1},()=>Array(count+1).fill(null));dp[0][0]={cost:0};
+ let best=null;
+ for(let row=1;row<=maxRows;row++){
+  for(let to=1;to<=count;to++)for(let from=row-1;from<to;from++){
+   if(!dp[row-1][from])continue;const run=segment(from,to);if(!run)continue;
+   const cost=dp[row-1][from].cost+run.cost+penalty+(to-from===1&&count>3?penalty*.4:0);
+   if(!dp[row][to]||cost<dp[row][to].cost)dp[row][to]={cost,from};
+  }
+  if(dp[row][count]&&(!best||dp[row][count].cost<best.cost))best={row,cost:dp[row][count].cost};
+ }
+ const runs=[];let to=count;for(let row=best.row;row>0;row--){const from=dp[row][to].from;runs.unshift({from,to});to=from;}
+ const placements=[];runs.forEach((run,row)=>segment(run.from,run.to).placements.forEach((p,i)=>placements.push({...p,row,index:run.from+i})));
+ return {placements,runs};
+}
 function tonic(key){return mod(PC[key[0]]+(key[1]==='#'?1:key[1]==='b'?-1:0),12);}
 function transposedKey(key,shift){return KEYS[mod(tonic(key)+shift,12)];}
 function spellPitch(pitch,midi,key,shift){
@@ -31,18 +65,18 @@ class ScoreRenderer{
  layout(width,notes,lyric,shift=0){
   const lookup=new Map(notes.map(n=>[n.id,n]));const key=transposedKey(this.song.key,shift);const VF=root.Vex?.Flow;const prefix=VF?Math.ceil(new VF.Stave(0,0,1000).addClef('treble','default','8vb').addKeySignature(key).addTimeSignature('4/4').getNoteStartX()):146;
   const breakMeasures=new Set(this.song.sections.map(s=>lookup.get(s.noteId)?.measureId));breakMeasures.add(lookup.get(this.song.vocalStart)?.measureId);
-  const specs=this.song.measures.map((measure,index)=>{const cells=measure.events.map(e=>{const n=lookup.get(e.noteId);const label=e.kind==='note'?lyric(n):'';return Math.max(e.kind==='note'?34:20,textWidth(label,12)+12);});return {measure,cells,minWidth:cells.reduce((a,b)=>a+b,0)+32+(index&&this.song.measures[index-1].meter.join('/')!==measure.meter.join('/')?32:0)};});
+  const specs=this.song.measures.map((measure,index)=>{const cells=measure.events.map(e=>{const n=lookup.get(e.noteId);const label=e.kind==='note'?lyric(n):'';return Math.max(e.kind==='note'?24:18,textWidth(label,12)+8);});return {measure,cells,minWidth:cells.reduce((a,b)=>a+b,0)+32+(index&&this.song.measures[index-1].meter.join('/')!==measure.meter.join('/')?32:0)};});
   const systems=[];let group=[],used=prefix;
-  const finish=()=>{if(!group.length)return;const minWidth=prefix+group.reduce((s,m)=>s+m.minWidth,0)+8;const systemWidth=Math.max(width,minWidth);const spare=systemWidth-minWidth;const totalWeight=group.reduce((s,m)=>s+Math.sqrt(m.measure.length),0);
+  const finish=()=>{if(!group.length)return;const minWidth=prefix+group.reduce((s,m)=>s+m.minWidth,0)+8;const idealWidth=prefix+group.reduce((s,m)=>s+Math.max(m.minWidth*1.15,m.measure.length*62+32),0)+8;const systemWidth=Math.max(minWidth,Math.min(width,idealWidth));const spare=systemWidth-minWidth;const totalWeight=group.reduce((s,m)=>s+Math.sqrt(m.measure.length),0);
    const laid=group.map((s,i)=>({...s,width:s.minWidth+spare*Math.sqrt(s.measure.length)/totalWeight}));
    const noteIds=laid.flatMap(m=>m.measure.events.filter(e=>e.kind==='note').map(e=>e.noteId));
-   systems.push({index:systems.length,width:systemWidth,prefix,measures:laid,noteIds,label:laid[0].measure.label,firstMeasure:laid[0].measure.sourceNumber,lastMeasure:laid.at(-1).measure.sourceNumber});group=[];used=prefix;};
+   systems.push({index:systems.length,width:systemWidth,displayWidth:Math.min(width,systemWidth),prefix,measures:laid,noteIds,label:laid[0].measure.label,firstMeasure:laid[0].measure.sourceNumber,lastMeasure:laid.at(-1).measure.sourceNumber});group=[];used=prefix;};
   for(const spec of specs){if(group.length&&(breakMeasures.has(spec.measure.id)||used+spec.minWidth+8>width||group.length>=4))finish();group.push(spec);used+=spec.minWidth;}finish();
   const noteRows=new Map();for(const s of systems)for(const id of s.noteIds)noteRows.set(id,s.index);this.plan={systems,noteRows,key,shift,width};return this.plan;
  }
  render(host,system,options){
   const {notes,lyric,shift=0,octave=-12,onPick}=options;const lookup=new Map(notes.map(n=>[n.id,n]));
-  const signature=system.noteIds.map(id=>`${id}:${lookup.get(id).midi}:${lyric(lookup.get(id))}`).join('|')+`/${system.index}/${system.width}/${shift}/${octave}`;
+  const signature=system.noteIds.map(id=>`${id}:${lookup.get(id).midi}:${lyric(lookup.get(id))}`).join('|')+`/${system.index}/${system.width}/${system.displayWidth}/${shift}/${octave}`;
   const old=this.cache.get(host);if(old?.signature===signature){this.highlight(host,options);return old;}
   const VF=root.Vex?.Flow;if(!VF)throw Error('악보 렌더러를 불러오지 못했습니다. 새로고침해 주세요.');
   host.replaceChildren();const renderer=new VF.Renderer(host,VF.Renderer.Backends.SVG);renderer.resize(system.width,230);const ctx=renderer.getContext();ctx.setFont('Arial',12);const svg=host.querySelector('svg');svg.classList.add('native-score');svg.setAttribute('role','group');svg.setAttribute('aria-label',`${system.label}, ${system.firstMeasure}~${system.lastMeasure}마디`);
@@ -78,10 +112,11 @@ class ScoreRenderer{
    const center=anchors.get(id);const mark=document.createElementNS(namespace,'rect');mark.setAttribute('x',center.x-13);mark.setAttribute('y',center.y-11);mark.setAttribute('width',26);mark.setAttribute('height',22);mark.setAttribute('rx',6);mark.setAttribute('class','note-highlight');item.group.prepend(mark);
    const hit=document.createElementNS(namespace,'rect');hit.setAttribute('x',center.x-17);hit.setAttribute('y',Math.min(center.y-22,65));hit.setAttribute('width',34);hit.setAttribute('height',Math.max(44,lyricY-Math.min(center.y-22,65)+6));hit.setAttribute('fill','transparent');hit.setAttribute('stroke','none');hit.setAttribute('class','note-hit');hit.setAttribute('tabindex','0');hit.setAttribute('role','button');hit.setAttribute('aria-label',`${notes.indexOf(item.model)+1}번 ${label||'음표'} 선택`);hit.dataset.noteId=String(id);hit.addEventListener('click',()=>onPick(id,false));hit.addEventListener('contextmenu',e=>{e.preventDefault();onPick(id,true);});hit.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();onPick(id,e.shiftKey);}});svg.append(hit);
   }
-  const bounds=svg.getBBox(),top=Math.floor(Math.min(bounds.y,0))-3,bottom=Math.ceil(Math.max(bounds.y+bounds.height,lyricY+8));svg.setAttribute('viewBox',`0 ${top} ${system.width} ${bottom-top}`);svg.setAttribute('height',bottom-top);svg.setAttribute('width',system.width);svg.style.height=(bottom-top)+'px';svg.style.width=system.width+'px';host.style.width=system.width+'px';host.style.height=(bottom-top)+'px';
-  const result={signature,anchors,system,width:system.width,height:bottom-top};this.cache.set(host,result);this.highlight(host,options);return result;
+  const bounds=svg.getBBox(),top=Math.floor(Math.min(bounds.y,0))-3,bottom=Math.ceil(Math.max(bounds.y+bounds.height,lyricY+8));const displayWidth=system.displayWidth,scale=displayWidth/system.width,height=(bottom-top)*scale;svg.setAttribute('viewBox',`0 ${top} ${system.width} ${bottom-top}`);svg.setAttribute('height',height);svg.setAttribute('width',displayWidth);svg.style.height=height+'px';svg.style.width=displayWidth+'px';host.style.width=displayWidth+'px';host.style.height=height+'px';
+  const displayAnchors=new Map([...anchors].map(([id,a])=>[id,{x:a.x*scale,y:a.y*scale}]));
+  const result={signature,anchors:displayAnchors,system,width:displayWidth,height};this.cache.set(host,result);this.highlight(host,options);return result;
  }
  highlight(host,{currentId,startId,endId,playingId,notes}){const index=new Map(notes.map((n,i)=>[n.id,i]));for(const group of host.querySelectorAll('.native-note[data-note-id]')){const id=Number(group.dataset.noteId);group.classList.toggle('is-selected',id===currentId);group.classList.toggle('is-playing',id===playingId);group.classList.toggle('is-start',id===startId);group.classList.toggle('is-end',id===endId);group.classList.toggle('is-range',index.get(id)>=index.get(startId)&&index.get(id)<=index.get(endId));}}
 }
-const api={ScoreRenderer,validateSong,spellPitch,transposedKey,transposeChord};if(typeof module!=='undefined')module.exports=api;Object.assign(root,api);
+const api={ScoreRenderer,validateSong,spellPitch,transposedKey,transposeChord,sharpNoteName,fitNoteLanes};if(typeof module!=='undefined')module.exports=api;Object.assign(root,api);
 })(typeof window!=='undefined'?window:globalThis);
