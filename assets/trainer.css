@@ -1,0 +1,242 @@
+
+:root{--bg:#f4f6fa;--card:#fff;--ink:#172339;--muted:#69768a;--line:#dfe5ed;--blue:#2965dc;--mint:#087e69;--soft:#eef3fc;--warning:#b5671a}*{box-sizing:border-box}body{background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,'Malgun Gothic',sans-serif;margin:0}header{max-width:1100px;margin:auto;padding:30px 16px 16px}header h1{margin:0 0 5px;font-size:26px;letter-spacing:-.5px}header p{margin:0;color:var(--muted);line-height:1.6}.wrap{max-width:1100px;margin:auto;padding:0 16px 40px;display:grid;gap:14px}.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:20px;box-shadow:0 3px 14px #14264607}.toolbar{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between}.control{display:flex;gap:8px;align-items:center}.group{display:flex;align-items:center;gap:7px;flex-wrap:wrap}.sub{font-size:13px;color:var(--muted)}.label{font-size:13px;font-weight:700;color:#4c5b72}button,select,input[type=number]{border:1px solid #cfd8e4;border-radius:10px;padding:10px 13px;background:#fff;color:var(--ink);font:inherit}button{cursor:pointer;font-weight:650}button:hover{background:#f4f8ff}button:focus-visible,select:focus-visible{outline:3px solid #b7d0ff}button.primary{background:var(--blue);color:#fff;border-color:var(--blue)}button.primary:hover{background:#1f56bc}button:disabled{opacity:.4;cursor:not-allowed}button.tiny{padding:5px 9px}select{max-width:270px}.pill{border-radius:100px;background:var(--soft);color:#264888;padding:7px 12px;font-size:13px;white-space:nowrap}.notewrap{display:grid;grid-template-columns:1fr auto;gap:16px;align-items:center}.bigNote{font-weight:800;font-size:52px;line-height:1.12;letter-spacing:-2px}.status{font-size:13px;color:var(--muted);margin-top:7px}.display{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px}.soundBtns{display:flex;gap:6px;flex-wrap:wrap}.scorebox{overflow:hidden;border:1px solid var(--line);background:white;border-radius:10px}.scorebox canvas{display:block;width:100%;height:auto;cursor:crosshair}.progress-track{background:#e4eaf3;border-radius:8px;height:9px;overflow:hidden}.progress{height:100%;background:var(--mint);width:0;transition:width .2s}.noteStrip{display:flex;gap:5px;overflow:auto;padding:9px 0 5px;scrollbar-width:thin}.token{min-width:61px;text-align:center;flex:0 0 auto;font-size:12px;padding:10px 8px}.token.sel{border:2px solid var(--blue);background:#edf3ff}.token .num{display:block;font-size:10px;color:var(--muted);margin-bottom:3px}.meter{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center}.pitchbar{position:relative;height:18px;border-radius:12px;background:linear-gradient(to right,#e4eefb 0 32%,#cbf1e2 37% 63%,#e4eefb 68% 100%);overflow:hidden}.pitchbar:before{content:'';position:absolute;left:50%;height:100%;width:2px;background:#1e7959}.needle{position:absolute;height:100%;width:4px;border-radius:4px;background:#cf5f2c;left:50%;transition:left .1s}.grided{display:grid;grid-template-columns:1fr 1fr;gap:14px}.fullscore{margin-top:8px;max-height:600px;overflow:auto;border:1px solid var(--line);border-radius:10px}.fullscore img{width:100%;display:block}.tools{display:flex;flex-wrap:wrap;align-items:center;gap:7px}input[type=checkbox]{accent-color:var(--blue);width:17px;height:17px}.success{color:var(--mint);font-weight:700}.caution{color:var(--warning)}footer{font-size:12px;color:var(--muted);line-height:1.6;margin:5px 0 20px}@media(max-width:760px){.grided{grid-template-columns:1fr}.card{padding:15px}.bigNote{font-size:42px}.toolbar{align-items:start}.notewrap{grid-template-columns:1fr}}
+
+/* v2: fixed viewport width and fixed navigation controls */
+html,body{width:100%;max-width:100%;overflow-x:clip}
+.wrap{width:100%;min-width:0;grid-template-columns:minmax(0,1fr);padding-bottom:148px}
+.wrap>.card{min-width:0;max-width:100%}
+.noteStrip{min-width:0;width:100%;max-width:100%;overscroll-behavior-x:contain;scroll-behavior:auto}
+.scorebox{min-width:0;max-width:100%}
+.scorebox canvas{max-width:100%;width:100%;height:auto}
+.notewrap{grid-template-columns:minmax(0,1fr)}
+.bigNote{overflow-wrap:anywhere}
+.navDock{position:fixed;z-index:30;bottom:calc(12px + env(safe-area-inset-bottom,0px));left:50%;transform:translateX(-50%);width:min(690px,calc(100vw - 24px));background:#fff;border:1px solid #cfd8e4;box-shadow:0 8px 35px rgba(17,34,59,.18);border-radius:18px;padding:11px;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.22fr) minmax(0,1fr);gap:8px;align-items:stretch}
+.navDock button{width:100%;min-width:0;min-height:50px;padding:9px 8px;font-size:14px;line-height:1.3}
+.navDock .dockHead{grid-column:1 / -1;display:flex;justify-content:space-between;gap:12px;align-items:center;padding:0 3px;color:#69768a;font-size:12px}
+.navDock .dockHead strong{color:#173d81}
+@media(max-width:480px){.navDock{bottom:calc(8px + env(safe-area-inset-bottom,0px));width:calc(100vw - 14px);padding:8px;gap:5px;border-radius:13px}.navDock button{min-height:52px;padding:7px 3px;font-size:12px}.wrap{padding-bottom:142px}.card{padding:12px}.bigNote{font-size:39px}}
+
+/* v4: user-adjustable practice segment size + original v2 fixed dock */
+.phraseCard{min-width:0;overflow:hidden}
+.phraseHeader{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;flex-wrap:wrap}
+.phraseTitle{font-size:19px;font-weight:760;margin-top:5px}
+.phraseInfo{font-size:13px;color:#64748b;line-height:1.5;margin-top:5px}
+.phraseActions{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.3fr) minmax(0,1fr);gap:8px;margin-top:14px}
+.phraseActions button{min-width:0;min-height:48px;font-size:14px;padding:9px 5px}
+.phraseSettings{display:flex;flex-wrap:wrap;gap:12px;align-items:center;margin-top:12px}
+.phraseControls{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.phraseControls label{font-size:13px;color:#546780}
+.phraseControls select{font-size:14px;padding:9px 11px;max-width:165px}
+.phraseBar{height:7px;background:#e8edf6;border-radius:8px;overflow:hidden;margin-top:11px}
+.phraseBar>div{height:100%;background:#22a388;width:0%;transition:width .16s linear}
+.phraseMeta{margin-top:8px;font-size:12px;color:#6a778b}
+.phraseEdit{margin-top:12px;border-top:1px solid #e6eaf1;padding-top:10px}
+.phraseEdit summary{font-size:13px;cursor:pointer;color:#4a5c78;font-weight:650}
+.phraseEdit .tools{margin-top:10px;gap:7px}
+.phraseEdit button{font-size:12px;padding:7px 9px}
+.phraseMarked{color:#1a667a;font-weight:700}
+/* v4: responsive numeric length controls */
+.phraseLength{display:flex;align-items:center;gap:6px;flex-wrap:nowrap;min-width:0}
+.phraseLength label{white-space:nowrap;font-size:13px;color:#546780}
+.phraseLength input[type=number]{width:70px;min-width:0;padding:9px 7px;text-align:center;font-size:15px;font-weight:700;appearance:textfield}
+.phraseLength input::-webkit-inner-spin-button,.phraseLength input::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
+.phraseLength button{min-width:36px;min-height:38px;padding:5px 8px;font-size:20px;line-height:1}
+.phraseLength .unit{font-size:13px;color:#64748b;white-space:nowrap}
+@media(max-width:540px){.phraseActions button{font-size:12px;min-height:50px;padding:8px 3px}.phraseTitle{font-size:17px}.phraseSettings{gap:8px}.phraseControls{width:100%;justify-content:space-between}.phraseControls select{max-width:150px}}
+
+/* v6: anchor-to-selected-note quick playback */
+.quickRange{margin-top:15px;padding:17px;border-radius:15px;background:linear-gradient(125deg,#eff5ff,#f7fbff);border:1px solid #c8d9f5;display:grid;gap:12px}
+.quickRangeHeading{font-size:16px;font-weight:800;color:#193f83;margin-bottom:5px}
+.quickNew{font-size:10px;letter-spacing:.3px;vertical-align:middle;color:#fff;background:#2965dc;border-radius:5px;padding:3px 6px;font-weight:700;margin-left:4px}
+.quickRangeControls{display:flex;align-items:center;flex-wrap:wrap;gap:7px}
+.quickRangeControls label{font-size:13px;font-weight:700;color:#364d72;margin-right:3px}
+.quickRangeControls input[type=number]{width:68px;min-width:0;padding:10px 7px;border:1px solid #b8c9e2;border-radius:9px;text-align:center;font-size:16px;font-weight:750;color:#1c3d76;background:#fff}
+.quickRangeControls input::-webkit-inner-spin-button,.quickRangeControls input::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
+.quickRangeControls .tiny{width:37px;height:40px;font-size:18px;padding:3px}
+.quickRangeControls #quickPlay{min-height:42px;padding:8px 15px}
+.quickRangeStatus{font-size:13px;font-weight:600;color:#294a77;line-height:1.5}
+.token.anchor:not(.sel){outline:2px dashed #3290a6;outline-offset:-3px}
+@media(max-width:540px){.quickRange{padding:12px}.quickRangeControls #quickPlay{width:100%;margin-top:4px}.quickRangeHeading{font-size:15px}}
+/* v7: move between displayed score staff lines (not individual notes) */
+.scorePaging{display:grid;grid-template-columns:minmax(130px,1fr) minmax(140px,1.1fr) minmax(130px,1fr);align-items:center;gap:10px;margin-top:14px;padding:10px;border-radius:13px;border:1px solid #dce5f3;background:#f8fbff}
+.scorePaging button{min-width:0;min-height:45px;line-height:1.25;font-weight:750;white-space:nowrap}
+.scorePagingInfo{text-align:center;min-width:0;display:grid;gap:3px;justify-items:center}
+.scorePagingInfo strong{font-size:14px;color:#214779;line-height:1.3}
+.scorePagingInfo span{font-size:12px;color:#677a96}
+.scorePaging button:disabled{opacity:.43;cursor:not-allowed}
+@media(max-width:530px){.scorePaging{grid-template-columns:minmax(0,1fr) minmax(92px,1fr) minmax(0,1fr);gap:5px;padding:7px}.scorePaging button{font-size:12px;min-height:47px;padding:7px 3px}.scorePagingInfo strong{font-size:12px}.scorePagingInfo span{font-size:11px}}
+/* v8: lyric alignment under each pitch, and range endpoint markers */
+.token{min-width:74px;padding:8px 6px;position:relative;border:1px solid #d9e3ee;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;min-height:83px}
+.token b{font-size:14px;line-height:1.2}
+.token .lyric{display:block;max-width:84px;font-size:13px;color:#273c59;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.3;font-weight:700}
+.token .lyric.empty{color:#a0aec1;font-weight:400}
+.token .rangeBadge{font-size:10px;font-weight:800;line-height:1.1;border-radius:4px;padding:2px 5px;color:white;white-space:nowrap}
+.token.rangeStart{border:2px solid #13876f;background:#edfdf6}
+.token.rangeEnd{border:2px solid #d98b25;background:#fff6e5}
+.token.rangeStart.rangeEnd{border-color:#885bd2;background:#f6f1ff}
+.rangeBadge.start{background:#087d69}.rangeBadge.end{background:#a96915}.rangeBadge.both{background:#7150b3}
+.token.inRange:not(.rangeStart):not(.rangeEnd){background:#f3f7ff;border-color:#bfd4f6}
+.lyricSettings{margin-top:10px;padding:11px 13px;border:1px solid #dce5f3;border-radius:12px;background:#f8fbff;display:grid;gap:9px}
+.lyricSettings h3{margin:0;font-size:14px;color:#204674}
+.lyricEditRow{display:flex;align-items:center;flex-wrap:wrap;gap:8px}
+.lyricEditRow input{min-width:115px;max-width:200px;flex:1;padding:9px 11px;border:1px solid #b6c6dd;border-radius:8px;font-size:15px}
+.lyricEditRow button{padding:8px 11px;font-size:12px}
+.lyricHelp{color:#647692;font-size:12px;line-height:1.5}
+.rangeLegend{font-size:12px;color:#315078;display:flex;gap:13px;flex-wrap:wrap;align-items:center}
+.rangeLegend strong{color:#0b7e70}.rangeLegend em{color:#a96915;font-style:normal;font-weight:800}
+.noteLyricPreview{font-size:15px;font-weight:750;color:#29527c;margin-top:5px;min-height:20px}
+@media(max-width:530px){.token{min-width:72px;padding:7px 5px;min-height:84px}.token .lyric{font-size:12px}.lyricSettings{padding:10px}.lyricEditRow input{min-width:110px}}
+
+/* v9: dual staff preview, independent paging, pronounced playback cursor */
+.scoreStacks{display:grid;gap:14px;margin-top:12px}
+.scoreLine{min-width:0;border:1px solid #dce5f0;border-radius:13px;padding:10px;background:#fbfcff}
+.scoreLine.preview{background:#f7faff;border-color:#cbdaf3}
+.scoreLineHead{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:8px;font-size:13px;color:#31517c;font-weight:750}
+.scoreLineHead .lineTag{display:inline-block;border-radius:6px;background:#e5edf9;color:#2558a0;font-size:11px;padding:4px 7px;margin-right:7px}
+.scoreLineHead .lineTag.next{background:#dceff6;color:#18637b}
+.scoreLine .scorebox{margin:0}
+.scoreLine .noteStrip{margin-top:3px}
+.scoreLine.isHidden{display:none}
+.playLegend{font-size:12px;color:#a42162;font-weight:750}
+.token.nowPlaying,.token.nowPlaying.rangeStart,.token.nowPlaying.rangeEnd,.token.nowPlaying.rangeStart.rangeEnd{background:#ffe5f1;border:3px solid #e13584;box-shadow:0 0 0 3px rgba(225,53,132,.15),0 5px 13px rgba(158,23,87,.2);position:relative;z-index:2;transform:translateY(-1px)}
+.token.nowPlaying::before{content:'♪ 지금 재생';background:#c21f69;color:#fff;font-weight:800;font-size:10px;padding:3px 6px;border-radius:5px;white-space:nowrap;position:absolute;left:50%;top:-13px;transform:translateX(-50%);z-index:3}
+.token.nowPlaying .lyric{color:#8d154c}
+@media(max-width:530px){.scoreStacks{gap:9px}.scoreLine{padding:7px}.scoreLineHead{font-size:12px}.token.nowPlaying::before{font-size:9px;top:-11px}}
+.rangePickTools button{padding:8px 12px;min-height:42px;font-size:13px}
+.rangePickTools button[aria-pressed="true"]{background:#edf3ff;border-color:#2965dc;color:#194daf;box-shadow:inset 0 0 0 1px #2965dc}
+/* Keep frequently used controls beside each other and close to the score. */
+.practicePanels{display:grid;grid-template-columns:minmax(0,1fr);gap:9px;margin-top:9px;align-items:start}
+.practicePanels .lyricSettings,.practicePanels .quickRange{margin:0;padding:11px 12px;gap:7px;min-width:0;border-radius:10px}
+.practicePanels h3,.practicePanels .quickRangeHeading{font-size:14px;line-height:1.35;margin:0}
+.practicePanels .quickNew{display:none}
+.practicePanels .lyricEditRow,.practicePanels .quickRangeControls{gap:5px}
+.practicePanels .lyricEditRow input{width:90px;min-width:65px;max-width:130px;padding:6px 7px;font-size:14px}
+.practicePanels .lyricEditRow button{font-size:11px;padding:6px 7px;min-height:32px}
+.practicePanels .label,.practicePanels .quickRangeControls label{font-size:12px}
+.practicePanels .lyricHelp{font-size:11px;line-height:1.5}
+.practicePanels .lyricHelp summary{cursor:pointer;color:#60728b}
+.practicePanels .lyricHelp div{margin-top:5px}
+.practicePanels .quickRangeControls input[type=number]{width:50px;padding:6px 4px;font-size:14px}
+.practicePanels .quickRangeControls .tiny{width:30px;height:32px;min-height:32px;padding:3px;font-size:16px}
+.practicePanels .quickRangeControls #quickPlay{width:auto;min-height:34px;padding:6px 10px;font-size:13px;margin:0}
+.practicePanels .quickRangeStatus{font-size:12px;line-height:1.4}
+.rangePickTools{margin-top:7px!important;gap:5px!important}
+.rangePickTools button{font-size:12px;min-height:32px;padding:5px 9px}
+.rangePickTools .sub{font-size:11px}
+#rangePickFeedback{font-size:11px;line-height:1.4;margin-top:4px!important}
+.rangeLegend{margin-top:4px!important;gap:9px;font-size:11px;line-height:1.4}
+.rangeLegend .playLegend{font-size:11px}
+@media(min-width:900px){.practicePanels{grid-template-columns:minmax(0,1fr) minmax(0,1.15fr)}}
+@media(max-width:600px){.practicePanels .lyricEditRow button{min-height:40px}.practicePanels .quickRangeControls .tiny{width:34px;height:40px}.practicePanels .quickRangeControls #quickPlay{min-height:40px}.rangePickTools button{min-height:40px}}
+/* On touch-sized screens playback comes first; lyrics expand on demand. */
+.practicePanels details.lyricSettings{display:block}
+.lyricPanelSummary{cursor:pointer;font-weight:750;font-size:14px;color:#204674;line-height:1.4}
+.lyricPanelBody{display:grid;gap:7px;margin-top:8px}
+.lyricMobileHint{display:none;font-weight:400;font-size:11px;color:#69768a}
+@media(max-width:899px){
+ .practicePanels .quickRange{order:0}
+ .practicePanels .lyricSettings{order:1}
+ .lyricMobileHint{display:inline}
+ #lyricPanel[open] .lyricMobileHint{display:none}
+ .lyricPanelSummary{min-height:24px}
+ .rangePickTools .sub{display:none}
+}
+/* Compact note buttons stay within the score width, including on phones. */
+.scoreLine .noteStrip{display:flex;flex-wrap:wrap;align-items:stretch;gap:4px;overflow:visible;padding:10px 0 4px;scroll-behavior:auto}
+.scoreLine .token{flex:0 0 clamp(36px,4vw,44px);width:clamp(36px,4vw,44px);min-width:0;max-width:44px;min-height:66px;padding:6px 2px;gap:3px;border-radius:7px;touch-action:manipulation}
+.scoreLine .token .num{font-size:9px;margin:0}
+.scoreLine .token b{font-size:12px;line-height:1.2;white-space:nowrap;letter-spacing:-.3px}
+.scoreLine .token .lyric{max-width:100%;font-size:12px;line-height:1.25}
+.scoreLine .token .rangeBadge{font-size:9px;padding:2px 1px;letter-spacing:-.4px}
+.scoreLine .token.nowPlaying::before{content:'♪';left:auto;right:-3px;top:-6px;transform:none;font-size:11px;padding:2px 4px}
+@media(max-width:530px){.scoreLine .noteStrip{gap:3px}.scoreLine .token{min-height:62px}.scoreLine .token b{font-size:11px}.scoreLine .token .lyric{font-size:11px}}
+
+
+#practice-nav{position:sticky;top:0;z-index:10000;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px max(12px,env(safe-area-inset-left));background:#fff;border-bottom:1px solid #dce5eb;font-family:system-ui,-apple-system,"Apple SD Gothic Neo",sans-serif;line-height:1.4;box-shadow:0 2px 10px #15324e0a}
+#practice-nav a{display:inline-flex;align-items:center;justify-content:center;min-height:42px;padding:9px 12px;border-radius:10px;text-decoration:none;font-size:14px;font-weight:700;color:#174b7a;background:#eef4fc;white-space:nowrap}
+#practice-nav a:focus-visible{outline:3px solid #e8a42b;outline-offset:2px}
+#practice-nav span{font-size:12px;color:#607080;text-align:center}
+@media(max-width:380px){#practice-nav{gap:5px;padding:7px 8px}#practice-nav a{font-size:12px;padding:8px}#practice-nav span{font-size:11px}}
+
+
+/* Compact song workspace: playback before the score and always at the bottom. */
+header{padding:12px 16px 8px}header h1{font-size:21px;margin:0}
+.wrap{gap:9px}.wrap>.card{padding:12px}
+.toolbar{gap:7px}.toolbar .group{gap:5px}.toolbar .label{font-size:12px}
+.toolbar button,.toolbar select{font-size:12px;padding:6px 8px}.toolbar select{max-width:220px}
+.quickRange{margin:8px 0 5px;padding:8px 10px;gap:5px;border-radius:10px;grid-template-columns:auto minmax(0,1fr);align-items:center}
+.quickRangeHeading{font-size:13px;margin:0}.quickRangeControls{justify-content:flex-end;gap:5px}
+.quickRangeControls label{font-size:12px}.quickRangeControls input[type=number]{width:48px;font-size:14px;padding:5px}
+.quickRangeControls .tiny{width:30px;height:32px;font-size:17px}
+.quickRangeControls #quickPlay{min-height:34px;padding:6px 10px;font-size:13px}
+.quickRangeStatus{grid-column:1/-1;font-size:11px;line-height:1.25}
+.scorePaging{margin-top:5px;padding:5px;gap:5px}.scorePaging button{min-height:32px;padding:5px;font-size:12px}
+.scorePagingInfo strong{font-size:12px}.scorePagingInfo span{display:none}
+.scoreStacks{gap:8px;margin-top:7px}.scoreLine{padding:7px}.scoreLineHead{font-size:12px;margin-bottom:4px}.scoreLineHead .lineTag{font-size:10px;padding:2px 5px}
+.rangePickTools{margin-top:4px!important}.rangePickTools button{min-height:32px;padding:5px 8px}
+#rangePickFeedback{margin-top:2px!important}.rangeLegend{font-size:10px;margin-top:4px!important}
+.practicePanels{display:block;margin-top:5px}.practicePanels .lyricSettings{padding:6px 9px}.lyricPanelSummary{font-size:12px;min-height:20px}
+.bigNote{font-size:30px}.notewrap p.sub{display:none}.noteLyricPreview{font-size:13px;margin-top:2px}.status{margin-top:3px;font-size:12px}
+.extraPractice{border:1px solid #dfe5ed;border-radius:10px;background:#fff;padding:8px 12px;font-size:12px}.extraPractice>summary{cursor:pointer;font-weight:650}.extraPractice>.card{margin-top:7px;padding:10px;border:0;box-shadow:none}
+.navDock{width:min(780px,calc(100vw - 24px));padding:7px;gap:5px;grid-template-columns:1fr 1fr 1fr 1.15fr}.navDock button{min-height:42px;font-size:12px;padding:6px 4px}.navDock .dockHead{font-size:11px}
+@media(max-width:600px){header{padding-top:8px}header h1{font-size:19px}.wrap{padding:0 8px 130px}.wrap>.card{padding:8px}.toolbar .group{gap:4px}.toolbar select{max-width:190px}.quickRange{grid-template-columns:minmax(0,1fr);padding:7px 8px}.quickRangeIntro{display:none}.quickRangeControls{justify-content:flex-start}.quickRangeControls #quickPlay{width:auto;margin:0;min-height:40px}.quickRangeControls .tiny{width:34px;height:38px}.quickRangeStatus{font-size:10px}.scoreLine{padding:4px}.scorePaging button{min-height:36px;font-size:11px}.rangePickTools button{min-height:38px}.navDock{width:calc(100vw - 12px);padding:6px;gap:4px}.navDock button{min-height:44px;font-size:11px}.rangeLegend .playLegend{font-size:10px}}
+
+
+/* Compact, full-width notation: space savings come from margins and controls. */
+header{padding:6px 12px 4px}header h1{font-size:18px}
+#practice-nav{padding:4px 10px;gap:6px}#practice-nav a{min-height:28px;font-size:12px;padding:5px 9px;border-radius:7px}#practice-nav span{font-size:12px}
+.wrap{gap:6px;padding-bottom:102px}.wrap>.card{padding:8px;border-radius:11px}
+.toolbar{gap:6px}.toolbar .group{gap:4px}.toolbar .label,.toolbar .sub{font-size:11px}.toolbar .pill{font-size:11px;padding:4px 7px}
+.toolbar button,.toolbar select{padding:4px 7px;font-size:12px;min-height:26px}
+.quickRange{margin:0 0 4px;padding:6px 8px;gap:3px 8px}.quickRangeHeading{font-size:12px}.quickRangeControls label{font-size:11px}
+.quickRangeControls .tiny{height:27px;width:27px;min-height:27px;padding:1px;font-size:15px}.quickRangeControls input[type=number]{padding:3px;width:44px;font-size:13px}
+.quickRangeControls #quickPlay{min-height:28px;padding:4px 8px;font-size:12px}.quickRangeStatus{font-size:11px;line-height:1.3}
+.rangePickTools{display:inline-flex!important;gap:4px!important;margin:0!important}.rangePickTools button{min-height:26px;padding:4px 8px;font-size:11px}
+#rangePickFeedback{display:inline;font-size:10px;margin-left:6px!important}#rangePickFeedback:empty{display:none}
+.scorePaging{grid-template-columns:auto minmax(0,1fr) auto;gap:5px;padding:4px;margin-top:4px}
+.scorePaging button{min-height:26px;padding:4px 8px;font-size:11px}.scorePagingInfo{display:flex;justify-content:center;align-items:center;gap:8px;flex-wrap:wrap}.scorePagingInfo strong{font-size:11px;white-space:nowrap}
+.score-count-label,.score-notes-label{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:600;white-space:nowrap;color:#52647c}
+#scoreLineCount{width:60px;min-height:25px;padding:3px 4px;font-size:11px;border-radius:6px}.score-notes-label input{width:14px;height:14px;margin:0}
+.scoreStacks{gap:4px;margin-top:4px}.scoreLine{padding:4px 5px;border-radius:8px}.scoreLine[hidden]{display:none}.scoreLineHead{margin-bottom:2px;font-size:11px;gap:4px;line-height:1.25}.scoreLineHead .lineTag{display:none}.scoreLineHead .sub{font-size:10px}
+.scoreLine .noteStrip{gap:2px;padding:4px 0 0;margin-top:0;overflow:visible}.scoreStacks.hide-note-buttons .noteStrip{display:none}
+.scoreLine .token{flex:1 1 28px;width:auto;min-width:28px;max-width:36px;min-height:42px;padding:3px 1px;gap:1px;border-radius:5px}
+.scoreLine .token .num{font-size:8px;line-height:9px;margin:0}.scoreLine .token b{font-size:10px;line-height:11px;letter-spacing:-.3px}.scoreLine .token .lyric{font-size:11px;line-height:12px}
+.scoreLine .token .rangeBadge{position:absolute;top:-3px;right:-1px;font-size:7px;line-height:1;padding:1px 2px}.scoreLine .token.rangeStart .num,.scoreLine .token.rangeEnd .num{visibility:hidden}.scoreLine .token.nowPlaying::before{display:none}
+.scoreStacks[data-lines="4"] .token{min-height:32px}.scoreStacks[data-lines="4"] .token .num{display:none}.scoreStacks[data-lines="4"] .token .rangeBadge{display:none}
+.practicePanels{margin-top:4px}.practicePanels .lyricSettings{padding:4px 7px}.lyricPanelSummary{min-height:18px;font-size:11px}
+.navDock{bottom:calc(6px + env(safe-area-inset-bottom,0px));padding:5px;gap:4px;border-radius:11px}.navDock button{min-height:32px;padding:3px;font-size:11px;line-height:1.15}.navDock .dockHead{font-size:10px;line-height:1.2}
+.score-edit-tools{margin:8px 0}.extraPractice{font-size:11px;padding:6px 9px}
+@media(max-width:600px){
+ #practice-nav a{min-height:34px}.wrap{padding:0 6px 105px}.wrap>.card{padding:6px}.toolbar button,.toolbar select{min-height:32px;font-size:12px}
+ .quickRange{padding:6px}.quickRangeControls .tiny{width:32px;height:34px}.quickRangeControls #quickPlay{min-height:34px;font-size:12px}.quickRangeStatus{font-size:10px}
+ .rangePickTools button{min-height:34px;font-size:12px}.scorePaging{gap:3px;padding:3px}.scorePaging button{min-height:32px;padding:4px;font-size:10px}.scorePagingInfo{gap:3px 6px}.scorePagingInfo strong{font-size:10px}
+ .score-notes-label{font-size:10px}.score-count-label{font-size:10px}#scoreLineCount{min-height:30px;width:54px}
+ .scoreLine{padding:4px}.scoreLine .token,.scoreStacks[data-lines="4"] .token{flex:0 0 34px;width:34px;min-width:34px;max-width:34px;min-height:44px;padding:4px 1px}
+ .scoreLine .token b{font-size:11px}.scoreLine .token .lyric{font-size:11px}.navDock button{min-height:40px;font-size:11px}
+}
+
+
+/* Single-row buttons: readable sizes, with flexible spacing around score anchors. */
+@media(min-width:1100px){header{max-width:1800px;width:calc(100% - 24px)}.wrap{max-width:1800px;width:calc(100% - 24px);padding-left:12px;padding-right:12px}.scoreLine .scorebox{max-width:1100px;margin-left:auto;margin-right:auto}}
+.scoreLine .noteStrip{--note-strip-height:46px;display:block;position:relative;flex-wrap:nowrap;width:calc(100% - 2px);margin-left:1px;height:var(--note-strip-height);min-height:0;padding:4px 0 0;overflow-x:auto;overflow-y:hidden;scrollbar-width:thin}
+.scoreLine .token{position:absolute;left:var(--button-left,0px);top:4px;transform:none;flex:none;width:var(--button-width,36px);min-width:0;max-width:none;min-height:42px;padding:3px 2px;gap:1px;border-width:1px!important;overflow:visible}
+.scoreLine .token.nowPlaying{position:absolute;transform:translateY(-1px)}
+.scoreLine .token b,.scoreLine .token.tight b{font-size:11px;line-height:12px;letter-spacing:0;white-space:nowrap}
+.scoreLine .token .lyric{font-size:11px;line-height:12px;max-width:none;overflow:visible;text-overflow:clip;white-space:nowrap}
+.scoreLine .token .num,.scoreLine .token.tight .num{font-size:8px;line-height:8px;margin:0}
+.scoreLine .token .rangeBadge{position:absolute;top:0;right:0;width:7px;height:7px;padding:0;font-size:0;border-radius:0 3px 0 3px;overflow:hidden}
+.scoreLine .token.rangeStart{box-shadow:inset 0 0 0 1px #13876f}.scoreLine .token.rangeEnd{box-shadow:inset 0 0 0 1px #d98b25}.scoreLine .token.sel{outline:2px solid #2965dc;outline-offset:-2px}
+.scoreStacks[data-lines="4"] .noteStrip{--note-strip-height:36px;min-height:0}.scoreStacks[data-lines="4"] .token{min-height:32px}
+.scoreLine .noteStrip.is-scrollable{height:calc(var(--note-strip-height) + 14px)}
+@media(max-width:600px){.scoreLine .noteStrip,.scoreStacks[data-lines="4"] .noteStrip{--note-strip-height:48px}.scoreLine .token,.scoreStacks[data-lines="4"] .token{min-height:44px}}
+
+/* Native score: geometry changes spacing, never stretches symbols. */
+.scoreStacks,.scoreLine{min-width:0;max-width:100%}.scoreLine{overflow-x:auto;overflow-y:hidden;width:100%}.scoreLineHead{position:sticky;left:0}
+.scoreLine .scorebox{width:var(--system-width);max-width:none;margin:0;border:0;border-radius:0;overflow:visible;background:#fff}
+.native-staff{background:#fff;min-height:100px}.native-score{display:block;max-width:none;overflow:visible;font-family:system-ui,sans-serif}
+.native-score .score-lyric{font-size:12px;font-weight:600;fill:#172339}.native-score .chord-label{font-size:12px;font-weight:600;fill:#425670}.native-score .measure-number{font-size:10px;fill:#718096}
+.native-note .note-highlight{fill:transparent;stroke:none}.native-note.is-range .note-highlight{fill:#eef4ff}.native-note.is-selected .note-highlight{fill:#dce9ff;stroke:#2965dc;stroke-width:2}.native-note.is-playing .note-highlight{fill:#ffe2ef;stroke:#da2777;stroke-width:2}.native-note.is-start .note-highlight{stroke:#087e69;stroke-width:2}.native-note.is-end .note-highlight{stroke:#b47718;stroke-width:2}
+.note-hit{cursor:pointer}.note-hit:focus{stroke:#2965dc;stroke-width:2;outline:none;fill:#2965dc12}
+.scoreLine .noteStrip{width:var(--system-width);margin-left:0;overflow:visible}.scoreLine .noteStrip.is-scrollable{height:var(--note-strip-height)}
+#scoreSection{max-width:220px;min-height:26px;font-size:11px;padding:3px;border-radius:6px}
+@media(max-width:600px){#scoreSection{max-width:135px}.scorePagingInfo{gap:4px}.scoreLine .token{min-height:44px}}

@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>봄봄봄 · 음정 트레이너</title><link rel="stylesheet" href="assets/trainer.css"></head><body>
+<nav id="practice-nav" aria-label="연습 도구 이동"><a href="./">← 연습 목록</a><span>봄봄봄</span><a href="./aloha.html">아로하 →</a></nav>
+<header><h1>봄봄봄 <span style="font-weight:400;color:#59718a">·</span> 음정 트레이너</h1></header>
+<main class="wrap">
+<section class="card"><div class="toolbar"><div class="group"><span class="label">조옮김</span><button class="tiny" id="down">−</button><b id="shiftName" style="min-width:42px;text-align:center">원키</b><button class="tiny" id="up">+</button><span class="sub">반음</span></div><div class="group"><span class="label">옥타브</span><select id="oct"><option value="-12" selected>남성 보컬 음역</option><option value="0">한 옥타브 위</option><option value="12">두 옥타브 위</option></select></div><div class="group"><label class="label" for="soundStyle">기준음 소리</label><select id="soundStyle" aria-label="기준음 소리 종류"><option value="piano" selected>피아노 느낌</option><option value="classic">기존 전자음</option><option value="sine">순수음 · 사인파</option><option value="organ">오르간 느낌</option></select></div><div class="group"><span class="label">기준음 A4</span><span class="pill">440Hz</span><span class="pill song-key-tempo"></span></div></div></section>
+<section class="card"><div hidden><span id="lineTitle"></span><span id="progressTxt"></span></div>
+<div class="quickRange" role="group" aria-label="선택한 음표부터 원하는 개수만큼 연속 듣기">
+  <div class="quickRangeIntro">
+    <div class="quickRangeHeading">선택 음부터 듣기</div>
+    
+  </div>
+  <div class="quickRangeControls">
+    <label for="quickCount">음표 수</label>
+    <button type="button" class="tiny" id="quickCountDown" aria-label="연속 재생 음표 수 1개 줄이기">−</button>
+    <input id="quickCount" type="number" min="1" max="485" step="1" value="6" inputmode="numeric" aria-label="선택 음부터 재생할 음표 개수" />
+    <button type="button" class="tiny" id="quickCountUp" aria-label="연속 재생 음표 수 1개 늘리기">+</button>
+    <button type="button" class="primary" id="quickPlay" title="선택한 음부터 지정한 음표 개수만큼 연속 듣기">▶ 선택 음부터 듣기</button>
+  </div>
+  <div class="quickRangeStatus" id="quickRangeStatus" aria-live="polite">시작 음을 선택하고 개수를 설정하세요.</div>
+</div>
+<div class="rangePickTools" role="group" aria-label="음표로 재생 범위 지정" style="display:flex;flex-wrap:wrap;align-items:center;gap:7px;margin-top:10px">
+ <button type="button" id="rangePickStart" aria-pressed="true">시작점 지정</button>
+ <button type="button" id="rangePickEnd" aria-pressed="false">끝점 지정</button>
+</div>
+<div id="rangePickFeedback" class="sub" role="status" style="margin-top:7px"></div>
+<div class="scorePaging" role="group" aria-label="악보 화면 이동 (선택 음표는 그대로 유지)">
+  <button type="button" id="scorePrev" title="보이는 악보를 한 줄 앞으로 이동 (재생 시작점 유지)">◀ 이전 악보</button>
+  <div class="scorePagingInfo" aria-live="polite"><strong id="scorePageTitle">악보</strong><label class="score-count-label">구간 <select id="scoreSection" aria-label="연습 구간으로 이동"></select></label><label class="score-count-label" for="scoreLineCount">보기 <select id="scoreLineCount" aria-label="한 번에 볼 악보 줄 수"><option value="2" selected>2줄</option><option value="4">4줄</option></select></label><label class="score-notes-label"><input id="scoreNoteButtons" type="checkbox" checked>음표 버튼</label><span id="scorePageCount" hidden></span></div>
+  <button type="button" id="scoreNext" title="보이는 악보를 한 줄 뒤로 이동 (재생 시작점 유지)">다음 악보 ▶</button>
+</div>
+<div class="scoreStacks" aria-label="선택한 줄 수의 악보 보기">
+  <div class="scoreLine" id="scoreLineMain">
+    <div class="scoreLineHead"><span><span class="lineTag">현재 악보</span><span id="scoreMainLabel">첫 악보 줄</span></span><span class="sub" id="scoreMainCount"></span></div>
+    <div class="scorebox"><div id="staff" class="native-staff"></div></div>
+    <div class="noteStrip" id="strip" aria-label="현재 악보 줄의 음이름과 가사"></div>
+  </div>
+  <div class="scoreLine preview" id="scoreLinePreview">
+    <div class="scoreLineHead"><span><span class="lineTag next">다음 악보 미리보기</span><span id="scoreNextLabel">다음 악보 줄</span></span><span class="sub" id="scoreNextCount"></span></div>
+    <div class="scorebox"><div id="staffNext" class="native-staff"></div></div>
+    <div class="noteStrip" id="stripNext" aria-label="다음 악보 줄의 음이름과 가사"></div>
+  </div>
+  <div class="scoreLine preview isHidden" id="scoreLine3" hidden>
+    <div class="scoreLineHead"><span id="scoreLabel3"></span><span class="sub" id="scoreCount3"></span></div>
+    <div class="scorebox"><div id="staff3" class="native-staff"></div></div>
+    <div class="noteStrip" id="strip3" aria-label="3번째 악보 줄의 음이름과 가사"></div>
+  </div>
+  <div class="scoreLine preview isHidden" id="scoreLine4" hidden>
+    <div class="scoreLineHead"><span id="scoreLabel4"></span><span class="sub" id="scoreCount4"></span></div>
+    <div class="scorebox"><div id="staff4" class="native-staff"></div></div>
+    <div class="noteStrip" id="strip4" aria-label="4번째 악보 줄의 음이름과 가사"></div>
+  </div>
+</div>
+
+
+<div class="practicePanels">
+<details class="lyricSettings" id="lyricPanel" open>
+  <summary class="lyricPanelSummary">선택 음표의 가사 </summary>
+  <div class="lyricPanelBody">
+  <div class="lyricEditRow">
+    <label for="lyricInput" id="lyricEditLabel" class="label">가사 수정</label>
+    <input type="text" id="lyricInput" maxlength="24" aria-label="선택 음표 아래에 표시할 가사" placeholder="예: 어, 두, 운" autocomplete="off" spellcheck="false" />
+    <button type="button" id="lyricResetOne" title="선택 음의 악보 기준 가사로 되돌리기">이 음 초기화</button>
+    <button type="button" id="lyricResetAll" title="직접 수정한 가사를 모두 원래대로 되돌리기">전체 초기화</button>
+  </div>
+  
+  </div>
+</details>
+
+</div>
+</section>
+<section class="card"><div class="notewrap"><div><div class="label">지금 따라 부를 음</div><div class="bigNote" id="noteName">F3</div><div class="noteLyricPreview" id="selectedLyric"></div><div class="status" id="noteDesc">기준음을 먼저 듣고, 마이크로 따라 부르세요.</div></div></div>
+<div class="toolbar" style="margin-top:18px"><div class="group"><span class="label">현재 음표 보정</span><button id="nDown" class="tiny">♭ −1</button><button id="nUp" class="tiny">♯ +1</button></div><div class="group"><span class="label">맞으면 자동으로 다음 음</span><input id="autoNext" type="checkbox"><span class="sub">허용오차</span><select id="tolerance"><option value="20">±20센트</option><option value="30" selected>±30센트</option><option value="50">±50센트</option></select></div></div><div class="progress-track" style="margin-top:14px"><div class="progress" id="progress"></div></div></section>
+<details class="extraPractice"><summary>추가 설정</summary><div class="tools score-edit-tools"><input type="checkbox" id="addToggle" hidden><button class="tiny" id="resetCorrections">음표 수정 초기화</button></div>
+<section class="card phraseCard" id="phrasePanel" aria-label="짧은 구간 멜로디 연습">
+ <div class="phraseHeader"><div><div class="label">짧은 구간으로 멜로디 익히기</div><div class="phraseTitle" id="phraseTitle">연습 구간 준비 중</div><div class="phraseInfo" id="phraseInfo">구간을 듣고 같은 음 순서로 따라 불러보세요.</div></div><span class="pill" id="phraseCount">—</span></div>
+ <div class="phraseActions" role="group" aria-label="구간 재생 컨트롤">
+  <button id="phrasePrev" title="이전 짧은 구간으로 이동">◀ 이전 구간</button>
+  <button id="phrasePlay" class="primary" title="현재 구간을 처음부터 차례대로 연주">▶ 구간 연속 듣기</button>
+  <button id="phraseNext" title="다음 짧은 구간으로 이동">다음 구간 ▶</button>
+ </div>
+ <div class="phraseSettings">
+   <div class="phraseLength" role="group" aria-label="연습 구간의 음표 개수 조절">
+     <label for="phraseLength">구간 길이</label>
+     <button type="button" id="phraseLengthDown" aria-label="구간 음표 수 한 개 줄이기">−</button>
+     <input type="number" id="phraseLength" min="1" max="24" step="1" value="6" inputmode="numeric" aria-label="구간당 음표 개수"/>
+     <button type="button" id="phraseLengthUp" aria-label="구간 음표 수 한 개 늘리기">+</button>
+     <span class="unit">음표</span>
+   </div>
+   <div class="phraseControls"><label for="phraseTempo">연습 속도</label><select id="phraseTempo"><option value="70">천천히 · 70</option><option value="95" selected>원곡 · 95</option><option value="115">빠르게 · 115</option></select></div>
+   <label class="sub" style="display:inline-flex;align-items:center;gap:7px"><input type="checkbox" id="phraseRepeat"> 구간 계속 반복</label>
+   <button class="tiny" id="phraseRestart" title="같은 구간을 처음부터 다시 재생">↻ 처음부터 다시 듣기</button>
+ </div>
+ <div class="phraseBar"><div id="phraseProgress"></div></div>
+ <div class="phraseMeta" id="phraseMessage" aria-live="polite">기본 6음씩 연습합니다. 숫자를 바꾸면 구간이 다시 나뉩니다.</div>
+ <details class="phraseEdit"><summary>구간 범위 지정</summary>
+  
+  <div class="tools"><button id="phraseMarkStart">선택한 음을 시작으로</button><button id="phraseMarkEnd">선택한 음을 끝으로</button><button id="phraseDefault">기본 구간으로 되돌리기</button></div>
+  <div class="phraseMeta" id="phraseMarkStatus">현재는 자동으로 나눈 짧은 구간을 사용 중입니다.</div>
+ </details>
+ 
+</section>
+<section class="card"><div class="toolbar"><div><div class="label">마이크로 내 음정 확인</div><p id="micMsg" class="sub" style="margin:7px 0 0">시작 버튼을 눌러 브라우저 마이크 권한을 허용하세요.</p></div><div class="tools"><button class="primary" id="micStart">마이크 켜기</button><button id="micStop" disabled>끄기</button></div></div><div class="grided" style="margin-top:16px"><div class="card" style="padding:14px;box-shadow:none"><div class="label">내 목소리</div><div class="bigNote" style="font-size:32px;margin-top:7px" id="heard">—</div><div class="status" id="confidence">음정을 듣는 중</div></div><div class="card" style="padding:14px;box-shadow:none"><div class="label">목표 음과의 차이</div><div style="font-size:27px;font-weight:750;margin:6px 0" id="error">— 센트</div><div class="pitchbar"><div class="needle" id="needle"></div></div><div class="sub" style="margin-top:7px" id="judge">음을 맞추면 이곳에 결과가 표시됩니다.</div></div></div></section>
+</details>
+
+
+</main>
+<nav class="navDock" role="group" aria-label="음표 이동과 기준음 재생">
+<div class="dockHead"><span>한 음 / 구간 듣기</span><strong id="dockNote" aria-live="polite">F3 · 1번 음</strong></div>
+<button id="prev" title="이전 음으로 이동하고 기준음을 재생합니다">◀ 이전 음<br>듣기</button>
+<button id="play" class="primary" title="현재 음을 그대로 다시 재생합니다">♪ 현재 음<br>다시 듣기</button>
+<button id="next" title="다음 음으로 이동하고 기준음을 재생합니다">다음 음 ▶<br>듣기</button>
+<button type="button" id="quickDockPlay" class="primary" title="지정한 시작·끝 구간 듣기">▶ 구간<br>듣기</button>
+</nav>
+
+<script src="songs/bom.js"></script><script src="assets/vendor/vexflow-4.2.5.js"></script><script src="assets/score-renderer.js"></script><script src="assets/trainer.js"></script></body></html>
