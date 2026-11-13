@@ -218,19 +218,18 @@ header{padding:6px 12px 4px}header h1{font-size:18px}
 }
 </style>
 <style>
-/* Keep note buttons under their score positions without increasing their height. */
-@media(min-width:601px){
- .scoreLine .noteStrip{display:block;position:relative;width:calc(100% - 2px);margin-left:1px;min-height:46px;padding:4px 0 0;overflow:visible}
- .scoreLine .token{position:absolute;left:var(--note-x);top:4px;transform:translateX(-50%);width:var(--note-width);min-width:0;max-width:none;min-height:42px;padding:3px 0;overflow:hidden}
- .scoreLine .token.nowPlaying{position:absolute;transform:translate(-50%,-1px)}
- .scoreLine .token.tight b{font-size:8px;letter-spacing:-.5px}.scoreLine .token.tight .num{font-size:7px}
- .scoreLine .token .rangeBadge{max-width:100%;overflow:hidden}
- .scoreStacks[data-lines="4"] .noteStrip{min-height:36px}
-}
-@media(max-width:600px){
- .scoreLine .noteStrip{flex-wrap:wrap}
- .scoreLine .token,.scoreStacks[data-lines="4"] .token{flex:1 0 34px;width:auto;max-width:none}
-}
+/* Single-row buttons: readable sizes, with flexible spacing around score anchors. */
+.scoreLine .noteStrip{--note-strip-height:46px;display:block;position:relative;flex-wrap:nowrap;width:calc(100% - 2px);margin-left:1px;height:var(--note-strip-height);min-height:0;padding:4px 0 0;overflow-x:auto;overflow-y:hidden;scrollbar-width:thin}
+.scoreLine .token{position:absolute;left:var(--button-left,0px);top:4px;transform:none;flex:none;width:var(--button-width,36px);min-width:0;max-width:none;min-height:42px;padding:3px 2px;gap:1px;border-width:1px!important;overflow:visible}
+.scoreLine .token.nowPlaying{position:absolute;transform:translateY(-1px)}
+.scoreLine .token b,.scoreLine .token.tight b{font-size:11px;line-height:12px;letter-spacing:0;white-space:nowrap}
+.scoreLine .token .lyric{font-size:11px;line-height:12px;max-width:none;overflow:visible;text-overflow:clip;white-space:nowrap}
+.scoreLine .token .num,.scoreLine .token.tight .num{font-size:8px;line-height:8px;margin:0}
+.scoreLine .token .rangeBadge{position:absolute;top:0;right:0;width:7px;height:7px;padding:0;font-size:0;border-radius:0 3px 0 3px;overflow:hidden}
+.scoreLine .token.rangeStart{box-shadow:inset 0 0 0 1px #13876f}.scoreLine .token.rangeEnd{box-shadow:inset 0 0 0 1px #d98b25}.scoreLine .token.sel{outline:2px solid #2965dc;outline-offset:-2px}
+.scoreStacks[data-lines="4"] .noteStrip{--note-strip-height:36px;min-height:0}.scoreStacks[data-lines="4"] .token{min-height:32px}
+.scoreLine .noteStrip.is-scrollable{height:calc(var(--note-strip-height) + 14px)}
+@media(max-width:600px){.scoreLine .noteStrip,.scoreStacks[data-lines="4"] .noteStrip{--note-strip-height:48px}.scoreLine .token,.scoreStacks[data-lines="4"] .token{min-height:44px}}
 </style>
 </head><body>
 <nav id="practice-nav" aria-label="연습 도구 이동"><a href="./">← 연습 목록</a><span>아로하</span><a href="./bom.html">봄봄봄 →</a></nav>
@@ -467,6 +466,45 @@ function jumpScoreRow(direction){
 }
 $('scorePrev').onclick=()=>jumpScoreRow(-1);
 $('scoreNext').onclick=()=>jumpScoreRow(1);
+// Project score anchors onto a row of bounded-width, non-overlapping buttons.
+function fitNoteButtons(anchors,minimumWidths,availableWidth){
+ const gap=2,count=anchors.length;
+ if(!count)return {left:[],width:[],trackWidth:availableWidth};
+ const minimum=minimumWidths.reduce((sum,w)=>sum+w,0),gaps=gap*(count-1);
+ const preferred=minimumWidths.map(w=>Math.max(w,36));
+ const extra=preferred.reduce((sum,w,i)=>sum+w-minimumWidths[i],0);
+ const fraction=extra?Math.max(0,Math.min(1,(availableWidth-gaps-minimum)/extra)):0;
+ const width=minimumWidths.map((w,i)=>w+fraction*(preferred[i]-w));
+ const total=width.reduce((a,b)=>a+b,0)+gaps,trackWidth=Math.max(availableWidth,total),slack=trackWidth-total;
+ const prefix=[];let offset=0;
+ for(const w of width){prefix.push(offset);offset+=w+gap;}
+ const blocks=[];
+ for(let i=0;i<count;i++){
+  blocks.push({first:i,last:i,sum:anchors[i]*trackWidth-width[i]/2-prefix[i],count:1});
+  while(blocks.length>1){
+   const right=blocks[blocks.length-1],left=blocks[blocks.length-2];
+   if(left.sum/left.count<=right.sum/right.count)break;
+   blocks.splice(-2,2,{first:left.first,last:right.last,sum:left.sum+right.sum,count:left.count+right.count});
+  }
+ }
+ const left=[];
+ for(const block of blocks){const shift=Math.max(0,Math.min(slack,block.sum/block.count));for(let i=block.first;i<=block.last;i++)left[i]=prefix[i]+shift;}
+ return {left,width,trackWidth};
+}
+const noteButtonMeasure=document.createElement('canvas').getContext('2d');
+function layoutNoteStrip(list){
+ const available=list.clientWidth;if(!available)return;
+ const buttons=[...list.querySelectorAll('.token')];
+ const measure=element=>{const style=getComputedStyle(element);noteButtonMeasure.font=`${style.fontWeight} ${style.fontSize} ${style.fontFamily}`;return noteButtonMeasure.measureText(element.textContent).width;};
+ const touch=window.matchMedia('(max-width:600px)').matches;
+ const minimum=buttons.map(b=>Math.max(touch?34:28,Math.ceil(Math.max(measure(b.querySelector('b')),measure(b.querySelector('.lyric'))))+8));
+ const layout=fitNoteButtons(buttons.map(b=>Number(b.dataset.scoreX)),minimum,available);
+ list.classList.toggle('is-scrollable',layout.trackWidth>available+.5);
+ buttons.forEach((b,i)=>{b.style.setProperty('--button-left',`${layout.left[i]}px`);b.style.setProperty('--button-width',`${layout.width[i]}px`);});
+}
+const noteStripResizeObserver=new ResizeObserver(entries=>entries.forEach(entry=>layoutNoteStrip(entry.target)));
+scoreSlots.forEach(slot=>noteStripResizeObserver.observe($(slot.strip)));
+
 function renderStrip(){
  const {visible}=shownScoreRows();
  const range=quickRange();
@@ -476,15 +514,10 @@ function renderStrip(){
   const rowNotes=notes.map((n,i)=>({n,i})).filter(({n})=>n.row===row);
   rowNotes.forEach(({n,i},index)=>{
    const x=Math.max(0,Math.min(1,(n.x-rect.left)/rect.w));
-   const prev=index>0?(rowNotes[index-1].n.x-rect.left)/rect.w:0;
-   const next=index+1<rowNotes.length?(rowNotes[index+1].n.x-rect.left)/rect.w:1;
-   const width=Math.max(.001,Math.min(.07,(x-prev)-.001,(next-x)-.001,2*x,2*(1-x)));
    const b=document.createElement('button'),isStart=i===range.start,isEnd=i===range.end,inRange=i>=range.start&&i<=range.end;
    const isPlaying=phrasePlaying&&activePlayback&&playbackNote===i;
    b.type='button';b.className='token'+(i===current?' sel':'')+(i===quickAnchor?' anchor':'')+(inRange?' inRange':'')+(isStart?' rangeStart':'')+(isEnd?' rangeEnd':'')+(isPlaying?' nowPlaying':'');
-   b.style.setProperty('--note-x',`${x*100}%`);
-   b.style.setProperty('--note-width',`${width*100}%`);
-   if(width<.022)b.classList.add('tight');
+   b.dataset.scoreX=String(x);
    const lyric=getLyric(n);
    b.title=`${i+1}번 ${midiName(n.midi+shift+octave)} · ${lyric||'가사 없음/연장'}${isStart?' · 재생 시작':''}${isEnd?' · 재생 끝':''}${isPlaying?' · 지금 재생 중':''}`;
    if(isPlaying)b.setAttribute('aria-current','true');
@@ -497,6 +530,7 @@ function renderStrip(){
    b.onkeydown=e=>{if(e.shiftKey&&(e.key==='Enter'||e.key===' ')){e.preventDefault();setQuickEnd(i);}};
    list.appendChild(b);
   });
+  layoutNoteStrip(list);
   let el=list.querySelector('.nowPlaying')||list.querySelector('.sel');
   if(el){const desired=el.offsetLeft-(list.clientWidth-el.offsetWidth)/2;list.scrollLeft=Math.max(0,Math.min(list.scrollWidth-list.clientWidth,desired));}
  }
