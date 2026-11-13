@@ -10,8 +10,12 @@ function transposedKey(key,shift){return KEYS[mod(tonic(key)+shift,12)];}
 function spellPitch(pitch,midi,key,shift){
  const newKey=transposedKey(key,shift),delta=LETTERS.indexOf(newKey[0])-LETTERS.indexOf(key[0]);
  const step=LETTERS[mod(LETTERS.indexOf(pitch.step)+delta,7)],natural=PC[step],target=midi+shift;
- const octave=Math.round((target-natural)/12)-1;
- return {step,octave,alter:target-(12*(octave+1)+natural)};
+ const octave=Math.round((target-natural)/12)-1,alter=target-(12*(octave+1)+natural);
+ const originalMidi=12*(pitch.octave+1)+PC[pitch.step]+pitch.alter;
+ if((!shift&&midi===originalMidi)||Math.abs(alter)<=1)return {step,octave,alter};
+ // Prefer a readable enharmonic spelling to a double accidental after transposition.
+ const candidates=[...LETTERS].map(letter=>{const oct=Math.round((target-PC[letter])/12)-1,alt=target-(12*(oct+1)+PC[letter]);return {step:letter,octave:oct,alter:alt,weight:(alt===(KEY_ALTERS[newKey]?.[letter]||0)?0:2)+(letter===step?0:.3)+Math.abs(alt)*.1};}).filter(p=>Math.abs(p.alter)<=1);
+ candidates.sort((a,b)=>a.weight-b.weight);return candidates[0];
 }
 function transposeChord(label,key,shift){if(!shift)return label;const names=transposedKey(key,shift).includes('b')?['C','Db','D','Eb','E','F','Gb','G','Ab','A','Bb','B']:['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];return label.replace(/(^|\/)([A-G])([#b]?)/g,(_,prefix,letter,acc)=>prefix+names[mod(PC[letter]+(acc==='#'?1:acc==='b'?-1:0)+shift,12)]);}
 function textWidth(text,size=12){if(typeof document==='undefined')return [...text].reduce((w,c)=>w+(c.charCodeAt(0)>255?size:size*.62),0);const c=textWidth.context||(textWidth.context=document.createElement('canvas').getContext('2d'));c.font=`600 ${size}px system-ui, sans-serif`;return c.measureText(text).width;}
@@ -50,6 +54,7 @@ class ScoreRenderer{
    for(const e of m.events){const model=lookup.get(e.noteId);const p=e.kind==='note'?spellPitch(e.pitch,model.midi,this.song.key,shift):{step:'B',octave:4,alter:0};const keyString=`${p.step.toLowerCase()}/${p.octave}${e.spoken?'/x':''}`;
     const note=new VF.StaveNote({clef:'treble',keys:[keyString],duration:e.notation.value+'d'.repeat(e.notation.dots)+(e.kind==='rest'?'r':''),auto_stem:true});
     if(e.kind==='note'){const accidentalKey=p.step+p.octave;const previous=accidentals[accidentalKey]??(KEY_ALTERS[key]?.[p.step]||0);if(p.alter!==previous&&!e.tied){note.addModifier(new VF.Accidental(p.alter===0?'n':p.alter===1?'#':p.alter===-1?'b':p.alter===2?'##':'bb'),0);}accidentals[accidentalKey]=p.alter;}
+    note.setStave(stave).setContext(ctx);
     for(let d=0;d<e.notation.dots;d++)VF.Dot.buildAndAttach([note],{all:true});
     entry.push({event:e,note,model,pitch:p,stave,system:system.index});
    }
