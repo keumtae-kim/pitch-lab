@@ -29,14 +29,15 @@ function validateSong(song){
 class ScoreRenderer{
  constructor(song){validateSong(song);this.song=song;this.plan=null;this.cache=new WeakMap();}
  layout(width,notes,lyric,shift=0){
-  const lookup=new Map(notes.map(n=>[n.id,n]));const key=transposedKey(this.song.key,shift);const prefix=key.length>1?146:134;
-  const specs=this.song.measures.map(measure=>{const cells=measure.events.map(e=>{const n=lookup.get(e.noteId);const label=e.kind==='note'?lyric(n):'';return Math.max(e.kind==='note'?38:24,textWidth(label,12)+12);});return {measure,cells,minWidth:cells.reduce((a,b)=>a+b,0)+44};});
+  const lookup=new Map(notes.map(n=>[n.id,n]));const key=transposedKey(this.song.key,shift);const VF=root.Vex?.Flow;const prefix=VF?Math.ceil(new VF.Stave(0,0,1000).addClef('treble','default','8vb').addKeySignature(key).addTimeSignature('4/4').getNoteStartX()):146;
+  const breakMeasures=new Set(this.song.sections.map(s=>lookup.get(s.noteId)?.measureId));breakMeasures.add(lookup.get(this.song.vocalStart)?.measureId);
+  const specs=this.song.measures.map((measure,index)=>{const cells=measure.events.map(e=>{const n=lookup.get(e.noteId);const label=e.kind==='note'?lyric(n):'';return Math.max(e.kind==='note'?34:20,textWidth(label,12)+12);});return {measure,cells,minWidth:cells.reduce((a,b)=>a+b,0)+32+(index&&this.song.measures[index-1].meter.join('/')!==measure.meter.join('/')?32:0)};});
   const systems=[];let group=[],used=prefix;
   const finish=()=>{if(!group.length)return;const minWidth=prefix+group.reduce((s,m)=>s+m.minWidth,0)+8;const systemWidth=Math.max(width,minWidth);const spare=systemWidth-minWidth;const totalWeight=group.reduce((s,m)=>s+Math.sqrt(m.measure.length),0);
    const laid=group.map((s,i)=>({...s,width:s.minWidth+spare*Math.sqrt(s.measure.length)/totalWeight}));
    const noteIds=laid.flatMap(m=>m.measure.events.filter(e=>e.kind==='note').map(e=>e.noteId));
    systems.push({index:systems.length,width:systemWidth,prefix,measures:laid,noteIds,label:laid[0].measure.label,firstMeasure:laid[0].measure.sourceNumber,lastMeasure:laid.at(-1).measure.sourceNumber});group=[];used=prefix;};
-  for(const spec of specs){if(group.length&&(used+spec.minWidth+8>width||group.length>=4))finish();group.push(spec);used+=spec.minWidth;}finish();
+  for(const spec of specs){if(group.length&&(breakMeasures.has(spec.measure.id)||used+spec.minWidth+8>width||group.length>=4))finish();group.push(spec);used+=spec.minWidth;}finish();
   const noteRows=new Map();for(const s of systems)for(const id of s.noteIds)noteRows.set(id,s.index);this.plan={systems,noteRows,key,shift,width};return this.plan;
  }
  render(host,system,options){
