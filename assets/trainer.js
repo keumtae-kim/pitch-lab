@@ -353,17 +353,17 @@ $('lyricInput').addEventListener('input',e=>{
  if(!notes.length)return;
  lyricChanges[String(note().id)]=e.target.value.trim();saveLyrics();
  $('selectedLyric').textContent=getLyric(note())||'가사 미지정 · 이어 부름';
- renderStrip();
+ render();
 });
 $('lyricResetOne').onclick=()=>{
  delete lyricChanges[String(note().id)];saveLyrics();
  $('lyricInput').value=getLyric(note());
- $('selectedLyric').textContent=getLyric(note())||'가사 미지정 · 이어 부름';renderStrip();
+ $('selectedLyric').textContent=getLyric(note())||'가사 미지정 · 이어 부름';render();
 };
 $('lyricResetAll').onclick=()=>{
  if(!confirm('모든 가사 수정을 초기화하고 악보 기준 가사로 되돌릴까요?'))return;
  lyricChanges={};saveLyrics();$('lyricInput').value=getLyric(note());
- $('selectedLyric').textContent=getLyric(note())||'가사 미지정 · 이어 부름';renderStrip();
+ $('selectedLyric').textContent=getLyric(note())||'가사 미지정 · 이어 부름';render();
 };
 $('quickDockPlay').onclick=()=>{ $('quickPlay').click(); };
 $('quickPlay').onclick=()=>{
