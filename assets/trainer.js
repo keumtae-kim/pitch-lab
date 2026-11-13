@@ -161,7 +161,7 @@ function layoutNoteStrip(list){
  list.dataset.lanes=String(layout.runs.length);list.classList.remove('is-scrollable');
  list.style.setProperty('--note-strip-height',`${Math.max(1,layout.runs.length)*(height+gap)+3}px`);
  list.querySelectorAll('.note-continuation').forEach(el=>el.remove());
- layout.placements.forEach((p,i)=>{const b=buttons[i];b.style.setProperty('--button-left',p.left+'px');b.style.setProperty('--button-width',p.width+'px');b.style.setProperty('--button-top',(3+p.row*(height+gap))+'px');b.dataset.lane=String(p.row);});
+ layout.placements.forEach((p,i)=>{const b=buttons[i];b.style.setProperty('--button-left',p.left+'px');b.style.setProperty('--button-width',p.width+'px');const textScale=Math.min(1,Math.max(.65,(p.width-8)/Math.max(1,minimum[i]-10)));b.style.setProperty('--button-pitch-size',(11*textScale)+'px');b.style.setProperty('--button-lyric-size',(11*textScale)+'px');b.style.setProperty('--button-top',(3+p.row*(height+gap))+'px');b.dataset.lane=String(p.row);});
  for(let row=1;row<layout.runs.length;row++){
   const p=layout.placements[layout.runs[row].from],mark=document.createElement('span');mark.className='note-continuation';mark.textContent='';mark.setAttribute('aria-hidden','true');mark.style.left=Math.max(0,p.left-13)+'px';mark.style.top=(3+row*(height+gap))+'px';list.append(mark);
  }

@@ -24,7 +24,7 @@ function fitNoteLanes(anchors,minimumWidths,availableWidth,touch=false){
   const placements=[];let cost=0;for(const block of blocks){const shift=Math.max(0,Math.min(available-total,block.sum/block.count));for(let i=block.first;i<=block.last;i++){const left=prefix[i-from]+shift;placements[i-from]={left,width:widths[i]};cost+=Math.pow(left+widths[i]/2-anchors[i]*available,2);}}
   const result={placements,cost};segments.set(key,result);return result;
  }
- const total=widths.reduce((a,b)=>a+b,0)+gap*(count-1),maxRows=Math.min(count,Math.max(3,Math.ceil(total/available)+1));
+ const maxRows=Math.min(count,2);
  const penalty=count*Math.pow(touch?18:20,2),dp=Array.from({length:maxRows+1},()=>Array(count+1).fill(null));dp[0][0]={cost:0};
  let best=null;
  for(let row=1;row<=maxRows;row++){
@@ -34,6 +34,15 @@ function fitNoteLanes(anchors,minimumWidths,availableWidth,touch=false){
    if(!dp[row][to]||cost<dp[row][to].cost)dp[row][to]={cost,from};
   }
   if(dp[row][count]&&(!best||dp[row][count].cost<best.cost))best={row,cost:dp[row][count].cost};
+ }
+ // An unusually dense imported bar still gets two runs. Compact its controls
+ // only as a last resort; normal score systems retain their measured sizes.
+ if(!best){
+  let split=1,smallest=Infinity;
+  for(let i=1;i<count;i++){const needed=Math.max(widths.slice(0,i).reduce((a,b)=>a+b,0)+gap*(i-1),widths.slice(i).reduce((a,b)=>a+b,0)+gap*(count-i-1));if(needed<smallest){smallest=needed;split=i;}}
+  const runs=[{from:0,to:split},{from:split,to:count}],placements=[];
+  runs.forEach((run,row)=>{const sum=widths.slice(run.from,run.to).reduce((a,b)=>a+b,0),ratio=Math.min(1,(available-gap*(run.to-run.from-1))/sum);let left=0;for(let i=run.from;i<run.to;i++){const width=widths[i]*ratio;placements.push({left,width,row,index:i});left+=width+gap;}});
+  return {placements,runs};
  }
  const runs=[];let to=count;for(let row=best.row;row>0;row--){const from=dp[row][to].from;runs.unshift({from,to});to=from;}
  const placements=[];runs.forEach((run,row)=>segment(run.from,run.to).placements.forEach((p,i)=>placements.push({...p,row,index:run.from+i})));
@@ -53,6 +62,13 @@ function spellPitch(pitch,midi,key,shift){
 }
 function transposeChord(label,key,shift){if(!shift)return label;const names=transposedKey(key,shift).includes('b')?['C','Db','D','Eb','E','F','Gb','G','Ab','A','Bb','B']:['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];return label.replace(/(^|\/)([A-G])([#b]?)/g,(_,prefix,letter,acc)=>prefix+names[mod(PC[letter]+(acc==='#'?1:acc==='b'?-1:0)+shift,12)]);}
 function textWidth(text,size=12){if(typeof document==='undefined')return [...text].reduce((w,c)=>w+(c.charCodeAt(0)>255?size:size*.62),0);const c=textWidth.context||(textWidth.context=document.createElement('canvas').getContext('2d'));c.font=`600 ${size}px system-ui, sans-serif`;return c.measureText(text).width;}
+const SIGNATURE_SCALE=.8;
+function addCompactSignatures(stave,key,meter,annotation){
+ if(key!==null){stave.addClef('treble','default',annotation);stave.addKeySignature(key);stave.getModifiers().find(m=>m.getCategory()==='KeySignature')?.setPadding(5);}
+ if(meter)stave.addTimeSignature(meter,5);
+ return stave;
+}
+function compactNoteStart(stave){return stave.getX()+(stave.getNoteStartX()-stave.getX())*SIGNATURE_SCALE;}
 function validateSong(song){
  if(song.schemaVersion!==1||!Array.isArray(song.measures)||!Array.isArray(song.notes))throw Error('지원하지 않는 악보 데이터입니다.');
  const ids=new Set();for(const n of song.notes){if(ids.has(n.id))throw Error('중복 음표 ID');if(!Number.isFinite(n.midi)||n.midi<0||n.midi>127)throw Error('유효하지 않은 MIDI 음높이');ids.add(n.id);}
@@ -63,7 +79,7 @@ function validateSong(song){
 class ScoreRenderer{
  constructor(song){validateSong(song);this.song=song;this.plan=null;this.cache=new WeakMap();}
  layout(width,notes,lyric,shift=0){
-  const lookup=new Map(notes.map(n=>[n.id,n]));const key=transposedKey(this.song.key,shift);const VF=root.Vex?.Flow;const prefix=VF?Math.ceil(new VF.Stave(0,0,1000).addClef('treble','default','8vb').addKeySignature(key).addTimeSignature('4/4').getNoteStartX()):146;
+  const lookup=new Map(notes.map(n=>[n.id,n]));const key=transposedKey(this.song.key,shift);const VF=root.Vex?.Flow;const prefix=VF?Math.ceil(compactNoteStart(addCompactSignatures(new VF.Stave(0,0,1000),key,'4/4','8vb'))):110;
   const breakMeasures=new Set(this.song.sections.map(s=>lookup.get(s.noteId)?.measureId));breakMeasures.add(lookup.get(this.song.vocalStart)?.measureId);
   const specs=this.song.measures.map((measure,index)=>{const cells=measure.events.map(e=>{const n=lookup.get(e.noteId);const label=e.kind==='note'?lyric(n):'';return Math.max(e.kind==='note'?24:18,textWidth(label,12)+8);});return {measure,cells,minWidth:cells.reduce((a,b)=>a+b,0)+32+(index&&this.song.measures[index-1].meter.join('/')!==measure.meter.join('/')?32:0)};});
   const systems=[];let group=[],used=prefix;
@@ -83,8 +99,10 @@ class ScoreRenderer{
   const key=transposedKey(this.song.key,shift);let cursor=4;const built=[],anchors=new Map(),measureInfo=[];let lastMeter='';
   for(let mi=0;mi<system.measures.length;mi++){
    const spec=system.measures[mi],m=spec.measure,first=mi===0,staveWidth=spec.width+(first?system.prefix:0);const stave=new VF.Stave(cursor,35,staveWidth);
-   if(first){stave.addClef('treble','default',octave===-12?'8vb':octave===12?'8va':undefined);stave.addKeySignature(key);}
-   const meter=m.meter.join('/');if(first||meter!==lastMeter)stave.addTimeSignature(meter);lastMeter=meter;stave.setContext(ctx).draw();
+   const meter=m.meter.join('/');addCompactSignatures(stave,first?key:null,first||meter!==lastMeter?meter:null,octave===-12?'8vb':octave===12?'8va':undefined);lastMeter=meter;
+   const noteStart=compactNoteStart(stave),previousChildren=svg.children.length;stave.setContext(ctx).draw();
+   for(const group of [...svg.children].slice(previousChildren)){if(group.matches('.vf-clef,.vf-keysignature,.vf-timesignature')){group.classList.add('compact-signature');group.setAttribute('transform',`translate(${cursor} 0) scale(${SIGNATURE_SCALE} 1) translate(${-cursor} 0)`);}}
+   stave.setNoteStartX(noteStart);
    const accidentals={};const entry=[];
    for(const e of m.events){const model=lookup.get(e.noteId);const p=e.kind==='note'?spellPitch(e.pitch,model.midi,this.song.key,shift):{step:'B',octave:4,alter:0};const keyString=`${p.step.toLowerCase()}/${p.octave}${e.spoken?'/x':''}`;
     const note=new VF.StaveNote({clef:'treble',keys:[keyString],duration:e.notation.value+'d'.repeat(e.notation.dots)+(e.kind==='rest'?'r':''),auto_stem:true});

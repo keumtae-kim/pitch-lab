@@ -250,3 +250,7 @@ header{padding:6px 12px 4px}header h1{font-size:18px}
 @media(max-width:600px){.scoreLine .token,.scoreStacks[data-lines="4"] .token{height:44px;min-height:44px}.scorePagingInfo{min-width:0}#scoreSection{max-width:125px}.native-score .score-lyric{font-weight:650}}
 
 .note-continuation{width:8px;height:9px;margin-top:6px;border-left:1px solid #8b9eb9;border-bottom:1px solid #8b9eb9;border-radius:0 0 0 3px}.note-continuation::after{content:'';position:absolute;right:-1px;bottom:-3px;border-top:3px solid transparent;border-bottom:3px solid transparent;border-left:4px solid #8b9eb9}
+
+.scoreLine .token b,.scoreLine .token.tight b{font-size:var(--button-pitch-size,11px)}.scoreLine .token .lyric{font-size:var(--button-lyric-size,11px)}
+
+.scoreLine .token,.scoreStacks[data-lines="4"] .token{width:var(--button-width,38px);min-width:0;max-width:none}
