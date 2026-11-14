@@ -1,7 +1,7 @@
 <!doctype html>
-<html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>아로하 · 음정 트레이너</title><link rel="stylesheet" href="assets/trainer.css?v=8b9dac40d23a"></head><body>
-<nav id="practice-nav" aria-label="연습 도구 이동"><a href="./">← 연습 목록</a><span>봄봄봄</span><a href="./aloha.html">아로하 →</a></nav>
-<header><h1>봄봄봄 <span style="font-weight:400;color:#59718a">·</span> 음정 트레이너</h1></header>
+<html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>아로하 · 음정 트레이너</title><link rel="stylesheet" href="assets/trainer.css?v=84369a7602f2"></head><body>
+<nav id="practice-nav" aria-label="연습 도구 이동"><a href="./">← 연습 목록</a><span>아로하</span><a href="./aloha.html">아로하 →</a></nav>
+<header><h1>아로하 <span style="font-weight:400;color:#59718a">·</span> 음정 트레이너</h1></header>
 <main class="wrap">
 <section class="card"><div class="toolbar"><div class="group"><span class="label">조옮김</span><button class="tiny" id="down">−</button><b id="shiftName" style="min-width:42px;text-align:center">원키</b><button class="tiny" id="up">+</button><span class="sub">반음</span></div><div class="group"><span class="label">옥타브</span><select id="oct"><option value="-12" selected>남성 보컬 음역</option><option value="0">한 옥타브 위</option><option value="12">두 옥타브 위</option></select></div><div class="group"><label class="label" for="soundStyle">기준음 소리</label><select id="soundStyle" aria-label="기준음 소리 종류"><option value="piano" selected>피아노 느낌</option><option value="classic">기존 전자음</option><option value="sine">순수음 · 사인파</option><option value="organ">오르간 느낌</option></select></div><div class="group"><span class="label">기준음 A4</span><span class="pill">440Hz</span><span class="pill song-key-tempo"></span></div></div></section>
 <section class="card"><div hidden><span id="lineTitle"></span><span id="progressTxt"></span></div>
@@ -13,7 +13,7 @@
   <div class="quickRangeControls">
     <label for="quickCount">음표 수</label>
     <button type="button" class="tiny" id="quickCountDown" aria-label="연속 재생 음표 수 1개 줄이기">−</button>
-    <input id="quickCount" type="number" min="1" max="485" step="1" value="6" inputmode="numeric" aria-label="선택 음부터 재생할 음표 개수" />
+    <input id="quickCount" type="number" min="1" max="577" step="1" value="6" inputmode="numeric" aria-label="선택 음부터 재생할 음표 개수" />
     <button type="button" class="tiny" id="quickCountUp" aria-label="연속 재생 음표 수 1개 늘리기">+</button>
     <button type="button" class="primary" id="quickPlay" title="선택한 음부터 지정한 음표 개수만큼 연속 듣기">▶ 선택 음부터 듣기</button>
   </div>
@@ -106,11 +106,11 @@
 
 </main>
 <nav class="navDock" role="group" aria-label="음표 이동과 기준음 재생">
-<div class="dockHead"><span>한 음 / 구간 듣기</span><strong id="dockNote" aria-live="polite">F3 · 1번 음</strong></div>
+<div class="dockHead"><span>한 음 / 구간 듣기</span><strong id="dockNote" aria-live="polite">A3</strong></div>
 <button id="prev" title="이전 음으로 이동하고 기준음을 재생합니다">◀ 이전 음<br>듣기</button>
 <button id="play" class="primary" title="현재 음을 그대로 다시 재생합니다">♪ 현재 음<br>다시 듣기</button>
 <button id="next" title="다음 음으로 이동하고 기준음을 재생합니다">다음 음 ▶<br>듣기</button>
 <button type="button" id="quickDockPlay" class="primary" title="지정한 시작·끝 구간 듣기">▶ 구간<br>듣기</button>
 </nav>
 
-<script src="songs/aloha.js?v=142cc8185cf5"></script><script src="assets/vendor/vexflow-4.2.5.js?v=d632111c9dc0"></script><script src="assets/score-renderer.js?v=dd6a1cb692e2"></script><script src="assets/trainer.js?v=d1c308c0e975"></script></body></html>
+<script src="songs/catalog.js?v=771905e516f0"></script><script src="songs/aloha.js?v=142cc8185cf5"></script><script src="assets/vendor/vexflow-4.2.5.js?v=d632111c9dc0"></script><script src="assets/score-renderer.js?v=dd6a1cb692e2"></script><script src="assets/trainer.js?v=d961a086d1d2"></script></body></html>

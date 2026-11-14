@@ -1,10 +1,12 @@
 document.title=SCORE_SONG.title+' · 음정 트레이너';
 document.querySelector('header h1').textContent=SCORE_SONG.title+' · 음정 트레이너';
 document.querySelector('#practice-nav span').textContent=SCORE_SONG.title;
-const other=SCORE_SONG.id==='aloha'?{href:'./bom.html',label:'봄봄봄 →'}:{href:'./aloha.html',label:'아로하 →'};
-const nextSong=document.querySelector('#practice-nav a:last-child');nextSong.href=other.href;nextSong.textContent=other.label;
+const songCatalog=window.SCORE_CATALOG||[{id:'aloha',title:'아로하',url:'aloha.html'},{id:'bom',title:'봄봄봄',url:'bom.html'}];
+const other=songCatalog[(songCatalog.findIndex(s=>s.id===SCORE_SONG.id)+1)%songCatalog.length];
+const nextSong=document.querySelector('#practice-nav a:last-child');nextSong.href='./'+other.url;nextSong.textContent=other.title+' →';nextSong.title='다음 연습곡: '+other.title;
 document.querySelector('.song-key-tempo').textContent=SCORE_SONG.key+'장조 · ♩='+SCORE_SONG.bpm;
 document.querySelector('#phraseTempo option[selected]').value=SCORE_SONG.bpm;document.querySelector('#phraseTempo option[selected]').textContent='원곡 · '+SCORE_SONG.bpm;
+if(SCORE_SONG.practiceTempos){const labels=['천천히','원곡','빠르게'];[...document.querySelector('#phraseTempo').options].forEach((option,i)=>{option.value=String(SCORE_SONG.practiceTempos[i]);option.textContent=labels[i]+' · '+SCORE_SONG.practiceTempos[i];});}
 
 const baseNotes=SCORE_SONG.notes.map(n=>({...n,row:0}));
 
@@ -13,7 +15,8 @@ const $=id=>document.getElementById(id);
 const NAMES=['C','C♯','D','D♯','E','F','F♯','G','G♯','A','A♯','B'];
 // v8: transcribed syllables from the supplied sheet; users can correct any misalignment.
 const defaultLyrics=Object.fromEntries(SCORE_SONG.notes.filter(n=>n.lyric).map(n=>[n.id,n.lyric]));
-const LYRIC_SAVE_KEY=SCORE_SONG.id==='aloha'?'aloha_purchased_melody_v2_lyrics':'bombombom_pitch_trainer_purchased_v2_lyrics';
+const legacyLyricKeys={aloha:'aloha_purchased_melody_v2_lyrics',bom:'bombombom_pitch_trainer_purchased_v2_lyrics'};
+const LYRIC_SAVE_KEY=legacyLyricKeys[SCORE_SONG.id]||'pitch_lab_'+SCORE_SONG.id+'_lyrics_v1';
 let lyricChanges={};
 try { const saved=JSON.parse(localStorage.getItem(LYRIC_SAVE_KEY)||'{}'); if(saved&&typeof saved==='object'&&!Array.isArray(saved))lyricChanges=saved; }catch(e){}
 function getLyric(n){const key=String(n.id);return Object.prototype.hasOwnProperty.call(lyricChanges,key)?lyricChanges[key]:(defaultLyrics[key]||'');}

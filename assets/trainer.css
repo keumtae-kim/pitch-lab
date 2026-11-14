@@ -254,3 +254,5 @@ header{padding:6px 12px 4px}header h1{font-size:18px}
 .scoreLine .token b,.scoreLine .token.tight b{font-size:var(--button-pitch-size,11px)}.scoreLine .token .lyric{font-size:var(--button-lyric-size,11px)}
 
 .scoreLine .token,.scoreStacks[data-lines="4"] .token{width:var(--button-width,38px);min-width:0;max-width:none}
+
+#practice-nav a:first-child{flex-shrink:0}#practice-nav span{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}#practice-nav a:last-child{display:block;max-width:46%;overflow:hidden;text-overflow:ellipsis;text-align:center}
