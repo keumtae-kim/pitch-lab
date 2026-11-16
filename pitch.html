@@ -103,6 +103,7 @@
 .jump-notes{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
 .jump-options>div,.jump-notes>div{min-width:0}.jump-panel select{font-size:13px;padding:9px 6px}
 .jump-panel .label{margin-bottom:5px}.jump-panel p{margin:9px 0 0;line-height:1.5}
+.mic-input{display:flex;align-items:center;gap:8px;margin:8px 0;color:#607080;font-size:12px}.mic-level{width:100px;height:12px}.mic-level-text{min-width:60px}.mic-sensitivity{max-width:100%}
 @media(max-width:480px){.jump-options{grid-template-columns:minmax(0,1fr)}.jump-notes{gap:5px}.jump-panel{padding:10px}}
 </style>
 </head>
@@ -129,9 +130,14 @@
           <p class="sub">음이름을 보지 않고 소리만 듣는 훈련입니다. <strong>목소리로 따라 낸 첫 음</strong>을 확인하며, 맞혀야 할 음 이름은 결과를 볼 때 공개합니다.</p>
           <div class="ear-config">
             <div class="control"><label class="label" for="earRange">연습 음역</label><select id="earRange">
-              <option value="52,55">E3~G3 · 기초</option><option value="53,57">F3~A3 · 기초 확장</option><option value="55,59">G3~B3 · 상행 연습</option><option value="52,60">E3~C4 · 넓게</option>
+              <option value="43,69" selected>G2~A4 · 전체</option>
+              <option value="43,60">G2~C4 · 저음 중심</option>
+              <option value="48,64">C3~E4 · 중저음</option>
+              <option value="52,67">E3~G4 · 중음</option>
+              <option value="55,69">G3~A4 · 고음 중심</option>
             </select></div>
             <div class="control"><label class="label" for="earVowel">부를 발음</label><select id="earVowel"><option value="아">아 (기본)</option><option value="이">이 (턱·혀 힘 빼기)</option><option value="음">음 (허밍)</option><option value="립트릴">립트릴</option></select></div>
+            <div class="control"><label class="label" for="earMicSensitivity">마이크 감도</label><select id="earMicSensitivity" class="mic-sensitivity"><option value="0.002" selected>높음 · 조용한 집</option><option value="0.006">보통</option><option value="0.013">낮음 · 주변 소음</option></select></div>
           </div>
           <div class="ear-hero" aria-live="polite">
             <div class="label" id="earHeroLabel">새 문제를 시작해 보세요</div>
@@ -147,6 +153,7 @@
             <button class="btn teal" id="earMic">마이크 켜고 채점</button>
             <button class="btn secondary" id="earReveal" disabled>정답만 확인</button>
           </div>
+          <div class="mic-input"><span>입력</span><meter class="mic-level" min="0" max="100" value="0" aria-label="마이크 입력 크기"></meter><span class="mic-level-text">대기</span></div>
           <p class="ear-muted" id="earMicInfo">마이크를 켠 상태에서 소리가 멈춘 뒤 약 1초간 안정적으로 부르면 자동 채점합니다. 마이크가 없으면 '정답만 확인'을 사용하세요.</p>
           <div id="earFeedback" class="ear-feedback info" role="status" aria-live="polite">첫 문제를 누르면 목표 음은 숨겨집니다. 재생 중 나는 기준음은 채점하지 않습니다.</div>
           <div class="ear-stats" aria-label="청음 연습 기록">
@@ -257,8 +264,10 @@
       <aside>
         <div class="card">
           <h2>4. 내 목소리 확인 <span class="pill">실시간 튜너</span></h2>
-          <p class="sub">PC 마이크를 켜고 소리를 내면 현재 음과 선택한 기준음의 차이를 보여줍니다.</p>
+          <p class="sub">마이크를 켜고 편안한 크기로 불러보세요.</p>
           <div class="toolbar"><button class="btn primary" id="micToggle">마이크 켜기</button><span class="small" id="micState">마이크 사용 안 함</span></div>
+          <div class="control"><label class="label" for="micSensitivity">마이크 감도</label><select id="micSensitivity" class="mic-sensitivity"><option value="0.002" selected>높음 · 조용한 집</option><option value="0.006">보통</option><option value="0.013">낮음 · 주변 소음</option></select></div>
+          <div class="mic-input"><span>입력</span><meter class="mic-level" min="0" max="100" value="0" aria-label="마이크 입력 크기"></meter><span class="mic-level-text">대기</span></div>
           <div class="tuner-box"><div class="label">지금 부르는 음</div><div class="heard faded" id="heardNote">—</div><div class="cents" id="heardDesc">마이크를 켜고 한 음을 길게 내보세요.</div><div class="cents-track"><div class="needle" id="needle"></div></div><div class="ticks"><span>기준보다 낮음</span><span>일치</span><span>기준보다 높음</span></div><div class="status" id="matchStatus">목표: G3</div></div>
           <div class="warning">실시간 음정 측정은 학습용 간이 기능입니다. 잡음이나 강한 배음 때문에 옥타브가 잘못 인식될 수 있어요. 스피커로 기준음을 재생한 뒤 멈추고 노래하면 측정이 더 정확합니다.</div>
         </div>
@@ -360,9 +369,13 @@
   function startSeq(){const seq=sequence();if(!seq){$('seqStatus').textContent='음 입력을 확인해 주세요. 예: E3 F3 G3 F3 E3';return}stopSeq();held=false;$('holdOne').textContent='계속 듣기';sequencePlaying=true;let dur=Number($('speed').value),gap=Number($('pause').value);
     function run(){if(!sequencePlaying)return;let i=0;function next(){if(!sequencePlaying)return;if(i>=seq.length){if(repeat){seqTimers.push(setTimeout(run,450));}else{sequencePlaying=false;drawChips();$('seqStatus').textContent='재생 완료. 이번엔 화면을 보지 않고 따라 불러보세요.'}return}stopVoices();let m=seq[i];choose(m);playTone(m,dur/1000);drawChips(i);$('seqStatus').textContent=`${i+1}/${seq.length} · ${nameOf(m)} (${korOf(m)})`;i++;seqTimers.push(setTimeout(next,dur+gap))}next()};run()}
   $('playSeq').addEventListener('click',startSeq);$('stopSeq').addEventListener('click',stopSeq);$('repeatSeq').addEventListener('click',()=>{repeat=!repeat;$('repeatSeq').textContent=repeat?'반복 켜짐 ✓':'반복 꺼짐';$('repeatSeq').setAttribute('aria-pressed',String(repeat))});
-  function pitchYin(buf,rate){const size=buf.length;let rms=0;for(let i=0;i<size;i++){rms+=buf[i]*buf[i]}rms=Math.sqrt(rms/size);if(rms<.013)return null;const minTau=Math.floor(rate/850),maxTau=Math.min(Math.floor(rate/75),Math.floor(size/3));const n=Math.min(2500,size-maxTau);const diff=new Float32Array(maxTau+1);for(let tau=minTau;tau<=maxTau;tau++){let d=0;for(let i=0;i<n;i++){let z=buf[i]-buf[i+tau];d+=z*z}diff[tau]=d}let sum=0,cmndf=new Float32Array(maxTau+1);let best=1,bestTau=-1;for(let tau=minTau;tau<=maxTau;tau++){sum+=diff[tau];let val=diff[tau]*((tau-minTau+1)/Math.max(sum,1e-10));cmndf[tau]=val;if(val<best){best=val;bestTau=tau}if(val<.19){while(tau+1<=maxTau && diff[tau+1]<diff[tau])tau++;bestTau=tau;best=cmndf[tau];break}}if(bestTau<0||best>.32)return null;
+  function signalRms(buf){let sum=0;for(let i=0;i<buf.length;i++)sum+=buf[i]*buf[i];return Math.sqrt(sum/buf.length)}
+  let micThreshold=.002;
+  document.querySelectorAll('.mic-sensitivity').forEach(control=>control.addEventListener('change',()=>{micThreshold=Number(control.value);document.querySelectorAll('.mic-sensitivity').forEach(other=>other.value=control.value)}));
+  function showMicLevel(rms,active=true){const level=active?Math.max(0,Math.min(100,(20*Math.log10(Math.max(rms,1e-7))+70)/60*100)):0;document.querySelectorAll('.mic-level').forEach(meter=>meter.value=level);document.querySelectorAll('.mic-level-text').forEach(label=>label.textContent=!active?'대기':rms>=micThreshold?'입력 중':rms>.0003?'작은 소리':'입력 약함')}
+  function pitchYin(buf,rate,threshold=.002){const size=buf.length;if(signalRms(buf)<threshold)return null;const minTau=Math.floor(rate/850),maxTau=Math.min(Math.floor(rate/75),Math.floor(size/3));const n=Math.min(2500,size-maxTau);const diff=new Float32Array(maxTau+1);for(let tau=minTau;tau<=maxTau;tau++){let d=0;for(let i=0;i<n;i++){let z=buf[i]-buf[i+tau];d+=z*z}diff[tau]=d}let sum=0,cmndf=new Float32Array(maxTau+1);let best=1,bestTau=-1;for(let tau=minTau;tau<=maxTau;tau++){sum+=diff[tau];let val=diff[tau]*((tau-minTau+1)/Math.max(sum,1e-10));cmndf[tau]=val;if(val<best){best=val;bestTau=tau}if(val<.19){while(tau+1<=maxTau && diff[tau+1]<diff[tau])tau++;bestTau=tau;best=cmndf[tau];break}}if(bestTau<0||best>.32)return null;
     let tau=bestTau;if(tau>minTau&&tau<maxTau){const a=diff[tau-1],b=diff[tau],c=diff[tau+1],denom=2*(2*b-a-c);if(Math.abs(denom)>1e-8){let correction=(c-a)/denom;if(Math.abs(correction)<1)tau+=correction}}return rate/tau}
-  let prevFreq=null;function readMic(){if(!analyser)return;const data=new Float32Array(analyser.fftSize);analyser.getFloatTimeDomainData(data);const f=pitchYin(data,audio.sampleRate);
+  let prevFreq=null;function readMic(){if(!analyser)return;const data=new Float32Array(analyser.fftSize);analyser.getFloatTimeDomainData(data);showMicLevel(signalRms(data));const f=pitchYin(data,audio.sampleRate,micThreshold);
     if(f!==null&&f>=70&&f<=950){
       if(earTrial&&!earTrial.done){
         earOnPitch(f);
@@ -374,7 +387,7 @@
       }
       let midi=69+12*Math.log2(f/440),nearest=Math.round(midi),cents=(midi-nearest)*100;$('heardNote').textContent=nameOf(nearest);$('heardNote').classList.remove('faded');$('heardDesc').textContent=`${f.toFixed(1)} Hz · 음 중심에서 ${cents>=0?'+':''}${cents.toFixed(0)} cent`;let targetCents=1200*Math.log2(f/freqOf(selected));$('needle').style.left=(50+Math.max(-50,Math.min(50,targetCents/2)))+'%';if(Math.abs(targetCents)<=20)$('matchStatus').innerHTML='<span class="on">목표 '+nameOf(selected)+'에 가까워요!</span>';else $('matchStatus').textContent=`목표 ${nameOf(selected)}보다 ${Math.abs(targetCents).toFixed(0)} cent ${targetCents<0?'낮아요':'높아요'}`;prevFreq=f;
     }else{$('heardNote').textContent='—';$('heardNote').classList.add('faded');$('heardDesc').textContent=earTrial&&!earTrial.done?'숨이 아닌 목소리로 한 음을 내보세요.':'목소리를 1~2초 안정적으로 내보세요.';$('needle').style.left='50%';$('matchStatus').textContent=earTrial&&!earTrial.done?'청음 연습 중 · 결과는 첫 시도 후 공개됩니다.':'목표: '+nameOf(selected)} }
-  $('micToggle').addEventListener('click',async()=>{if(micStream){micStream.getTracks().forEach(t=>t.stop());micStream=null;analyser=null;micSource?.disconnect();micSource=null;clearInterval(micTimer);micTimer=null;earOnMicOff();$('micToggle').textContent='마이크 켜기';$('micState').textContent='마이크 사용 안 함';$('heardNote').textContent='—';return}try{if(!navigator.mediaDevices?.getUserMedia)throw new Error('브라우저 보안 설정 때문에 마이크를 열 수 없습니다. localhost로 실행해 주세요.');const stream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false},video:false});let c=ctx();micStream=stream;micSource=c.createMediaStreamSource(stream);analyser=c.createAnalyser();analyser.fftSize=4096;micSource.connect(analyser);$('micToggle').textContent='■ 마이크 끄기';$('micState').textContent='마이크 측정 중';micTimer=setInterval(readMic,130);earOnMicOn()}catch(err){$('micState').textContent='사용 불가: '+err.message}});
+  $('micToggle').addEventListener('click',async()=>{if(micStream){micStream.getTracks().forEach(t=>t.stop());micStream=null;analyser=null;micSource?.disconnect();micSource=null;clearInterval(micTimer);micTimer=null;earOnMicOff();showMicLevel(0,false);$('micToggle').textContent='마이크 켜기';$('micState').textContent='마이크 사용 안 함';$('heardNote').textContent='—';return}try{if(!navigator.mediaDevices?.getUserMedia)throw new Error('브라우저 보안 설정 때문에 마이크를 열 수 없습니다. localhost로 실행해 주세요.');const stream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false},video:false});let c=ctx();micStream=stream;micSource=c.createMediaStreamSource(stream);analyser=c.createAnalyser();analyser.fftSize=4096;micSource.connect(analyser);$('micToggle').textContent='■ 마이크 끄기';$('micState').textContent='마이크 측정 중';micTimer=setInterval(readMic,130);earOnMicOn()}catch(err){$('micState').textContent='사용 불가: '+err.message}});
 
   // ──────────────────────────────────────────────────────────────────────────
   // 음 이름 표시를 가린 단일음 재현·두 음 비교 (기존 건반/튜너와 독립적으로 작동)
