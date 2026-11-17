@@ -4,8 +4,9 @@
  'use strict';
  const base=new URL('./piano/',document.currentScript.src);
  const anchors=[];
- for(let octave=1;octave<=7;octave++)for(const [name,offset] of [['C',0],['Ds',3],['Fs',6],['A',9]])anchors.push({midi:12*(octave+1)+offset,file:name+octave+'.mp3'});
- anchors.push({midi:108,file:'C8.mp3'});
+ // C2–B5 practice range: 16 recordings, with B5 played from A5 (+2 semitones).
+ // Extended/custom pitches still use the nearest boundary sample at their exact rate.
+ for(let octave=2;octave<=5;octave++)for(const [name,offset] of [['C',0],['Ds',3],['Fs',6],['A',9]])anchors.push({midi:12*(octave+1)+offset,file:name+octave+'.mp3'});
  const contexts=new WeakMap();
  function state(ctx){if(!contexts.has(ctx))contexts.set(ctx,{buffers:new Map(),pending:new Map()});return contexts.get(ctx)}
  function anchorFor(midi){return anchors.reduce((best,item)=>Math.abs(item.midi-midi)<Math.abs(best.midi-midi)?item:best)}

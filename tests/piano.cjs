@@ -1,6 +1,9 @@
 const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),vm=require('node:vm'),crypto=require('node:crypto');
 const root=path.join(__dirname,'..');
-for(const file of JSON.parse(fs.readFileSync(path.join(root,'assets/piano/samples.json')))){
+const manifest=JSON.parse(fs.readFileSync(path.join(root,'assets/piano/samples.json')));
+assert.equal(manifest.length,16);assert.equal(manifest.reduce((sum,file)=>sum+file.size,0),1220410);
+assert.deepEqual(fs.readdirSync(path.join(root,'assets/piano')).filter(name=>name.endsWith('.mp3')).sort(),manifest.map(file=>file.name).sort());
+for(const file of manifest){
  const data=fs.readFileSync(path.join(root,'assets/piano',file.name));
  assert.equal(data.length,file.size);
  assert.equal(crypto.createHash('sha1').update('blob '+data.length+'\0').update(data).digest('hex'),file.sha);
@@ -41,5 +44,25 @@ const ctx={currentTime:10,destination:{},decodeAudioData:async()=>decoded,create
  assert(!piano.ready(ctx,[60]));await piano.prepare(ctx,[60]);assert(piano.ready(ctx,[60]),'failed load is retryable');
  assert.equal(requests.length,3);
  assert.throws(()=>piano.schedule(ctx,108,10,1));
- console.log('Piano: 29 source hashes, sample reuse, exact pitch rate, envelope timing, memory cap, failed-load retry passed');
+ const practice=Array.from({length:48},(_,i)=>36+i);
+ await piano.prepare(ctx,practice);
+ for(const midi of practice){
+  piano.schedule(ctx,midi,12,.5);
+  const rate=sources.at(-1).playbackRate.calls[0][1];
+  assert(Math.abs(12*Math.log2(rate))<=2.000001,'C2–B5 stays within two semitones of a recorded sample');
+ }
+ piano.schedule(ctx,83,12,.5);assert(Math.abs(sources.at(-1).playbackRate.calls[0][1]-2**(2/12))<1e-10,'B5 uses A5 at exactly +2 semitones');
+ const beforeExtended=requests.length;
+ await piano.prepare(ctx,[24,84,90,108]);
+ assert.equal(requests.length,beforeExtended,'extended/custom pitches reuse the retained boundary files');
+ for(const midi of [24,84,90,108])assert.doesNotThrow(()=>piano.schedule(ctx,midi,12,.5));
+ assert(requests.every(url=>/(?:C|Ds|Fs|A)[2-5]\.mp3$/.test(url)),'no removed sample is requested');
+ for(const id of ['aloha','bom','every-moment']){
+  const song=JSON.parse(fs.readFileSync(path.join(root,'songs',id+'.json')));
+  for(const note of song.notes.filter(note=>note.kind!=='spoken'))for(const shift of [-4,0,4]){
+   const midi=note.midi-song.writtenOctaveOffset+shift;
+   assert(midi>=36&&midi<=83,id+' default vocal range with ±4 semitones is covered');
+  }
+ }
+ console.log('Piano: 16 source hashes / 1,220,410 bytes, C2–B5 coverage, B5 boundary, extended notes, three songs ±4 keys, cache/retry/timing passed');
 })().catch(error=>{console.error(error);process.exitCode=1});
