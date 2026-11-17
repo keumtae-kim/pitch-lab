@@ -106,26 +106,42 @@
 .mic-input{display:flex;align-items:center;gap:8px;margin:8px 0;color:#607080;font-size:12px}.mic-level{width:100px;height:12px}.mic-level-text{min-width:60px}.mic-sensitivity{max-width:100%}
 @media(max-width:480px){.jump-options{grid-template-columns:minmax(0,1fr)}.jump-notes{gap:5px}.jump-panel{padding:10px}}
 </style>
+<style>
+/* Practical desktop layout: reference + tuner, singing + scale, then listening. */
+.cols{grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);grid-template-areas:"reference tuner" "ear scale" "compare compare";align-items:start;gap:17px}
+.cols>.card{margin:0;min-width:0}.reference-card{grid-area:reference}.tuner-card{grid-area:tuner}.ear-card{grid-area:ear}.scale-card{grid-area:scale}.compare-card{grid-area:compare}
+.compare-card .cmp-heading{margin-top:0}.compare-card .cmp-settings{grid-template-columns:repeat(3,minmax(0,1fr))}
+@media(max-width:900px){.cols{grid-template-columns:minmax(0,1fr);grid-template-areas:"reference" "tuner" "ear" "scale" "compare"}.compare-card .cmp-settings{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:560px){.compare-card .cmp-settings{grid-template-columns:minmax(0,1fr)}}
+</style>
 </head>
 <body>
 <nav id="practice-nav" aria-label="연습 도구 이동"><a href="./">← 연습 목록으로</a><span>음정·청음 v5</span><a href="./aloha.html">아로하 →</a></nav>
   <header class="top"><div class="shell"><div class="eyebrow">VOCAL PITCH LAB</div><h1>내 음정 연습실 <span style="font-size:17px;vertical-align:middle">♪</span></h1><p>기준음 듣기 → 따라 부르기 → 음정 확인 · 설치 없이 실행하는 개인용 보컬 연습 도구</p></div></header>
   <main class="shell body">
     <div class="cols">
-      <section>
-        <div class="card">
+<section class="card reference-card">
           <h2>1. 기준음 듣기 <span class="pill">음 한 개씩</span></h2>
           <p class="sub">피아노 건반을 누르면 그 음이 재생됩니다. 기준음을 듣고 소리가 멈춘 뒤 직접 불러보세요.</p>
           <div class="toolbar">
             <div class="control" style="flex:0 1 180px"><label class="label" for="octaveRange">건반 범위</label><select id="octaveRange"><option value="48">C3 ~ C5 (추천)</option><option value="36">C2 ~ C4</option><option value="55">G3 ~ G5</option></select></div>
-            <div class="control"><label class="label" for="timbre">음색</label><select id="timbre"><option value="piano">피아노 비슷한 소리</option><option value="pure">맑은 전자음</option><option value="soft">부드러운 오르간</option></select></div>
+            <div class="control"><label class="label" for="timbre">음색</label><select id="timbre"><option value="piano">그랜드피아노 · 실제 녹음</option><option value="pure">맑은 전자음</option><option value="soft">부드러운 오르간</option></select><span class="small" id="pianoState" role="status">피아노 음원은 처음 사용할 때 불러옵니다.</span></div>
           </div>
           <div class="focus"><div><div class="label">선택한 기준음</div><div class="note" id="selectedNote">G3</div><div class="ko" id="selectedKo">1옥 솔</div></div><div class="hz"><div id="selectedHz">196.00 Hz</div><div class="small">A4 = 440 Hz</div></div></div>
           <div class="toolbar"><button class="btn primary" id="playOne">▶ 기준음 1.2초</button><button class="btn secondary" id="holdOne">계속 듣기</button><div class="control" style="min-width:120px"><label class="label" for="volume">재생 음량 <span id="volText">60%</span></label><input type="range" min="0" max="100" value="60" id="volume"></div></div>
           <div class="keyboard-wrap"><div class="keyboard" id="keyboard" role="group" aria-label="피아노 건반"></div></div>
           <p class="small">검은 건반은 샵(♯)입니다. E3→F3은 반음, F3→G3은 온음 간격입니다.</p>
-        </div>
-        <div class="card ear-card" id="earTraining">
+        </section>
+<section class="card tuner-card">
+          <h2>내 목소리 확인 <span class="pill">실시간 튜너</span></h2>
+          <p class="sub">마이크를 켜고 편안한 크기로 불러보세요.</p>
+          <div class="toolbar"><button class="btn primary" id="micToggle">마이크 켜기</button><span class="small" id="micState">마이크 사용 안 함</span></div>
+          <div class="control"><label class="label" for="micSensitivity">마이크 감도</label><select id="micSensitivity" class="mic-sensitivity"><option value="0.002" selected>높음 · 조용한 집</option><option value="0.006">보통</option><option value="0.013">낮음 · 주변 소음</option></select></div>
+          <div class="mic-input"><span>입력</span><meter class="mic-level" min="0" max="100" value="0" aria-label="마이크 입력 크기"></meter><span class="mic-level-text">대기</span></div>
+          <div class="tuner-box"><div class="label">지금 부르는 음</div><div class="heard faded" id="heardNote">—</div><div class="cents" id="heardDesc">마이크를 켜고 한 음을 길게 내보세요.</div><div class="cents-track"><div class="needle" id="needle"></div></div><div class="ticks"><span>기준보다 낮음</span><span>일치</span><span>기준보다 높음</span></div><div class="status" id="matchStatus">목표: G3</div></div>
+          <div class="warning">실시간 음정 측정은 학습용 간이 기능입니다. 잡음이나 강한 배음 때문에 옥타브가 잘못 인식될 수 있어요. 스피커로 기준음을 재생한 뒤 멈추고 노래하면 측정이 더 정확합니다.</div>
+        </section>
+<section class="card ear-card" id="earTraining">
           <h2>2. 듣고 맞히기 <span class="ear-tag">현재 추천 연습</span></h2>
           <p class="sub">음이름을 보지 않고 소리만 듣는 훈련입니다. <strong>목소리로 따라 낸 첫 음</strong>을 확인하며, 맞혀야 할 음 이름은 결과를 볼 때 공개합니다.</p>
           <div class="ear-config">
@@ -163,9 +179,55 @@
           </div>
           <div class="label">최근 10회 (힌트 사용 시 표시)</div><div class="ear-history" id="earHistory"><span>연습 기록이 없습니다</span></div>
           <div class="toolbar" style="margin-top:10px;justify-content:space-between"><span class="ear-muted">이 기기의 브라우저에만 저장됩니다.</span><button class="btn" id="earClear" type="button">기록 초기화</button></div>
-          <hr class="trainer-divider">
-          <div class="cmp-heading">
-            <div><h3>귀로만 청음 훈련 <span class="ear-tag">목소리·마이크 불필요</span></h3><p class="sub" style="margin-bottom:8px">쉬는 시간에는 듣고 고르기만 하세요. 정답을 고르기 전까지 음이름은 보이지 않습니다.</p></div>
+</section>
+<section class="card scale-card">
+          <h2>3. 스케일 연습 <span class="pill">3음 · 5음 · 도약</span></h2>
+          <p class="sub">가까운 음의 스케일 또는 큰 음정 간격의 3음 도약을 선택하세요.</p>
+          <div class="scale-panel">
+            <div class="toolbar">
+              <div class="control"><label class="label" for="scaleSize">스케일 종류</label><select id="scaleSize"><option value="3" selected>3음 · 도레미레도</option><option value="5">5음 · 도레미파솔파미레도</option><option value="jump">3음 도약 · 음 직접 선택</option></select></div>
+              <div class="control" id="autoRootControl"><label class="label" for="scaleRoot">시작음</label><div class="start-picker"><button type="button" class="btn" id="rootDown" aria-label="시작음 반음 내리기">−</button><select id="scaleRoot" aria-label="자동 스케일 시작음"></select><button type="button" class="btn" id="rootUp" aria-label="시작음 반음 올리기">+</button></div></div>
+            </div>
+            <p class="scale-help" id="scaleHelp">선택한 음을 '도'로 삼아 온음·반음 간격에 맞게 자동 생성합니다. 검은 건반도 포함됩니다.</p>
+          </div>
+          <div id="jumpPanel" class="jump-panel" hidden>
+            <div class="jump-options">
+              <div><label class="label" for="jumpExample">도약 예제</label><select id="jumpExample">
+                <option value="53,62,76" selected>F3 → D4 → E5 · 요청 예제</option>
+                <option value="48,55,60">C3 → G3 → C4 · 5도·옥타브</option>
+                <option value="53,60,65">F3 → C4 → F4 · 5도·옥타브</option>
+                <option value="53,62,53">F3 → D4 → F3 · 올라갔다 돌아오기</option>
+                <option value="60,55,48">C4 → G3 → C3 · 내려가기</option>
+                <option value="custom">세 음 직접 선택</option>
+              </select></div>
+              <div><label class="label" for="jumpOrder">재생 방향</label><select id="jumpOrder"><option value="once">입력 순서 · 3음</option><option value="return">왕복 · 5음</option></select></div>
+            </div>
+            <div class="jump-notes">
+              <div><label class="label" for="jumpNote1">첫 음</label><select id="jumpNote1"></select></div>
+              <div><label class="label" for="jumpNote2">둘째 음</label><select id="jumpNote2"></select></div>
+              <div><label class="label" for="jumpNote3">셋째 음</label><select id="jumpNote3"></select></div>
+            </div>
+            <p id="jumpIntervals" class="small" aria-live="polite"></p>
+          </div>
+          <label class="label" for="preset">연습 패턴 방식</label>
+          <select id="preset">
+            <option value="auto" selected>자동 생성 · 시작음 + 3음/5음</option><option value="jump">3음 도약 · 선택한 음으로 생성</option>
+            <option value="E3 F3 G3 F3 E3">기존 패턴: E3 → F3 → G3 → F3 → E3</option>
+            <option value="C3 D3 E3 D3 C3">C3 → D3 → E3 → D3 → C3</option>
+            <option value="F3 G3 A3 G3 F3">F3 → G3 → A3 → G3 → F3</option>
+            <option value="G3 F3 E3">아로하 도입부 참고 음형 · -2키 (G3 → F3 → E3)</option>
+            <option value="A3 G3 F#3">아로하 도입부 참고 음형 · 원키 (A3 → G3 → F♯3)</option>
+            <option value="custom">직접 입력</option>
+          </select>
+          <div class="form-section"><label class="label" for="customNotes">생성된 음표 / 직접 입력</label><input type="text" id="customNotes" value="E3 F#3 G#3 F#3 E3" spellcheck="false" aria-describedby="seqHelp" readonly><div id="seqHelp" class="small" style="margin-top:5px">자동 생성 중에는 결과를 보여줍니다. 자유롭게 수정하려면 위에서 ‘직접 입력’을 선택하세요. (# 또는 ♯ 사용 가능)</div></div>
+          <div class="sequence"><div class="label">재생 순서</div><div class="chips" id="noteChips"></div></div>
+          <div class="range-row"><span class="label">음마다 길이</span><input type="range" min="500" max="2400" step="100" value="1300" id="speed"><output id="speedText">1.3초</output></div>
+          <div class="range-row"><span class="label">음 사이 쉬기</span><input type="range" min="0" max="1300" step="100" value="300" id="pause"><output id="pauseText">0.3초</output></div>
+          <div class="toolbar"><button class="btn teal" id="playSeq">▶ 스케일 재생</button><button class="btn secondary" id="stopSeq">■ 멈추기</button><button class="btn" id="repeatSeq" aria-pressed="false">반복 꺼짐</button></div>
+          <div class="status" id="seqStatus" aria-live="polite">재생 전 기준음을 먼저 들어보세요.</div>
+        </section>
+<section class="card compare-card" id="earComparison"><div class="cmp-heading">
+            <div><h2>4. 귀로만 청음 훈련 <span class="ear-tag">목소리·마이크 불필요</span></h2><p class="sub" style="margin-bottom:8px">쉬는 시간에는 듣고 고르기만 하세요. 정답을 고르기 전까지 음이름은 보이지 않습니다.</p></div>
             <span class="cmp-keyhint">키보드: 1~4 답 · Space 재청취 · Enter 다음 문제</span>
           </div>
           <div class="cmp-panel">
@@ -213,78 +275,11 @@
           <div class="cmp-history-head"><span class="label">최근 결과</span><span id="cmpStats" class="ear-muted">기록은 이 브라우저에 보관됩니다.</span></div>
           <div class="ear-history" id="cmpHistory"></div>
           <p class="ear-muted cmp-footnote">음높이를 구별하는 청음 연습입니다. 정확하게 목소리로 따라 부르는 능력은 기존 한 음 재현·스케일 연습과 함께 길러 주세요.</p>
-        </div>
-        <div class="card">
-          <h2>3. 스케일 연습 <span class="pill">3음 · 5음 · 도약</span></h2>
-          <p class="sub">가까운 음의 스케일 또는 큰 음정 간격의 3음 도약을 선택하세요.</p>
-          <div class="scale-panel">
-            <div class="toolbar">
-              <div class="control"><label class="label" for="scaleSize">스케일 종류</label><select id="scaleSize"><option value="3" selected>3음 · 도레미레도</option><option value="5">5음 · 도레미파솔파미레도</option><option value="jump">3음 도약 · 음 직접 선택</option></select></div>
-              <div class="control" id="autoRootControl"><label class="label" for="scaleRoot">시작음</label><div class="start-picker"><button type="button" class="btn" id="rootDown" aria-label="시작음 반음 내리기">−</button><select id="scaleRoot" aria-label="자동 스케일 시작음"></select><button type="button" class="btn" id="rootUp" aria-label="시작음 반음 올리기">+</button></div></div>
-            </div>
-            <p class="scale-help" id="scaleHelp">선택한 음을 '도'로 삼아 온음·반음 간격에 맞게 자동 생성합니다. 검은 건반도 포함됩니다.</p>
-          </div>
-          <div id="jumpPanel" class="jump-panel" hidden>
-            <div class="jump-options">
-              <div><label class="label" for="jumpExample">도약 예제</label><select id="jumpExample">
-                <option value="53,62,76" selected>F3 → D4 → E5 · 요청 예제</option>
-                <option value="48,55,60">C3 → G3 → C4 · 5도·옥타브</option>
-                <option value="53,60,65">F3 → C4 → F4 · 5도·옥타브</option>
-                <option value="53,62,53">F3 → D4 → F3 · 올라갔다 돌아오기</option>
-                <option value="60,55,48">C4 → G3 → C3 · 내려가기</option>
-                <option value="custom">세 음 직접 선택</option>
-              </select></div>
-              <div><label class="label" for="jumpOrder">재생 방향</label><select id="jumpOrder"><option value="once">입력 순서 · 3음</option><option value="return">왕복 · 5음</option></select></div>
-            </div>
-            <div class="jump-notes">
-              <div><label class="label" for="jumpNote1">첫 음</label><select id="jumpNote1"></select></div>
-              <div><label class="label" for="jumpNote2">둘째 음</label><select id="jumpNote2"></select></div>
-              <div><label class="label" for="jumpNote3">셋째 음</label><select id="jumpNote3"></select></div>
-            </div>
-            <p id="jumpIntervals" class="small" aria-live="polite"></p>
-          </div>
-          <label class="label" for="preset">연습 패턴 방식</label>
-          <select id="preset">
-            <option value="auto" selected>자동 생성 · 시작음 + 3음/5음</option><option value="jump">3음 도약 · 선택한 음으로 생성</option>
-            <option value="E3 F3 G3 F3 E3">기존 패턴: E3 → F3 → G3 → F3 → E3</option>
-            <option value="C3 D3 E3 D3 C3">C3 → D3 → E3 → D3 → C3</option>
-            <option value="F3 G3 A3 G3 F3">F3 → G3 → A3 → G3 → F3</option>
-            <option value="G3 F3 E3">아로하 도입부 참고 음형 · -2키 (G3 → F3 → E3)</option>
-            <option value="A3 G3 F#3">아로하 도입부 참고 음형 · 원키 (A3 → G3 → F♯3)</option>
-            <option value="custom">직접 입력</option>
-          </select>
-          <div class="form-section"><label class="label" for="customNotes">생성된 음표 / 직접 입력</label><input type="text" id="customNotes" value="E3 F#3 G#3 F#3 E3" spellcheck="false" aria-describedby="seqHelp" readonly><div id="seqHelp" class="small" style="margin-top:5px">자동 생성 중에는 결과를 보여줍니다. 자유롭게 수정하려면 위에서 ‘직접 입력’을 선택하세요. (# 또는 ♯ 사용 가능)</div></div>
-          <div class="sequence"><div class="label">재생 순서</div><div class="chips" id="noteChips"></div></div>
-          <div class="range-row"><span class="label">음마다 길이</span><input type="range" min="500" max="2400" step="100" value="1300" id="speed"><output id="speedText">1.3초</output></div>
-          <div class="range-row"><span class="label">음 사이 쉬기</span><input type="range" min="0" max="1300" step="100" value="300" id="pause"><output id="pauseText">0.3초</output></div>
-          <div class="toolbar"><button class="btn teal" id="playSeq">▶ 스케일 재생</button><button class="btn secondary" id="stopSeq">■ 멈추기</button><button class="btn" id="repeatSeq" aria-pressed="false">반복 꺼짐</button></div>
-          <div class="status" id="seqStatus" aria-live="polite">재생 전 기준음을 먼저 들어보세요.</div>
-        </div>
-      </section>
-      <aside>
-        <div class="card">
-          <h2>4. 내 목소리 확인 <span class="pill">실시간 튜너</span></h2>
-          <p class="sub">마이크를 켜고 편안한 크기로 불러보세요.</p>
-          <div class="toolbar"><button class="btn primary" id="micToggle">마이크 켜기</button><span class="small" id="micState">마이크 사용 안 함</span></div>
-          <div class="control"><label class="label" for="micSensitivity">마이크 감도</label><select id="micSensitivity" class="mic-sensitivity"><option value="0.002" selected>높음 · 조용한 집</option><option value="0.006">보통</option><option value="0.013">낮음 · 주변 소음</option></select></div>
-          <div class="mic-input"><span>입력</span><meter class="mic-level" min="0" max="100" value="0" aria-label="마이크 입력 크기"></meter><span class="mic-level-text">대기</span></div>
-          <div class="tuner-box"><div class="label">지금 부르는 음</div><div class="heard faded" id="heardNote">—</div><div class="cents" id="heardDesc">마이크를 켜고 한 음을 길게 내보세요.</div><div class="cents-track"><div class="needle" id="needle"></div></div><div class="ticks"><span>기준보다 낮음</span><span>일치</span><span>기준보다 높음</span></div><div class="status" id="matchStatus">목표: G3</div></div>
-          <div class="warning">실시간 음정 측정은 학습용 간이 기능입니다. 잡음이나 강한 배음 때문에 옥타브가 잘못 인식될 수 있어요. 스피커로 기준음을 재생한 뒤 멈추고 노래하면 측정이 더 정확합니다.</div>
-        </div>
-        <div class="card">
-          <h2>추천 10분 루틴</h2>
-          <p class="sub">현재 목표: 음을 정확하게 시작하고, 내려갈 때 중간 음을 건너뛰지 않기</p>
-          <div style="display:grid;gap:10px;font-size:14px">
-            <div><strong>① 5분 · 한 음 듣고 따라 부르기</strong><div class="small">기초 음역(E3~G3)에서 음이름 숨기기 → 첫 음 따라 부르기 → 결과 확인</div></div>
-            <div><strong>② 쉬는 시간 · 청음 비교 연습</strong><div class="small">높낮이·반음 간격·세 음 움직임을 목소리 없이 훈련</div></div>
-            <div><strong>③ 3분 · 3음 스케일</strong><div class="small">상행·하행을 끝까지 연결하고 '이', '아' 모두 편안하게 부르기</div></div>
-          </div>
-          <div class="footer">소리를 억지로 굵게 만들거나 목에 힘을 줘 음을 올리지 마세요. 통증·쉰 목소리가 생기면 중단하세요. 기준음보다 크게 부르는 것은 목표가 아닙니다.</div>
-        </div>
-        <div class="card" style="background:#fafdff"><h2>Windows 사용법</h2><p class="sub" style="margin:0">이 HTML 파일을 <strong>Chrome 또는 Edge</strong>로 열면 바로 작동합니다. 인터넷이 없어도 기준음·스케일을 재생할 수 있습니다. 마이크 권한을 요청하면 허용해 주세요. 보안 설정상 로컬 파일에서 마이크가 차단되는 브라우저는 <code>localhost</code>로 열어야 합니다.</p></div>
-      </aside>
+        </section>
     </div>
+    <p class="small" style="text-align:center"><a href="assets/piano/README.txt">피아노 음원 · Alexander Holm · CC BY 3.0</a></p>
   </main>
+<script src="assets/piano.js?v=5b7d1a1f0a06"></script>
 <script>
 (()=>{'use strict';
   const $=id=>document.getElementById(id);
@@ -297,8 +292,21 @@
   const korOf=m=>`${Math.floor(m/12)-3}옥 ${korean[(m%12+12)%12]}`;
   function parseNote(str){let s=str.trim().toUpperCase().replace(/♯/g,'#').replace(/♭/g,'B');let mat=/^([A-G])([#B]?)(-?\d)$/.exec(s);if(!mat)return null;let off={'C':0,'D':2,'E':4,'F':5,'G':7,'A':9,'B':11}[mat[1]];if(mat[2]==='#')off++;if(mat[2]==='B')off--;let m=(Number(mat[3])+1)*12+off;return m>=24&&m<=108?m:null}
   const ctx=()=>{if(!audio)audio=new (window.AudioContext||window.webkitAudioContext)();if(audio.state==='suspended')audio.resume();return audio};
-  function stopVoices(){const now=audio?.currentTime||0;activeVoices.forEach(v=>{try{v.gain.gain.cancelScheduledValues(now);v.gain.gain.setTargetAtTime(.0001,now,.025);v.oscs.forEach(o=>o.stop(now+.14))}catch(e){}});activeVoices=[]}
-  function playTone(m,duration=1.2){const c=ctx();const now=c.currentTime;const vol=Number($('volume').value)/100;const timbre=$('timbre').value;const gain=c.createGain();gain.gain.value=.0001;gain.connect(c.destination);let partials=timbre==='pure'?[[1,1,'sine']]:timbre==='soft'?[[1,.75,'sine'],[2,.15,'sine'],[3,.06,'sine']]:[[1,.75,'sine'],[2,.20,'sine'],[3,.09,'sine'],[4,.04,'sine']];let oscs=[];
+  let voiceEpoch=0;
+  function stopVoices(){voiceEpoch++;const now=audio?.currentTime||0;activeVoices.forEach(v=>{v.cancelled=true;clearTimeout(v.repeatTimer);try{v.gain?.gain.cancelScheduledValues(now);v.gain?.gain.setTargetAtTime(.0001,now,.025);v.oscs.forEach(o=>o.stop(now+.14))}catch(e){}});activeVoices=[]}
+  async function preparePiano(notes){
+    if($('timbre').value!=='piano')return;
+    const c=ctx();if(!SamplePiano.ready(c,notes))$('pianoState').textContent='피아노 음원 준비 중…';
+    try{await SamplePiano.prepare(c,notes);$('pianoState').textContent='그랜드피아노 준비됨'}catch(error){$('pianoState').textContent='음원 로딩 실패 · 다시 눌러주세요.';throw error}
+  }
+  function playTone(m,duration=1.2){const c=ctx();const vol=Number($('volume').value)/100;const timbre=$('timbre').value;
+    if(timbre==='piano'){
+      const voice={gain:null,oscs:[],cancelled:false,repeatTimer:null};activeVoices.push(voice);
+      const start=()=>{if(voice.cancelled)return;Object.assign(voice,SamplePiano.schedule(c,m,c.currentTime+.008,duration===null?2.25:duration,vol));if(duration===null)voice.repeatTimer=setTimeout(start,2500)};
+      if(SamplePiano.ready(c,[m]))start();else preparePiano([m]).then(start).catch(()=>{voice.cancelled=true});
+      return voice;
+    }
+    const now=c.currentTime;const gain=c.createGain();gain.gain.value=.0001;gain.connect(c.destination);let partials=timbre==='pure'?[[1,1,'sine']]:[[1,.75,'sine'],[2,.15,'sine'],[3,.06,'sine']];let oscs=[];
     partials.forEach(([mul,amp,type])=>{let o=c.createOscillator(),g=c.createGain();o.type=type;o.frequency.value=freqOf(m)*mul;g.gain.value=amp;o.connect(g);g.connect(gain);o.start(now);oscs.push(o)});
     const level=Math.min(.8,vol*.68);gain.gain.setTargetAtTime(level,now,.012);
     if(duration!==null){const end=now+duration;gain.gain.setTargetAtTime(.0001,end-.09,.035);oscs.forEach(o=>o.stop(end+.15))}
@@ -365,8 +373,9 @@
   $('preset').addEventListener('change',()=>{stopSeq();syncPattern();if($('preset').value==='jump')choose(Number($('jumpNote1').value))});
   $('customNotes').addEventListener('input',()=>{stopSeq();drawChips()});
   ['speed','pause'].forEach(id=>$(id).addEventListener('input',()=>{$(id+'Text').textContent=(Number($(id).value)/1000).toFixed(1)+'초'}));
-  function stopSeq(){sequencePlaying=false;seqTimers.forEach(clearTimeout);seqTimers=[];stopVoices();drawChips();$('seqStatus').textContent='재생 준비됨.'}
-  function startSeq(){const seq=sequence();if(!seq){$('seqStatus').textContent='음 입력을 확인해 주세요. 예: E3 F3 G3 F3 E3';return}stopSeq();held=false;$('holdOne').textContent='계속 듣기';sequencePlaying=true;let dur=Number($('speed').value),gap=Number($('pause').value);
+  let seqRunId=0;
+  function stopSeq(){seqRunId++;sequencePlaying=false;seqTimers.forEach(clearTimeout);seqTimers=[];stopVoices();drawChips();$('seqStatus').textContent='재생 준비됨.'}
+  async function startSeq(){const seq=sequence();if(!seq){$('seqStatus').textContent='음 입력을 확인해 주세요. 예: E3 F3 G3 F3 E3';return}stopSeq();held=false;$('holdOne').textContent='계속 듣기';sequencePlaying=true;const id=seqRunId,epoch=voiceEpoch;$('seqStatus').textContent='음원 준비 중…';try{await preparePiano(seq)}catch(error){if(id===seqRunId){sequencePlaying=false;$('seqStatus').textContent='피아노 음원 로딩 실패 · 다시 재생해 주세요.'}return}if(id!==seqRunId||!sequencePlaying||epoch!==voiceEpoch){if(id===seqRunId)sequencePlaying=false;return}let dur=Number($('speed').value),gap=Number($('pause').value);
     function run(){if(!sequencePlaying)return;let i=0;function next(){if(!sequencePlaying)return;if(i>=seq.length){if(repeat){seqTimers.push(setTimeout(run,450));}else{sequencePlaying=false;drawChips();$('seqStatus').textContent='재생 완료. 이번엔 화면을 보지 않고 따라 불러보세요.'}return}stopVoices();let m=seq[i];choose(m);playTone(m,dur/1000);drawChips(i);$('seqStatus').textContent=`${i+1}/${seq.length} · ${nameOf(m)} (${korOf(m)})`;i++;seqTimers.push(setTimeout(next,dur+gap))}next()};run()}
   $('playSeq').addEventListener('click',startSeq);$('stopSeq').addEventListener('click',stopSeq);$('repeatSeq').addEventListener('click',()=>{repeat=!repeat;$('repeatSeq').textContent=repeat?'반복 켜짐 ✓':'반복 꺼짐';$('repeatSeq').setAttribute('aria-pressed',String(repeat))});
   function signalRms(buf){let sum=0;for(let i=0;i<buf.length;i++)sum+=buf[i]*buf[i];return Math.sqrt(sum/buf.length)}
@@ -455,11 +464,15 @@
     if(earPlayTimer!==null){clearTimeout(earPlayTimer);earPlayTimer=null}
     if(earTrial){earTrial.listening=false;earTrial.done=true}earId++;earSamples=[]
   }
-  function playEarNote(){
+  async function playEarNote(){
     if(!earTrial)return;
     stopSeq();stopVoices();held=false;$('holdOne').textContent='계속 듣기';
     if(earPlayTimer!==null)clearTimeout(earPlayTimer);
     const id=++earId,t=earTrial;t.listening=false;t.readyAt=Infinity;earSamples=[];
+    const epoch=voiceEpoch;
+    if($('timbre').value==='piano'&&!SamplePiano.ready(ctx(),[t.note]))$('earHeroLabel').textContent='피아노 음원 준비 중…';
+    try{await preparePiano([t.note])}catch(error){if(id===earId)setEarMessage('피아노 음원 로딩 실패 · 다시 듣기를 눌러주세요.');return}
+    if(id!==earId||t!==earTrial||epoch!==voiceEpoch)return;
     playTone(t.note,1.05);
     $('earHeroLabel').textContent=t.done?'확인한 음 다시 듣기':'기준음 듣는 중';
     if(!t.done)setEarMessage('기준음을 듣는 중입니다. 끝나면 같은 높이로 편안하게 따라 부르세요.','info');
@@ -766,10 +779,15 @@
       const sp=document.createElement('span');sp.textContent=nameOf(cmpTrial.notes[i]);root.appendChild(sp)
     }
   }
-  function playCmp(which=null){
+  async function playCmp(which=null){
     if(!cmpTrial)return;
     clearCmpPlayback();stopEarTrial();stopSeq();held=false;$('holdOne').textContent='계속 듣기';
     const id=cmpId,notes=cmpTrial.notes;
+    const epoch=voiceEpoch;
+    setCmpButtons(false);
+    if($('timbre').value==='piano'&&!SamplePiano.ready(ctx(),notes))$('cmpPrompt').textContent='피아노 음원 준비 중…';
+    try{await preparePiano(notes)}catch(error){if(id===cmpId)$('cmpPrompt').textContent='피아노 음원 로딩 실패 · 다시 듣기를 눌러주세요.';return}
+    if(id!==cmpId||!cmpTrial||epoch!==voiceEpoch)return;
     const pace={slow:{tone:1.05,gap:.55},normal:{tone:.72,gap:.34},fast:{tone:.45,gap:.15}}[$('cmpTempo').value];
     const isPair=cmpTrial.mode==='pair';
     const indices=which===null?notes.map((_,i)=>i):which==='A'?[0,1]:[2,3];
@@ -864,6 +882,7 @@
       if(btn&&!btn.disabled){e.preventDefault();btn.click()}
     }
   });
+  $('timbre').addEventListener('change',()=>{stopEarTrial();clearCmpPlayback();stopSeq();held=false;$('holdOne').textContent='계속 듣기';$('pianoState').textContent=$('timbre').value==='piano'?'실제 피아노 녹음':'전자음';});
   window.addEventListener('pagehide',()=>{stopEarTrial();clearCmpPlayback();stopSeq();if(micStream)micStream.getTracks().forEach(t=>t.stop())});
   buildRootOptions();buildJumpOptions();buildKeyboard();syncPattern();choose(Number($('scaleRoot').value));
 })();

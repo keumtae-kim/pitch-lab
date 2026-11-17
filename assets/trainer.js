@@ -31,12 +31,12 @@ function noteNameFor(n,offset=octave){return n.kind==='spoken'?'말':sharpNoteNa
 $('oct').value=String(octave);
 function note(){return notes[current]}
 function targetMidi(){return note().midi+shift+octave}
-// v5: locally generated reference tones. Timbres do not change MIDI pitch.
+// Recorded piano and optional electronic tones share the same MIDI pitch.
 function scheduleSynthTone(midi,at,dur){
  const voice=$('soundStyle').value;
+ if(voice==='piano')return SamplePiano.schedule(ctx,midi,at,dur,.72);
  const fundamental=freq(midi);
  const options={
-  piano:{partials:[['sine',1,1],['sine',2,.28],['sine',3,.09]],level:.17},
   classic:{partials:[['triangle',1,1],['sine',2,.12]],level:.145},
   sine:{partials:[['sine',1,1]],level:.145},
   organ:{partials:[['sine',1,1],['sine',2,.30],['sine',3,.12]],level:.135}
@@ -44,21 +44,11 @@ function scheduleSynthTone(midi,at,dur){
  const spec=options[voice]||options.classic;
  const output=ctx.createGain();output.connect(ctx.destination);
  const end=at+Math.max(.11,dur);
- if(voice==='piano'){
-  const attack=Math.min(.012,dur*.12);
-  output.gain.setValueAtTime(.0001,at);
-  output.gain.linearRampToValueAtTime(spec.level,at+attack);
-  // A struck, decaying note; it is a synthesized piano-like tone, not a sampled piano.
-  const mid=at+Math.min(dur*.48,.45);
-  output.gain.exponentialRampToValueAtTime(spec.level*.34,Math.max(at+attack+.001,mid));
-  output.gain.exponentialRampToValueAtTime(.0001,end);
- }else{
-  const attack=Math.min(.027,dur*.14),release=Math.min(.13,dur*.27);
-  output.gain.setValueAtTime(.0001,at);
-  output.gain.linearRampToValueAtTime(spec.level,at+attack);
-  output.gain.setValueAtTime(spec.level*.85,Math.max(at+attack+.001,end-release));
-  output.gain.exponentialRampToValueAtTime(.0001,end);
- }
+ const attack=Math.min(.027,dur*.14),release=Math.min(.13,dur*.27);
+ output.gain.setValueAtTime(.0001,at);
+ output.gain.linearRampToValueAtTime(spec.level,at+attack);
+ output.gain.setValueAtTime(spec.level*.85,Math.max(at+attack+.001,end-release));
+ output.gain.exponentialRampToValueAtTime(.0001,end);
  const oscs=[];
  for(const [type,mult,weight] of spec.partials){
   const osc=ctx.createOscillator(),gain=ctx.createGain();
@@ -69,11 +59,24 @@ function scheduleSynthTone(midi,at,dur){
  }
  return {gain:output,oscs};
 }
-function playTone(midi,ms=850){
+let singleToneId=0,singleVoice=null;
+function stopSingleTone(){
+ singleToneId++;
+ if(singleVoice){try{const now=ctx.currentTime;singleVoice.gain.gain.cancelScheduledValues(now);singleVoice.gain.gain.setTargetAtTime(.00001,now,.015);singleVoice.oscs.forEach(source=>source.stop(now+.12))}catch(error){}singleVoice=null}
+}
+async function preparePiano(notes){
+ if($('soundStyle').value!=='piano')return;
+ if(!SamplePiano.ready(ctx,notes))$('soundState').textContent='피아노 음원 준비 중…';
+ try{await SamplePiano.prepare(ctx,notes);$('soundState').textContent='피아노 준비됨'}catch(error){$('soundState').textContent='음원 로딩 실패 · 다시 눌러주세요.';throw error}
+}
+async function playTone(midi,ms=850){
+ if(phrasePlaying)stopPhrase();stopSingleTone();const id=singleToneId;
  try{
   ctx=ctx||new(window.AudioContext||window.webkitAudioContext)();
-  ctx.resume();scheduleSynthTone(midi,ctx.currentTime+.008,Math.max(.14,ms/1000));
- }catch(e){$('micMsg').textContent='소리 재생 실패: '+e.message}
+  await ctx.resume();await preparePiano([midi]);
+  if(id!==singleToneId)return;
+  singleVoice=scheduleSynthTone(midi,ctx.currentTime+.008,Math.max(.14,ms/1000));
+ }catch(e){if(id===singleToneId)$('soundState').textContent='소리 재생 실패 · 다시 눌러주세요.'}
 }
 function render(){if(!notes.length)return;refreshScoreLayout();const n=note();updateScorePaging();document.querySelector('.song-key-tempo').textContent=transposedKey(SCORE_SONG.key,shift)+'장조 · ♩='+SCORE_SONG.bpm;$('shiftName').textContent=shift===0?'원키':(shift>0?'+':'')+shift;$('noteName').textContent=noteNameFor(note());$('selectedLyric').textContent=getLyric(n)||'가사 미지정 · 이어 부름';$('lyricEditLabel').textContent=`${current+1}번 ${noteNameFor(note())} 가사`;if(document.activeElement!==$('lyricInput'))$('lyricInput').value=getLyric(n);$('noteDesc').textContent=`악보 ${noteNameFor(n,0)} → 현재 ${noteNameFor(note())} · ${freq(targetMidi()).toFixed(1)} Hz`;$('lineTitle').textContent=rows[n.row].label;$('progressTxt').textContent=`${current+1} / ${notes.length}음 · ${n.row+1}번째 악보 줄`;$('progress').style.width=`${100*(current+1)/notes.length}%`;$('dockNote').textContent=`${noteNameFor(note())} · ${current+1}/${notes.length}음`;$('prev').disabled=current===0;$('next').disabled=current===notes.length-1;drawStaff();renderStrip();successSince=0;updatePhraseUI();}
 const nativeScore=new ScoreRenderer(SCORE_SONG),nativeAnchors=new Map();let scoreLayoutKey='';
@@ -203,6 +206,7 @@ function renderStrip(){
 }
 function go(i,withSound=false,fromPhrase=false){
  if(i<0||i>=notes.length)return;
+ if(!fromPhrase)stopSingleTone();
  if(!fromPhrase&&phrasePlaying)stopPhrase('구간 재생을 중지하고 음표를 선택했습니다.');
  if(!fromPhrase)quickAnchor=i;
  current=i;
@@ -219,7 +223,7 @@ function drawStaff(){
   for(const [id,anchor] of result.anchors){nativeAnchors.set(id,{x:anchor.x,width:result.width});}
  });
 }
-$('down').onclick=()=>{if(phrasePlaying)stopPhrase('키 변경으로 재생을 중지했습니다.');shift=Math.max(-12,shift-1);render()};$('up').onclick=()=>{if(phrasePlaying)stopPhrase('키 변경으로 재생을 중지했습니다.');shift=Math.min(12,shift+1);render()};$('oct').onchange=e=>{if(phrasePlaying)stopPhrase('옥타브 변경으로 재생을 중지했습니다.');octave=Number(e.target.value);render()};$('prev').onclick=()=>go(current-1,true);$('next').onclick=()=>go(current+1,true);$('play').onclick=()=>playTone(targetMidi());$('nDown').onclick=()=>{if(phrasePlaying)stopPhrase();note().midi--;render()};$('nUp').onclick=()=>{if(phrasePlaying)stopPhrase();note().midi++;render()};$('resetCorrections').onclick=()=>{if(confirm('추가/수정한 음표를 모두 초기화할까요?')){if(phrasePlaying)stopPhrase();manualPhrase=null;notes=baseNotes.map(n=>({...n}));current=0;quickAnchor=0;render()}};
+$('down').onclick=()=>{stopSingleTone();if(phrasePlaying)stopPhrase('키 변경으로 재생을 중지했습니다.');shift=Math.max(-12,shift-1);render()};$('up').onclick=()=>{stopSingleTone();if(phrasePlaying)stopPhrase('키 변경으로 재생을 중지했습니다.');shift=Math.min(12,shift+1);render()};$('oct').onchange=e=>{stopSingleTone();if(phrasePlaying)stopPhrase('옥타브 변경으로 재생을 중지했습니다.');octave=Number(e.target.value);render()};$('prev').onclick=()=>go(current-1,true);$('next').onclick=()=>go(current+1,true);$('play').onclick=()=>playTone(targetMidi());$('nDown').onclick=()=>{stopSingleTone();if(phrasePlaying)stopPhrase();note().midi--;render()};$('nUp').onclick=()=>{stopSingleTone();if(phrasePlaying)stopPhrase();note().midi++;render()};$('resetCorrections').onclick=()=>{if(confirm('추가/수정한 음표를 모두 초기화할까요?')){if(phrasePlaying)stopPhrase();manualPhrase=null;notes=baseNotes.map(n=>({...n}));current=0;quickAnchor=0;render()}};
 // YIN pitch estimator, 75~850 Hz with silence detection
 function yin(buf,rate){const rms=Math.sqrt(buf.reduce((s,x)=>s+x*x,0)/buf.length);if(rms<.012)return null;const tauMin=Math.floor(rate/850),tauMax=Math.min(Math.floor(rate/75),Math.floor(buf.length/2)-1),N=buf.length-tauMax;const diff=new Float32Array(tauMax+1);for(let t=1;t<=tauMax;t++){let sum=0;for(let j=0;j<N;j++){const d=buf[j]-buf[j+t];sum+=d*d}diff[t]=sum}let rolling=0,candidate=-1,best=1;for(let t=1;t<=tauMax;t++){rolling+=diff[t];diff[t]=rolling>0?diff[t]*t/rolling:1}for(let t=tauMin;t<=tauMax;t++){if(diff[t]<.16){while(t+1<=tauMax&&diff[t+1]<diff[t])t++;candidate=t;best=diff[t];break}}if(candidate<0){for(let t=tauMin;t<=tauMax;t++)if(diff[t]<best){best=diff[t];candidate=t}if(best>.30)return null}let refined=candidate;if(candidate>1&&candidate<tauMax){let x0=diff[candidate-1],x1=diff[candidate],x2=diff[candidate+1],den=2*(2*x1-x0-x2);if(Math.abs(den)>1e-9)refined+=(x0-x2)/den}const hz=rate/refined;return hz>=75&&hz<=850?{hz,rms,quality:Math.max(0,1-best)}:null}
 let yinBuffer=new Float32Array(4096), frames=[];
@@ -357,6 +361,7 @@ $('quickPlay').onclick=()=>{
  playPhrase(p,'quick');
 };
 function stopPhrase(message){
+ stopSingleTone();
  phraseToken++;
  phraseTimers.forEach(t=>clearTimeout(t));phraseTimers=[];
  phraseVoices.forEach(v=>{try{v.gain.gain.cancelScheduledValues(ctx.currentTime);v.gain.gain.setTargetAtTime(.00001,ctx.currentTime,.015);v.oscs.forEach(o=>o.stop(ctx.currentTime+.12))}catch(e){}});
@@ -371,11 +376,14 @@ function schedulePhraseTone(midi,at,dur){
 async function playPhrase(range=null,kind='regular'){
  stopPhrase();
  const p=range||getPhrase(),from=p.start,to=p.end;
+ const token=phraseToken;
+ phrasePlaying=true;activePlayback={from,to,kind};playbackNote=null;
+ phraseInfoMessage='음원 준비 중…';updatePhraseUI();
  try{
   ctx=ctx||new(window.AudioContext||window.webkitAudioContext)();
   await ctx.resume();
- }catch(e){phraseInfoMessage='재생 불가: '+e.message;updatePhraseUI();return;}
- const token=phraseToken;
+  await preparePiano(notes.slice(from,to+1).filter(n=>n.kind!=='spoken').map(n=>n.midi+shift+octave));
+ }catch(e){if(token===phraseToken)stopPhrase('음원 로딩 실패 · 다시 재생해 주세요.');return;}
  if(token!==phraseToken)return;
  phrasePlaying=true;activePlayback={from,to,kind};playbackNote=null;phraseInfoMessage=kind==='quick'?'선택한 음부터 연속 재생 중입니다.':'구간 재생 중 · 현재 음이 순서대로 표시됩니다. 따라 부르기 전에 먼저 들어보세요.';
  // Quarter-note durations and rests transcribed from the purchased score.
@@ -453,3 +461,5 @@ $('soundStyle').addEventListener('change',()=>{
  if(phrasePlaying)stopPhrase('소리 종류를 변경했습니다. 새 소리로 구간을 다시 들어보세요.');
  playTone(targetMidi());
 });
+
+window.addEventListener("pagehide",()=>stopPhrase());
