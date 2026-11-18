@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>음정·청음 연습실 v5 — Vocal Pitch Lab</title>
+  <title>내 음정 연습실</title>
   <style>
     :root{color-scheme:light;--ink:#1d2939;--muted:#66758b;--blue:#226bda;--teal:#158d82;--line:#dfe7ee;--bg:#f4f7fa;--card:#fff;--pale:#eff6ff;--danger:#b45309}
     *{box-sizing:border-box}body{font-family:system-ui,-apple-system,"Malgun Gothic","Apple SD Gothic Neo",sans-serif;margin:0;background:var(--bg);color:var(--ink);line-height:1.5}
@@ -107,43 +107,106 @@
 @media(max-width:480px){.jump-options{grid-template-columns:minmax(0,1fr)}.jump-notes{gap:5px}.jump-panel{padding:10px}}
 </style>
 <style>
-/* Practical desktop layout: reference + tuner, singing + scale, then listening. */
-.cols{grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);grid-template-areas:"reference tuner" "ear scale" "compare compare";align-items:start;gap:17px}
-.cols>.card{margin:0;min-width:0}.reference-card{grid-area:reference}.tuner-card{grid-area:tuner}.ear-card{grid-area:ear}.scale-card{grid-area:scale}.compare-card{grid-area:compare}
-.compare-card .cmp-heading{margin-top:0}.compare-card .cmp-settings{grid-template-columns:repeat(3,minmax(0,1fr))}
-@media(max-width:900px){.cols{grid-template-columns:minmax(0,1fr);grid-template-areas:"reference" "tuner" "ear" "scale" "compare"}.compare-card .cmp-settings{grid-template-columns:repeat(2,minmax(0,1fr))}}
-@media(max-width:560px){.compare-card .cmp-settings{grid-template-columns:minmax(0,1fr)}}
+/* Keep the reference, playback controls, and results close together. */
+#practice-nav{padding-block:4px;gap:8px}
+#practice-nav a{min-height:36px;padding:6px 9px}
+#practice-nav h1{font-size:16px;line-height:1.25;text-align:center;margin:0}
+.body{margin:10px auto 20px}
+.cols{grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);grid-template-areas:"reference tuner" "ear scale" "compare compare";align-items:start;gap:11px}
+.cols>.card{margin:0;min-width:0;padding:13px;border-radius:12px;box-shadow:0 4px 12px #0a2d5110}
+.reference-card{grid-area:reference}.tuner-card{grid-area:tuner}.ear-card{grid-area:ear}.scale-card{grid-area:scale}.compare-card{grid-area:compare}
+.cols h2{font-size:16px;line-height:1.3;margin:0 0 8px}
+.cols .toolbar,.cols .control{gap:6px}
+.cols .control{min-width:0}
+.cols select,.cols input[type=text]{font-size:14px;padding:6px 7px;min-height:34px;border-radius:7px}
+.cols .btn{min-height:34px;padding:6px 9px;border-radius:7px}
+.reference-options,.tuner-controls{align-items:end}
+.reference-options .control:first-child{flex:.65}
+.reference-actions .control{gap:1px}
+.reference-actions input[type=range]{margin:0}
+.focus{justify-content:flex-start;gap:8px;padding:5px 9px;margin:7px 0;border-radius:8px}
+.focus .note,.heard{font-size:24px;line-height:1.15}
+.focus .hz{margin-left:auto;font-size:12px}.focus .ko{font-size:12px}
+.keyboard-wrap{padding:5px 0 1px}
+.keyboard{width:100%;min-width:max(100%,calc(var(--white-count,15)*30px));height:101px}
+.keyboard .white{flex:1 1 0;width:auto;min-width:0;padding:0 0 6px}
+.keyboard .black{width:min(30px,calc(65% / var(--white-count,15)));height:60px;transform:translateX(-50%);padding:0 0 5px}
+.audio-status{margin:4px 0 0}.audio-status:empty,.ear-feedback:empty,.status:empty,.cmp-setting-note:empty{display:none}
+.mic-input{margin:6px 0;gap:6px;flex-wrap:wrap}
+.mic-level-text{min-width:0}
+.tuner-box{margin:6px 0 0;padding:8px 9px;border-radius:8px}
+.tuner-reading{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:6px}
+.tuner-reading .cents{font-size:12px;margin:0}
+.cents-track{height:10px;margin:8px 2px 8px}
+.cents-track::before,.needle{height:19px;top:-5px}
+.status{margin-top:5px;min-height:0}
+.ear-config{grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+.ear-hero{display:grid;grid-template-columns:auto minmax(0,1fr);grid-template-areas:"note label" "note hint";align-items:center;gap:1px 9px;text-align:left;margin:7px 0;padding:6px 9px;border-radius:8px}
+.ear-hero .label{grid-area:label}.ear-hero .ear-note{grid-area:note;font-size:24px;min-height:0}
+.ear-hero .ear-description{grid-area:hint}
+.ear-description{font-size:12px;min-height:0;margin:0}
+.ear-actions{gap:6px;margin:6px 0}
+.ear-card #earMicInfo{margin:3px 0}
+.ear-feedback{padding:6px 8px;border-radius:8px;margin:6px 0;min-height:0;font-size:12px}
+.ear-stats{gap:5px;margin:7px 0}.ear-stat{padding:4px 3px;border-radius:7px;line-height:1.25}.ear-stat strong{font-size:16px}
+.practice-details{font-size:12px;margin-top:6px;color:#36536c}
+.practice-details summary{padding:4px 0;cursor:pointer;font-weight:650}
+.practice-details .ear-history{margin:4px 0 6px;min-height:0}
+.scale-panel,.jump-panel,.cmp-panel{padding:7px 8px;margin:0 0 6px;border-radius:8px}
+.scale-panel .control{min-width:min(155px,100%)}
+.sequence{padding:5px;margin:7px 0;border-radius:8px}
+.chips{margin-top:3px;gap:4px}.chip{padding:3px 7px}
+.range-row{margin:5px 0;gap:6px}.range-row .label{min-width:57px}.range-row output{min-width:42px}
+.form-section{margin-top:6px}
+.compare-card .cmp-settings{grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
+.cmp-pair-config,.cmp-variety{margin:5px 0;padding:5px 7px}
+.cmp-keyhint{padding:0}.cmp-setting-note{margin:4px 0 0}
+.cmp-stage{padding:7px;margin:7px 0;border-radius:8px}.cmp-dots,.cmp-dots.pair-layout{gap:5px}
+.cmp-dot{width:32px;height:32px;font-size:14px}.cmp-task{margin-top:4px;font-size:14px}
+.cmp-pair-group{padding:4px 6px;gap:4px}.cmp-pair-divider{width:auto}
+.cmp-stage .ear-description,.cmp-bottom{margin-top:4px}
+.cmp-pair-play,.relative-choices{gap:6px;margin:5px 0}.relative-choices .btn{padding:6px 5px}
+@media(max-width:800px){
+ .cols{grid-template-columns:minmax(0,1fr);grid-template-areas:"reference" "tuner" "ear" "scale" "compare"}
+ .compare-card .cmp-settings{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:600px),(pointer:coarse){
+ #practice-nav a,.cols .btn,.cols select,.cols input[type=text],.practice-details summary{min-height:44px}
+ .practice-details summary{padding:12px 0}.cols select,.cols input[type=text]{font-size:16px}
+ .keyboard{min-width:max(100%,calc(var(--white-count,15)*42px))}
+}
+@media(max-width:460px){
+ .shell{padding:0 8px}.cols>.card{padding:10px}
+ #practice-nav{gap:5px;padding-inline:8px}#practice-nav h1{font-size:14px}#practice-nav a{font-size:12px}
+ .ear-config{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .ear-config>.control:last-child{grid-column:1/-1}
+ .reference-actions .control{min-width:0!important}
+}
 </style>
 </head>
 <body>
-<nav id="practice-nav" aria-label="연습 도구 이동"><a href="./">← 연습 목록으로</a><span>음정·청음 v5</span><a href="./aloha.html">아로하 →</a></nav>
-  <header class="top"><div class="shell"><div class="eyebrow">VOCAL PITCH LAB</div><h1>내 음정 연습실 <span style="font-size:17px;vertical-align:middle">♪</span></h1><p>기준음 듣기 → 따라 부르기 → 음정 확인 · 설치 없이 실행하는 개인용 보컬 연습 도구</p></div></header>
+<nav id="practice-nav" aria-label="연습 도구 이동"><a href="./">← 연습 목록으로</a><h1>내 음정 연습실</h1><a href="./aloha.html">아로하 →</a></nav>
   <main class="shell body">
     <div class="cols">
 <section class="card reference-card">
-          <h2>1. 기준음 듣기 <span class="pill">음 한 개씩</span></h2>
-          <p class="sub">피아노 건반을 누르면 그 음이 재생됩니다. 기준음을 듣고 소리가 멈춘 뒤 직접 불러보세요.</p>
-          <div class="toolbar">
-            <div class="control" style="flex:0 1 180px"><label class="label" for="octaveRange">건반 범위</label><select id="octaveRange"><option value="48">C3 ~ C5 (추천)</option><option value="36">C2 ~ C4</option><option value="55">G3 ~ G5</option></select></div>
-            <div class="control"><label class="label" for="timbre">음색</label><select id="timbre"><option value="piano">그랜드피아노 · 실제 녹음</option><option value="pure">맑은 전자음</option><option value="soft">부드러운 오르간</option></select><span class="small" id="pianoState" role="status">피아노 음원은 처음 사용할 때 불러옵니다.</span></div>
+          <h2>기준음 듣기</h2>
+          <div class="toolbar reference-options">
+            <div class="control"><label class="label" for="octaveRange">건반 범위</label><select id="octaveRange"><option value="48">C3 ~ C5</option><option value="36">C2 ~ C4</option><option value="55">G3 ~ G5</option></select></div>
+            <div class="control"><label class="label" for="timbre">음색</label><select id="timbre"><option value="piano">그랜드피아노 · 실제 녹음</option><option value="pure">맑은 전자음</option><option value="soft">부드러운 오르간</option></select></div>
           </div>
-          <div class="focus"><div><div class="label">선택한 기준음</div><div class="note" id="selectedNote">G3</div><div class="ko" id="selectedKo">1옥 솔</div></div><div class="hz"><div id="selectedHz">196.00 Hz</div><div class="small">A4 = 440 Hz</div></div></div>
-          <div class="toolbar"><button class="btn primary" id="playOne">▶ 기준음 1.2초</button><button class="btn secondary" id="holdOne">계속 듣기</button><div class="control" style="min-width:120px"><label class="label" for="volume">재생 음량 <span id="volText">60%</span></label><input type="range" min="0" max="100" value="60" id="volume"></div></div>
+          <div class="focus"><span class="note" id="selectedNote">G3</span><span class="ko" id="selectedKo">1옥 솔</span><span class="hz" id="selectedHz">196.00 Hz</span></div>
+          <div class="toolbar reference-actions"><button class="btn primary" id="playOne">▶ 기준음</button><button class="btn secondary" id="holdOne">계속 듣기</button><div class="control" style="min-width:120px"><label class="label" for="volume">재생 음량 <span id="volText">60%</span></label><input type="range" min="0" max="100" value="60" id="volume"></div></div>
           <div class="keyboard-wrap"><div class="keyboard" id="keyboard" role="group" aria-label="피아노 건반"></div></div>
-          <p class="small">검은 건반은 샵(♯)입니다. E3→F3은 반음, F3→G3은 온음 간격입니다.</p>
+          <div class="small audio-status" id="pianoState" role="status"></div>
         </section>
 <section class="card tuner-card">
-          <h2>내 목소리 확인 <span class="pill">실시간 튜너</span></h2>
-          <p class="sub">마이크를 켜고 편안한 크기로 불러보세요.</p>
-          <div class="toolbar"><button class="btn primary" id="micToggle">마이크 켜기</button><span class="small" id="micState">마이크 사용 안 함</span></div>
-          <div class="control"><label class="label" for="micSensitivity">마이크 감도</label><select id="micSensitivity" class="mic-sensitivity"><option value="0.002" selected>높음 · 조용한 집</option><option value="0.006">보통</option><option value="0.013">낮음 · 주변 소음</option></select></div>
-          <div class="mic-input"><span>입력</span><meter class="mic-level" min="0" max="100" value="0" aria-label="마이크 입력 크기"></meter><span class="mic-level-text">대기</span></div>
-          <div class="tuner-box"><div class="label">지금 부르는 음</div><div class="heard faded" id="heardNote">—</div><div class="cents" id="heardDesc">마이크를 켜고 한 음을 길게 내보세요.</div><div class="cents-track"><div class="needle" id="needle"></div></div><div class="ticks"><span>기준보다 낮음</span><span>일치</span><span>기준보다 높음</span></div><div class="status" id="matchStatus">목표: G3</div></div>
-          <div class="warning">실시간 음정 측정은 학습용 간이 기능입니다. 잡음이나 강한 배음 때문에 옥타브가 잘못 인식될 수 있어요. 스피커로 기준음을 재생한 뒤 멈추고 노래하면 측정이 더 정확합니다.</div>
+          <h2>실시간 튜너</h2>
+          <div class="toolbar tuner-controls"><button class="btn primary" id="micToggle">마이크 켜기</button><div class="control"><label class="label" for="micSensitivity">마이크 감도</label><select id="micSensitivity" class="mic-sensitivity"><option value="0.002" selected>높음 · 조용한 집</option><option value="0.006">보통</option><option value="0.013">낮음 · 주변 소음</option></select></div></div>
+          <div class="mic-input"><span>입력</span><meter class="mic-level" min="0" max="100" value="0" aria-label="마이크 입력 크기"></meter><span class="mic-level-text">대기</span><span class="small" id="micState">마이크 사용 안 함</span></div>
+          <div class="tuner-box"><div class="tuner-reading"><span class="label">현재 음</span><span class="heard faded" id="heardNote">—</span><span class="cents" id="heardDesc"></span></div><div class="cents-track"><div class="needle" id="needle"></div></div><div class="ticks"><span>기준보다 낮음</span><span>일치</span><span>기준보다 높음</span></div><div class="status" id="matchStatus">목표: G3</div></div>
         </section>
 <section class="card ear-card" id="earTraining">
-          <h2>2. 듣고 맞히기 <span class="ear-tag">현재 추천 연습</span></h2>
-          <p class="sub">음이름을 보지 않고 소리만 듣는 훈련입니다. <strong>목소리로 따라 낸 첫 음</strong>을 확인하며, 맞혀야 할 음 이름은 결과를 볼 때 공개합니다.</p>
+          <h2>듣고 맞히기</h2>
           <div class="ear-config">
             <div class="control"><label class="label" for="earRange">연습 음역</label><select id="earRange">
               <option value="43,69" selected>G2~A4 · 전체</option>
@@ -152,48 +215,46 @@
               <option value="52,67">E3~G4 · 중음</option>
               <option value="55,69">G3~A4 · 고음 중심</option>
             </select></div>
-            <div class="control"><label class="label" for="earVowel">부를 발음</label><select id="earVowel"><option value="아">아 (기본)</option><option value="이">이 (턱·혀 힘 빼기)</option><option value="음">음 (허밍)</option><option value="립트릴">립트릴</option></select></div>
+            <div class="control"><label class="label" for="earVowel">부를 발음</label><select id="earVowel"><option value="아">아 (기본)</option><option value="이">이</option><option value="음">음 · 허밍</option><option value="립트릴">립트릴</option></select></div>
             <div class="control"><label class="label" for="earMicSensitivity">마이크 감도</label><select id="earMicSensitivity" class="mic-sensitivity"><option value="0.002" selected>높음 · 조용한 집</option><option value="0.006">보통</option><option value="0.013">낮음 · 주변 소음</option></select></div>
           </div>
           <div class="ear-hero" aria-live="polite">
-            <div class="label" id="earHeroLabel">새 문제를 시작해 보세요</div>
+            <div class="label" id="earHeroLabel">새 음 듣기</div>
             <div class="ear-note hidden-note" id="earHiddenNote">?</div>
-            <div class="ear-description" id="earHint">피아노 음을 듣고, 소리가 끝난 뒤 따라 부르세요.</div>
+            <div class="ear-description" id="earHint">소리가 끝나면 따라 부르세요.</div>
           </div>
           <div class="ear-actions">
             <button class="btn primary" id="earNew">▶ 새 음 듣기</button>
             <button class="btn" id="earReplay" disabled>다시 듣기</button>
             <button class="btn" id="earName" disabled>음이름 힌트</button>
           </div>
-          <div class="ear-actions" style="margin-top:0">
+          <div class="ear-actions">
             <button class="btn teal" id="earMic">마이크 켜고 채점</button>
             <button class="btn secondary" id="earReveal" disabled>정답만 확인</button>
           </div>
           <div class="mic-input"><span>입력</span><meter class="mic-level" min="0" max="100" value="0" aria-label="마이크 입력 크기"></meter><span class="mic-level-text">대기</span></div>
-          <p class="ear-muted" id="earMicInfo">마이크를 켠 상태에서 소리가 멈춘 뒤 약 1초간 안정적으로 부르면 자동 채점합니다. 마이크가 없으면 '정답만 확인'을 사용하세요.</p>
-          <div id="earFeedback" class="ear-feedback info" role="status" aria-live="polite">첫 문제를 누르면 목표 음은 숨겨집니다. 재생 중 나는 기준음은 채점하지 않습니다.</div>
+          <p class="ear-muted" id="earMicInfo">마이크 채점은 한 음을 약 1초 유지하세요.</p>
+          <div id="earFeedback" class="ear-feedback info" role="status" aria-live="polite"></div>
           <div class="ear-stats" aria-label="청음 연습 기록">
             <div class="ear-stat"><strong id="earCount">0</strong><span>자동 채점 횟수</span></div>
             <div class="ear-stat"><strong id="earHits">0</strong><span>±50센트 성공</span></div>
             <div class="ear-stat"><strong id="earAvg">—</strong><span>평균 오차 절댓값</span></div>
           </div>
-          <div class="label">최근 10회 (힌트 사용 시 표시)</div><div class="ear-history" id="earHistory"><span>연습 기록이 없습니다</span></div>
-          <div class="toolbar" style="margin-top:10px;justify-content:space-between"><span class="ear-muted">이 기기의 브라우저에만 저장됩니다.</span><button class="btn" id="earClear" type="button">기록 초기화</button></div>
+          <details class="practice-details"><summary>최근 기록</summary><div class="ear-history" id="earHistory"></div><button class="btn" id="earClear" type="button">기록 초기화</button></details>
 </section>
 <section class="card scale-card">
-          <h2>3. 스케일 연습 <span class="pill">3음 · 5음 · 도약</span></h2>
-          <p class="sub">가까운 음의 스케일 또는 큰 음정 간격의 3음 도약을 선택하세요.</p>
+          <h2>스케일 연습</h2>
           <div class="scale-panel">
             <div class="toolbar">
               <div class="control"><label class="label" for="scaleSize">스케일 종류</label><select id="scaleSize"><option value="3" selected>3음 · 도레미레도</option><option value="5">5음 · 도레미파솔파미레도</option><option value="jump">3음 도약 · 음 직접 선택</option></select></div>
               <div class="control" id="autoRootControl"><label class="label" for="scaleRoot">시작음</label><div class="start-picker"><button type="button" class="btn" id="rootDown" aria-label="시작음 반음 내리기">−</button><select id="scaleRoot" aria-label="자동 스케일 시작음"></select><button type="button" class="btn" id="rootUp" aria-label="시작음 반음 올리기">+</button></div></div>
             </div>
-            <p class="scale-help" id="scaleHelp">선택한 음을 '도'로 삼아 온음·반음 간격에 맞게 자동 생성합니다. 검은 건반도 포함됩니다.</p>
+            
           </div>
           <div id="jumpPanel" class="jump-panel" hidden>
             <div class="jump-options">
               <div><label class="label" for="jumpExample">도약 예제</label><select id="jumpExample">
-                <option value="53,62,76" selected>F3 → D4 → E5 · 요청 예제</option>
+                <option value="53,62,76" selected>F3 → D4 → E5</option>
                 <option value="48,55,60">C3 → G3 → C4 · 5도·옥타브</option>
                 <option value="53,60,65">F3 → C4 → F4 · 5도·옥타브</option>
                 <option value="53,62,53">F3 → D4 → F3 · 올라갔다 돌아오기</option>
@@ -219,51 +280,48 @@
             <option value="A3 G3 F#3">아로하 도입부 참고 음형 · 원키 (A3 → G3 → F♯3)</option>
             <option value="custom">직접 입력</option>
           </select>
-          <div class="form-section"><label class="label" for="customNotes">생성된 음표 / 직접 입력</label><input type="text" id="customNotes" value="E3 F#3 G#3 F#3 E3" spellcheck="false" aria-describedby="seqHelp" readonly><div id="seqHelp" class="small" style="margin-top:5px">자동 생성 중에는 결과를 보여줍니다. 자유롭게 수정하려면 위에서 ‘직접 입력’을 선택하세요. (# 또는 ♯ 사용 가능)</div></div>
+          <div class="form-section" id="customNotesField" hidden><label class="label" for="customNotes">음표 입력</label><input type="text" id="customNotes" value="E3 F#3 G#3 F#3 E3" placeholder="예: C3 D3 E3" spellcheck="false" readonly></div>
           <div class="sequence"><div class="label">재생 순서</div><div class="chips" id="noteChips"></div></div>
-          <div class="range-row"><span class="label">음마다 길이</span><input type="range" min="500" max="2400" step="100" value="1300" id="speed"><output id="speedText">1.3초</output></div>
-          <div class="range-row"><span class="label">음 사이 쉬기</span><input type="range" min="0" max="1300" step="100" value="300" id="pause"><output id="pauseText">0.3초</output></div>
+          <div class="range-row"><label class="label" for="speed">음 길이</label><input type="range" min="500" max="2400" step="100" value="1300" id="speed"><output id="speedText">1.3초</output></div>
+          <div class="range-row"><label class="label" for="pause">쉬는 시간</label><input type="range" min="0" max="1300" step="100" value="300" id="pause"><output id="pauseText">0.3초</output></div>
           <div class="toolbar"><button class="btn teal" id="playSeq">▶ 스케일 재생</button><button class="btn secondary" id="stopSeq">■ 멈추기</button><button class="btn" id="repeatSeq" aria-pressed="false">반복 꺼짐</button></div>
-          <div class="status" id="seqStatus" aria-live="polite">재생 전 기준음을 먼저 들어보세요.</div>
+          <div class="status" id="seqStatus" aria-live="polite"></div>
         </section>
-<section class="card compare-card" id="earComparison"><div class="cmp-heading">
-            <div><h2>4. 귀로만 청음 훈련 <span class="ear-tag">목소리·마이크 불필요</span></h2><p class="sub" style="margin-bottom:8px">쉬는 시간에는 듣고 고르기만 하세요. 정답을 고르기 전까지 음이름은 보이지 않습니다.</p></div>
-            <span class="cmp-keyhint">키보드: 1~4 답 · Space 재청취 · Enter 다음 문제</span>
-          </div>
+<section class="card compare-card" id="earComparison"><h2>청음 비교</h2>
           <div class="cmp-panel">
             <div class="cmp-settings">
-              <div class="control"><label for="cmpMode" class="label">문제 유형</label><select id="cmpMode"><option value="pair" selected>⚖ 두 간격 중 더 넓은 쪽 (추천)</option><option value="direction">↗ 두 음의 높낮이</option><option value="interval">♫ 반음 수 맞히기</option><option value="contour">∿ 세 음의 움직임</option><option value="mixed">⇄ 네 유형 섞어서</option></select></div>
+              <div class="control"><label for="cmpMode" class="label">문제 유형</label><select id="cmpMode"><option value="pair" selected>두 간격 비교</option><option value="direction">↗ 두 음의 높낮이</option><option value="interval">♫ 반음 수 맞히기</option><option value="contour">∿ 세 음의 움직임</option><option value="mixed">⇄ 네 유형 섞어서</option></select></div>
               <div class="control"><label for="cmpLevel" class="label">난이도</label><select id="cmpLevel"><option value="warmup">입문 · 5~9반음</option><option value="easy" selected>쉬움 · 3~7반음</option><option value="medium">보통 · 2~5반음</option><option value="hard">어려움 · 1~3반음</option><option value="expert">매우 어려움 · 1~2반음</option><option value="random">랜덤 · 1~12반음</option><option value="adaptive">자동 조절 · 정답률 반영</option></select></div>
               <div class="control"><label for="cmpBase" class="label">비교 음역</label><select id="cmpBase"><option value="52,59">E3 ~ B3 · 좁은 음역</option><option value="48,60">C3 ~ C4</option><option value="55,64">G3 ~ E4</option><option value="36,48">C2 ~ C3 · 저음</option><option value="48,72" selected>C3 ~ C5 · 추천</option><option value="60,72">C4 ~ C5</option><option value="72,84">C5 ~ C6 · 고음</option><option value="36,72">C2 ~ C5 · 넓은 음역</option><option value="48,84">C3 ~ C6 · 넓은 음역</option><option value="36,84">C2 ~ C6 · 전체</option><option value="custom">직접 설정</option></select></div>
-              <div class="control"><label for="cmpTempo" class="label">듣는 속도</label><select id="cmpTempo"><option value="slow">느리게 · 편안하게</option><option value="normal" selected>보통</option><option value="fast">빠르게 · 도전</option></select></div>
+              <div class="control"><label for="cmpTempo" class="label">듣는 속도</label><select id="cmpTempo"><option value="slow">느리게</option><option value="normal" selected>보통</option><option value="fast">빠르게</option></select></div>
             </div>
             <div class="cmp-custom" id="cmpCustom" hidden>
               <div class="control"><label for="cmpLow" class="label">가장 낮은 음</label><select id="cmpLow"></select></div>
               <div class="control"><label for="cmpHigh" class="label">가장 높은 음</label><select id="cmpHigh"></select></div>
             </div>
+            <details class="practice-details"><summary>출제 옵션</summary>
             <div class="cmp-pair-config" id="cmpPairConfig">
               <div class="control"><label class="label" for="cmpPairStyle">두 간격의 시작음</label>
-                <select id="cmpPairStyle"><option value="same" selected>같은 시작음 · 입문 추천</option><option value="different">서로 다른 시작음 · 실전</option><option value="alternate">같은 음 / 다른 음 번갈아</option></select>
+                <select id="cmpPairStyle"><option value="same" selected>같은 시작음</option><option value="different">서로 다른 시작음</option><option value="alternate">같은 음 / 다른 음 번갈아</option></select>
               </div>
-              <div class="cmp-pair-guide" id="cmpPairGuide">먼저 A의 두 음, 잠깐 쉬고 B의 두 음을 듣습니다. 어느 쪽 음정 간격이 더 넓은지만 고르세요. 처음부터 몇 반음인지 맞힐 필요는 없습니다.</div>
             </div>
-            <div class="cmp-variety"><label class="cmp-checkbox"><input id="cmpSpread" type="checkbox" checked> 저·중·고음역 고르게 섞기 <span class="ear-tag">추천</span></label><p class="ear-muted">넓은 범위에서는 출발 음역대가 바뀌고 최근 조합의 중복도 최대한 피합니다. 간격 비교에서도 실제 반음 차이는 선택한 난이도를 따릅니다.</p></div>
-            <p class="cmp-setting-note" id="cmpSettingNote">C3~C5 여러 음역에서 가까운 음 두 개의 차이를 비교합니다.</p>
+            <div class="cmp-variety"><label class="cmp-checkbox"><input id="cmpSpread" type="checkbox" checked> 저·중·고음역 섞기</label></div>
+            <span class="cmp-keyhint">단축키 · 1~4 정답 선택 · Space 다시 듣기 · Enter 다음 문제</span>
+            </details>
+            <p class="cmp-setting-note" id="cmpSettingNote"></p>
           </div>
           <div class="cmp-stage" aria-label="청음 재생 상태">
             <div class="cmp-dots" id="cmpDots"><span class="cmp-dot">①</span><span class="cmp-dots-arrow">→</span><span class="cmp-dot">②</span></div>
             <div class="cmp-task" id="cmpTask">두 번째 음이 첫 번째보다 높을까요?</div>
-            <p class="ear-description" id="cmpPrompt" aria-live="polite">새 문제를 누르면 음을 연속해서 들려드립니다.</p>
+            <p class="ear-description" id="cmpPrompt" aria-live="polite">새 문제를 듣고 답을 고르세요.</p>
           </div>
           <div class="ear-actions cmp-play-actions"><button class="btn primary" id="cmpNew">▶ 새 문제 듣기</button><button class="btn" id="cmpReplay" disabled>↺ 전체 다시 듣기</button></div>
           <div class="cmp-pair-play" id="cmpPairPlay" hidden><button class="btn secondary" id="cmpReplayA" disabled>↺ A만 듣기</button><button class="btn secondary" id="cmpReplayB" disabled>↺ B만 듣기</button></div>
-          <div class="cmp-choice-label label">듣고 정답 선택하기</div>
           <div class="relative-choices" id="cmpChoices"><button class="btn" data-comp="up" disabled>↗ 더 높다</button><button class="btn" data-comp="same" disabled>→ 같다</button><button class="btn" data-comp="down" disabled>↘ 더 낮다</button></div>
-          <div class="ear-feedback info" id="cmpFeedback" role="status" aria-live="polite">음높이 방향이 익숙해지면 간격이나 세 음의 움직임도 연습해 보세요.</div>
+          <div class="ear-feedback info" id="cmpFeedback" role="status" aria-live="polite"></div>
           <div class="cmp-answer-notes" id="cmpAnswerNotes" hidden aria-label="정답 음표"></div>
           <div class="cmp-bottom">
             <label class="cmp-checkbox"><input id="cmpAutoNext" type="checkbox"> 정답 선택 후 자동으로 다음 문제</label>
-            <button class="btn secondary" id="cmpReset" type="button">청음 기록 초기화</button>
           </div>
           <div class="ear-stats cmp-stats four-stats" aria-label="청음 비교 연습 통계">
             <div class="ear-stat"><strong id="cmpTotal">0</strong><span>총 도전</span></div>
@@ -271,10 +329,7 @@
             <div class="ear-stat"><strong id="cmpFirst">—</strong><span>재청취 없이 정답률</span></div>
             <div class="ear-stat"><strong id="cmpStreak">0</strong><span>연속 정답</span></div>
           </div>
-          <p class="cmp-first-note">재청취 없이 정답률은 v5에서 한 번만 듣고 답한 문제를 기준으로 계산합니다. 기존 v4 정답 기록은 그대로 유지합니다.</p>
-          <div class="cmp-history-head"><span class="label">최근 결과</span><span id="cmpStats" class="ear-muted">기록은 이 브라우저에 보관됩니다.</span></div>
-          <div class="ear-history" id="cmpHistory"></div>
-          <p class="ear-muted cmp-footnote">음높이를 구별하는 청음 연습입니다. 정확하게 목소리로 따라 부르는 능력은 기존 한 음 재현·스케일 연습과 함께 길러 주세요.</p>
+          <details class="practice-details"><summary>최근 기록</summary><div id="cmpStats" class="ear-muted"></div><div class="ear-history" id="cmpHistory"></div><button class="btn" id="cmpReset" type="button">기록 초기화</button></details>
         </section>
     </div>
     <p class="small" style="text-align:center"><a href="assets/piano/README.txt">피아노 음원 · Alexander Holm · CC BY 3.0</a></p>
@@ -327,12 +382,27 @@
     return voice;
   }
   function choose(m){selected=m;$('selectedNote').textContent=nameOf(m);$('selectedKo').textContent=korOf(m);$('selectedHz').textContent=freqOf(m).toFixed(2)+' Hz';$('matchStatus').textContent='목표: '+nameOf(m);document.querySelectorAll('[data-note]').forEach(el=>el.classList.toggle('active',Number(el.dataset.note)===m));}
-  function buildKeyboard(){const start=Number($('octaveRange').value),end=start+24,root=$('keyboard');root.replaceChildren();let whites=[];for(let m=start;m<=end;m++){if(![1,3,6,8,10].includes(m%12)){const b=document.createElement('button');b.className='white';b.dataset.note=m;b.type='button';b.title=nameOf(m)+' · '+korOf(m);b.innerHTML='<span>'+nameOf(m)+'</span>';b.addEventListener('click',()=>{stopVoices();held=false;$('holdOne').textContent='계속 듣기';choose(m);playTone(m,1.15)});root.appendChild(b);whites.push(m)}}
-    let whiteWidth=49;const media=window.matchMedia('(max-width:760px)');if(media.matches)whiteWidth=45;
-    for(let m=start;m<=end;m++){if([1,3,6,8,10].includes(m%12)){const leftCount=whites.filter(n=>n<m).length;const b=document.createElement('button');b.className='black';b.dataset.note=m;b.type='button';b.style.left=(leftCount*whiteWidth-15)+'px';b.title=nameOf(m)+' · '+korOf(m);b.innerHTML='<span>'+nameOf(m)+'</span>';b.addEventListener('click',()=>{stopVoices();held=false;$('holdOne').textContent='계속 듣기';choose(m);playTone(m,1.15)});root.appendChild(b)}}
-    root.style.minWidth=(whites.length*whiteWidth)+'px';choose(selected);
+  function buildKeyboard(){
+    const start=Number($('octaveRange').value),root=$('keyboard');
+    const notes=Array.from({length:25},(_,index)=>start+index);
+    const isBlack=midi=>[1,3,6,8,10].includes(midi%12);
+    const whiteNotes=notes.filter(midi=>!isBlack(midi));
+    root.replaceChildren();
+    root.style.setProperty('--white-count',whiteNotes.length);
+    for(const midi of notes){
+      const black=isBlack(midi),button=document.createElement('button');
+      button.className=black?'black':'white';button.type='button';button.dataset.note=midi;
+      button.title=nameOf(midi)+' · '+korOf(midi);
+      if(black)button.style.left=100*whiteNotes.filter(white=>white<midi).length/whiteNotes.length+'%';
+      const label=document.createElement('span');label.textContent=nameOf(midi);button.append(label);
+      button.addEventListener('click',()=>{
+        stopVoices();held=false;$('holdOne').textContent='계속 듣기';choose(midi);playTone(midi,1.15);
+      });
+      root.append(button);
+    }
+    choose(selected);
   }
-  $('octaveRange').addEventListener('change',buildKeyboard);window.addEventListener('resize',()=>{clearTimeout(window._kbResize);window._kbResize=setTimeout(buildKeyboard,200)});
+  $('octaveRange').addEventListener('change',buildKeyboard);
   $('playOne').addEventListener('click',()=>{stopVoices();held=false;$('holdOne').textContent='계속 듣기';playTone(selected,1.2)});
   $('holdOne').addEventListener('click',()=>{held=!held;stopVoices();if(held){playTone(selected,null);$('holdOne').textContent='■ 소리 끄기'}else{$('holdOne').textContent='계속 듣기'}});
   $('volume').addEventListener('input',()=>{$('volText').textContent=$('volume').value+'%';if(held){stopVoices();playTone(selected,null)}});
@@ -366,15 +436,13 @@
   });
   [1,2,3].forEach(i=>$('jumpNote'+i).addEventListener('change',()=>{$('jumpExample').value='custom';onJumpChanged()}));
   $('jumpOrder').addEventListener('change',onJumpChanged);
-  function syncPattern(){const mode=$('preset').value,field=$('customNotes');field.readOnly=mode!=='custom';field.classList.toggle('readonly-notes',field.readOnly);
+  function syncPattern(){const mode=$('preset').value,field=$('customNotes');field.readOnly=mode!=='custom';$('customNotesField').hidden=field.readOnly;
     if(mode==='jump')$('scaleSize').value='jump';else if($('scaleSize').value==='jump')$('scaleSize').value='3';
     $('jumpPanel').hidden=mode!=='jump';$('autoRootControl').hidden=mode==='jump';
     $('playSeq').textContent=mode==='jump'?'▶ 도약 재생':'▶ 스케일 재생';
     if(mode==='auto')field.value=autoScale().map(nameOf).join(' ');
     else if(mode==='jump'){field.value=jumpScale().map(nameOf).join(' ');updateJumpIntervals();}
     else if(mode!=='custom')field.value=mode;
-    const count=$('scaleSize').value;
-    $('scaleHelp').textContent=mode==='jump'?'C2~C6에서 세 음을 각각 고릅니다. 음 길이·쉬는 시간·반복은 아래에서 조절하세요.':mode==='auto'?`${count}음 스케일 · ${Number(count)*2-1}개 음표로 왕복합니다. 시작음을 바꾸면 반음 단위로 전체 패턴이 이동합니다.`:'시작음 또는 스케일 종류를 바꾸면 자동 생성 패턴으로 전환됩니다.';
     updateRootButtons();drawChips();
   }
   function onAutoChanged(){stopSeq();const jumping=$('scaleSize').value==='jump';$('preset').value=jumping?'jump':'auto';syncPattern();choose(Number($(jumping?'jumpNote1':'scaleRoot').value));$('seqStatus').textContent=jumping?'도약 패턴 준비됨. ▶ 도약 재생을 눌러보세요.':'자동 스케일 생성됨. ▶ 스케일 재생을 눌러보세요.'}
@@ -474,7 +542,7 @@
   }
   function earOnMicOff(){
     $('earMic').textContent='마이크 켜고 채점';
-    $('earMicInfo').textContent='마이크를 켠 뒤 소리가 멈추면 첫 음을 안정적으로 부르세요. 마이크 없이도 정답 확인은 가능합니다.';
+    $('earMicInfo').textContent='채점은 마이크를 켜고 한 음을 약 1초 유지하세요.';
     earSamples=[]
   }
   function earOnPitch(freq){
@@ -508,7 +576,7 @@
     if(id!==earId||t!==earTrial||epoch!==voiceEpoch)return;
     playTone(t.note,1.05);
     $('earHeroLabel').textContent=t.done?'확인한 음 다시 듣기':'기준음 듣는 중';
-    if(!t.done)setEarMessage('기준음을 듣는 중입니다. 끝나면 같은 높이로 편안하게 따라 부르세요.','info');
+    if(!t.done)setEarMessage('재생 후 같은 음을 불러보세요.','info');
     earPlayTimer=setTimeout(()=>{
       if(id!==earId||t!==earTrial)return;
       earPlayTimer=null;
@@ -538,7 +606,7 @@
     setEarMessage('음이름 '+nameOf(earTrial.note)+'을 확인했습니다. 이 시도의 채점 기록에는 힌트 사용으로 표시됩니다.','info')
   });
   $('earReveal').addEventListener('click',()=>completeEar(true));
-  $('earMic').addEventListener('click',()=>{if(micStream){$('earMicInfo').textContent='마이크가 켜져 있습니다. 새 음 듣기 후 약 1초간 같은 높이로 불러주세요.'}else $('micToggle').click()});
+  $('earMic').addEventListener('click',()=>{if(micStream){$('earMicInfo').textContent='마이크 켜짐 · 기준음 후 약 1초 동안 부르세요.'}else $('micToggle').click()});
   $('earClear').addEventListener('click',()=>{if(!confirm('저장된 단일음 연습 기록을 모두 지울까요?'))return;earStats={attempts:[]};saveEar();renderEarStats()});
   renderEarStats();
   // ────────────────────────────────────────────────────────────────────
@@ -581,14 +649,11 @@
     return cmpLevelTable[{warmup:0,easy:1,medium:2,hard:3,expert:4}[lev]||0].jumps;
   }
   function cmpConfigLabel(){
-    const [lo,hi]=cmpRange(),lev=$('cmpLevel').value;
-    const levelText=lev==='adaptive'?'자동 조절 · 현재 '+cmpLevelTable[cmpAdaptiveIndex].name:lev==='random'?'1~12반음 혼합':cmpLevelTable[{warmup:0,easy:1,medium:2,hard:3,expert:4}[lev]||0].name;
-    const spreading=$('cmpSpread').checked&&hi-lo>=16;
-    const isPair=$('cmpMode').value==='pair'||$('cmpMode').value==='mixed';
+    const lev=$('cmpLevel').value;
+    const isPair=['pair','mixed'].includes($('cmpMode').value);
     $('cmpPairConfig').hidden=!isPair;
-    $('cmpPairGuide').textContent=$('cmpPairStyle').value==='same'?'같은 시작음에서 두 간격을 비교합니다. A와 B가 둘 다 올라가거나 둘 다 내려가는 음형으로 나옵니다.':$('cmpPairStyle').value==='different'?'A와 B가 서로 다른 음에서 시작합니다. 높낮이 자체보다 음 사이의 거리 차이에 집중하세요.':'같은 시작음과 다른 시작음을 번갈아 연습합니다. 정답은 간격이 더 넓은 쪽입니다.';
-    const guidance=lev==='warmup'?'아주 다른 간격 (1~2 vs 6~9반음)':lev==='easy'?'확실히 다른 간격 (1~3 vs 5~8반음)':lev==='medium'?'간격 차이 2반음 이상':lev==='hard'?'간격 차이 1반음 이상':lev==='expert'?'정확히 1반음 차이':lev==='random'?'무작위 차이':('현재 '+cmpLevelTable[cmpAdaptiveIndex].name+' 단계');
-    $('cmpSettingNote').textContent=`${nameOf(lo)}~${nameOf(hi)} · ${levelText} · ${$('cmpMode').selectedOptions[0].textContent}. `+(isPair?'간격 비교 난이도: '+guidance+'. ':'')+(spreading?'저·중·고음역 순환 출제.':(hi-lo<16?'좁은 범위에서는 가능한 조합만 출제됩니다.':'전체 범위에서 무작위 출제.'));
+    const pairLevels={warmup:'1~2 vs 6~9반음',easy:'1~3 vs 5~8반음',medium:'간격 차이 2반음 이상',hard:'간격 차이 1반음 이상',expert:'간격 차이 1반음'};
+    $('cmpSettingNote').textContent=lev==='adaptive'?'현재 난이도 · '+cmpLevelTable[cmpAdaptiveIndex].name:isPair?(pairLevels[lev]||''):'';
   }
   function cmpFillCustom(){
     for(const id of ['cmpLow','cmpHigh']){
@@ -860,7 +925,7 @@
     $('cmpPairPlay').hidden=cmpTrial.mode!=='pair';
     $('cmpReplayA').disabled=cmpTrial.mode!=='pair';$('cmpReplayB').disabled=cmpTrial.mode!=='pair';
     $('cmpFeedback').className='ear-feedback info';
-    $('cmpFeedback').textContent=cmpTrial.mode==='pair'?'A의 두 음을 듣고, B의 두 음을 듣습니다. 처음에는 몇 반음인지 계산하지 말고 더 넓게 들리는 쪽을 선택하세요.':'듣고 정답을 골라보세요. 어려우면 여러 번 재청취해도 좋습니다.';
+    $('cmpFeedback').textContent=cmpTrial.mode==='pair'?'A와 B 중 간격이 큰 쪽을 고르세요.':'듣고 답을 고르세요.';
     cmpResetChoices();cmpDrawAnswers();cmpConfigLabel();playCmp()
   }
   function cmpAnswer(pick){
@@ -871,8 +936,8 @@
     const differences=cmpTrial.notes.slice(1).map((n,i)=>Math.abs(n-cmpTrial.notes[i]));
     const detail=cmpTrial.mode==='pair'?`A: ${cmpTrial.gaps[0]}반음 · B: ${cmpTrial.gaps[1]}반음 · 시작음: ${cmpTrial.style==='same'?'동일':'서로 다름'}`:cmpTrial.mode==='contour'?`이동 간격: ${differences.join('반음, ')}반음`:`두 음의 차이: ${differences[0]}반음`;
     $('cmpFeedback').className='ear-feedback '+(good?'success':'needs-work');
-    $('cmpFeedback').textContent=`${good?'정답입니다.':'이번에는 다르게 들렸습니다.'} 정답: ${answer}. ${detail}. 다시 들으면서 음이 바뀌는 지점을 확인해 보세요.`;
-    $('cmpPrompt').textContent='정답 공개 · 같은 문제를 다시 들을 수도 있습니다.';
+    $('cmpFeedback').textContent=`${good?'정답':'오답'} · ${answer} · ${detail}`;
+    $('cmpPrompt').textContent='정답 공개';
     cmpHistory.push({mode:cmpTrial.mode,level:cmpTrial.level,correct:good,replays:cmpTrial.replays,time:Date.now()});cmpHistory=cmpHistory.slice(-500);cmpSave();cmpRenderStats();
     cmpDrawAnswers();
     document.querySelectorAll('#cmpChoices [data-comp]').forEach(btn=>{
