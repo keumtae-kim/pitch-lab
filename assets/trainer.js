@@ -81,82 +81,97 @@ async function playTone(midi,ms=850){
   singleVoice=scheduleSynthTone(midi,ctx.currentTime+.008,Math.max(.14,ms/1000));
  }catch(e){if(id===singleToneId)$('soundState').textContent='소리 재생 실패 · 다시 눌러주세요.'}
 }
-function render(){if(!notes.length)return;refreshScoreLayout();const n=note();updateScorePaging();document.querySelector('.song-key-tempo').textContent=transposedKey(SCORE_SONG.key,shift)+'장조 · ♩='+SCORE_SONG.bpm;$('shiftName').textContent=shift===0?'원키':(shift>0?'+':'')+shift;$('noteName').textContent=noteNameFor(note());$('selectedLyric').textContent=getLyric(n)||'가사 미지정 · 이어 부름';$('lyricEditLabel').textContent=`${current+1}번 ${noteNameFor(note())} 가사`;if(document.activeElement!==$('lyricInput'))$('lyricInput').value=getLyric(n);$('noteDesc').textContent=`악보 ${noteNameFor(n,0)} → 현재 ${noteNameFor(note())} · ${freq(targetMidi()).toFixed(1)} Hz`;$('lineTitle').textContent=rows[n.row].label;$('progressTxt').textContent=`${current+1} / ${notes.length}음 · ${n.row+1}번째 악보 줄`;$('progress').style.width=`${100*(current+1)/notes.length}%`;$('dockNote').textContent=`${noteNameFor(note())} · ${current+1}/${notes.length}음`;$('prev').disabled=current===0;$('next').disabled=current===notes.length-1;drawStaff();renderStrip();successSince=0;updatePhraseUI();}
-const nativeScore=new ScoreRenderer(SCORE_SONG),nativeAnchors=new Map();let scoreLayoutKey='';
+function render(){if(!notes.length)return;refreshScoreLayout();const n=note();updateScorePaging();document.querySelector('.song-key-tempo').textContent=transposedKey(SCORE_SONG.key,shift)+'장조 · ♩='+SCORE_SONG.bpm;$('shiftName').textContent=shift===0?'원키':(shift>0?'+':'')+shift;$('noteName').textContent=noteNameFor(note());$('selectedLyric').textContent=getLyric(n)||'가사 미지정 · 이어 부름';$('lyricEditLabel').textContent=`${current+1}번 ${noteNameFor(note())} 가사`;if(document.activeElement!==$('lyricInput'))$('lyricInput').value=getLyric(n);$('noteDesc').textContent=`악보 ${noteNameFor(n,0)} → 현재 ${noteNameFor(note())} · ${freq(targetMidi()).toFixed(1)} Hz`;$('lineTitle').textContent=rows[n.row].label;$('progressTxt').textContent=`${current+1} / ${notes.length}음 · ${n.row+1}번째 악보 줄`;$('progress').style.width=`${100*(current+1)/notes.length}%`;$('dockNote').textContent=`${noteNameFor(note())} · ${current+1}/${notes.length}음`;$('prev').disabled=current===0;$('next').disabled=current===notes.length-1;renderScore();successSince=0;updatePhraseUI();}
+const nativeScore=new ScoreRenderer(SCORE_SONG);
+const scoreStack=$('scoreStacks'),scoreLines=new Map();
+let scoreLayoutKey='',mountedRows=[],noteIndexById=new Map();
 function refreshScoreLayout(){
- const available=Math.max(160,Math.floor(document.querySelector('.scoreStacks').clientWidth-12));
+ const available=Math.max(160,Math.floor(scoreStack.clientWidth-12));
  const key=available+'/'+shift+'/'+notes.map(n=>n.id+':'+n.midi+':'+getLyric(n)).join('|');
  if(key!==scoreLayoutKey){
   const anchor=rows[viewRow]?.noteIds[0]??note().id;
   const layout=nativeScore.layout(available,notes,getLyric,shift);rows=layout.systems;
-  viewRow=layout.noteRows.get(anchor)??0;scoreLayoutKey=key;nativeAnchors.clear();
+  viewRow=layout.noteRows.get(anchor)??0;scoreLayoutKey=key;
+  noteIndexById=new Map(notes.map((note,index)=>[note.id,index]));
  }
  for(const n of notes)n.row=nativeScore.plan.noteRows.get(n.id)??0;
 }
 let scoreResizeFrame;
 const scoreResizeObserver=new ResizeObserver(()=>{cancelAnimationFrame(scoreResizeFrame);scoreResizeFrame=requestAnimationFrame(()=>{if(!scoreLayoutKey)return;const previous=scoreLayoutKey;refreshScoreLayout();if(previous!==scoreLayoutKey)render();});});
-scoreResizeObserver.observe(document.querySelector('.scoreStacks'));
+scoreResizeObserver.observe(scoreStack);
 for(const section of SCORE_SONG.sections){const option=document.createElement('option');option.value=String(section.noteId);option.textContent=section.label;$('scoreSection').append(option);}
-$('scoreSection').onchange=e=>{const id=Number(e.target.value),row=nativeScore.plan.noteRows.get(id);if(row!==undefined){viewRow=row;render();}};
+$('scoreSection').onchange=e=>{
+ const row=nativeScore.plan.noteRows.get(Number(e.target.value));
+ if(row===undefined)return;
+ viewRow=row;
+ if(isFullScore())scrollToScoreRow(row,{always:true});
+ else render();
+};
 
-// The viewport remains independent of the current playback selection.
+// The score position is independent of the current playback selection.
 let viewRow=0;
-const scoreSlots=[
- {box:'scoreLineMain',canvas:'staff',strip:'strip',label:'scoreMainLabel',count:'scoreMainCount'},
- {box:'scoreLinePreview',canvas:'staffNext',strip:'stripNext',label:'scoreNextLabel',count:'scoreNextCount'},
- {box:'scoreLine3',canvas:'staff3',strip:'strip3',label:'scoreLabel3',count:'scoreCount3'},
- {box:'scoreLine4',canvas:'staff4',strip:'strip4',label:'scoreLabel4',count:'scoreCount4'}
-];
 const scoreViewKey='vocal_practice_score_view_v1';
-try{const saved=JSON.parse(localStorage.getItem(scoreViewKey)||'{}');if(saved.lines===4)$('scoreLineCount').value='4';if(saved.buttons===false)$('scoreNoteButtons').checked=false;}catch(e){}
-function scoreViewCount(){return $('scoreLineCount').value==='4'?4:2;}
+try{
+ const saved=JSON.parse(localStorage.getItem(scoreViewKey)||'{}');
+ if([2,4,'all'].includes(saved.lines))$('scoreLineCount').value=String(saved.lines);
+ if(saved.buttons===false)$('scoreNoteButtons').checked=false;
+}catch(error){}
+function isFullScore(){return $('scoreLineCount').value==='all';}
+function scoreViewCount(){return Number($('scoreLineCount').value);}
 function applyScoreView(){
  refreshScoreLayout();
- const count=scoreViewCount();
- document.querySelector('.scoreStacks').dataset.lines=String(count);
- document.querySelector('.scoreStacks').classList.toggle('hide-note-buttons',!$('scoreNoteButtons').checked);
- try{localStorage.setItem(scoreViewKey,JSON.stringify({lines:count,buttons:$('scoreNoteButtons').checked}));}catch(e){}
- updateScorePaging();drawStaff();renderStrip();
+ const mode=$('scoreLineCount').value;
+ scoreStack.dataset.lines=mode;
+ scoreStack.classList.toggle('hide-note-buttons',!$('scoreNoteButtons').checked);
+ try{localStorage.setItem(scoreViewKey,JSON.stringify({lines:mode==='all'?mode:Number(mode),buttons:$('scoreNoteButtons').checked}));}catch(error){}
+ updateScorePaging();renderScore();
 }
 $('scoreLineCount').addEventListener('change',applyScoreView);
 $('scoreNoteButtons').addEventListener('change',applyScoreView);
-function availableScoreRows(){return rows.map((_,i)=>i);}
+
 function shownScoreRows(){
- const available=availableScoreRows();
- let index=available.indexOf(viewRow);
- if(index<0){index=0;viewRow=available[0];}
- const visible=available.slice(index,index+scoreViewCount());
- return {main:visible[0],next:visible[1]??null,visible,index,total:available.length};
+ if(isFullScore())return rows.map((_,index)=>index);
+ const end=Math.min(viewRow+scoreViewCount(),rows.length);
+ return Array.from({length:end-viewRow},(_,index)=>viewRow+index);
 }
 function ensureNoteRowVisible(row){
- if(!shownScoreRows().visible.includes(row))viewRow=row;
+ if(isFullScore()||row<viewRow||row>=viewRow+scoreViewCount())viewRow=row;
 }
 function updateScorePaging(){
  if(!notes.length)return;
- const {visible,index,total}=shownScoreRows();
- $('scorePageTitle').textContent=visible.length>1?`악보 ${index+1}~${index+visible.length} / ${total}`:`악보 ${index+1} / ${total}`;
- scoreSlots.forEach((slot,i)=>{
-  const row=visible[i]??null;
-  $(slot.box).hidden=row===null;$(slot.box).classList.toggle('isHidden',row===null);
-  if(row===null)return;
-  $(slot.label).textContent=rows[row].label+' · '+rows[row].measures.map(m=>m.measure.sourceNumber).join('·')+'마디';
-  $(slot.count).textContent=`${notes.filter(n=>n.row===row).length}음`;
-  $(slot.strip).setAttribute('aria-label',`${row+1}번째 악보 줄의 음이름과 가사`);
- });
- const shown=rows[visible[0]];if(shown){const model=notes.find(n=>n.id===shown.noteIds[0]);if(model)$('scoreSection').value=String(SCORE_SONG.sections[model.sourceSection].noteId);}
- $('scorePrev').disabled=index<=0;
- $('scoreNext').disabled=index>=total-1;
+ const full=isFullScore(),total=rows.length;
+ $('scorePaging').classList.toggle('full-score',full);
+ $('scorePrev').hidden=full;
+ $('scoreNext').hidden=full;
+ if(full){
+  $('scorePageTitle').textContent=`전체 악보 · ${total}줄`;
+  return;
+ }
+ const end=Math.min(viewRow+scoreViewCount(),total),start=viewRow+1;
+ $('scorePageTitle').textContent=start<end?`악보 ${start}~${end} / ${total}`:`악보 ${start} / ${total}`;
+ const model=notes[noteIndexById.get(rows[viewRow]?.noteIds[0])];
+ if(model)$('scoreSection').value=String(SCORE_SONG.sections[model.sourceSection].noteId);
+ $('scorePrev').disabled=viewRow<=0;
+ $('scoreNext').disabled=viewRow>=total-1;
 }
 function jumpScoreRow(direction){
- if(!notes.length)return;
- const rows=availableScoreRows(),ix=rows.indexOf(viewRow);
- const nextIndex=Math.max(0,Math.min(rows.length-1,ix+direction));
- if(ix===nextIndex)return;
- viewRow=rows[nextIndex];
- updateScorePaging();drawStaff();renderStrip();
+ if(!notes.length||isFullScore())return;
+ const row=Math.max(0,Math.min(rows.length-1,viewRow+direction));
+ if(row===viewRow)return;
+ viewRow=row;
+ updateScorePaging();renderScore();
 }
 $('scorePrev').onclick=()=>jumpScoreRow(-1);
 $('scoreNext').onclick=()=>jumpScoreRow(1);
+
+function scrollToScoreRow(row,{always=false}={}){
+ const line=scoreLines.get(row)?.box;
+ if(!line)return;
+ const bounds=line.getBoundingClientRect();
+ const top=$('practice-nav').getBoundingClientRect().bottom+8;
+ const bottom=document.querySelector('.navDock').getBoundingClientRect().top;
+ if(always||bounds.top<top||bounds.bottom>bottom)window.scrollBy({top:bounds.top-top});
+}
 // Keep consecutive runs readable; continue lower runs near the remaining notes.
 const noteButtonMeasure=document.createElement('canvas').getContext('2d');
 function layoutNoteStrip(list){
@@ -166,7 +181,7 @@ function layoutNoteStrip(list){
  const touch=window.matchMedia('(max-width:600px)').matches;
  const minimum=buttons.map(b=>Math.ceil(Math.max(measure(b.querySelector('b')),measure(b.querySelector('.lyric'))))+10);
  const layout=fitNoteLanes(buttons.map(b=>Number(b.dataset.scoreX)),minimum,available,touch);
- const compact=!touch&&scoreViewCount()===4,height=touch?44:compact?32:42,gap=touch?5:4;
+ const compact=!touch&&$('scoreLineCount').value!=='2',height=touch?44:compact?32:42,gap=touch?5:4;
  list.dataset.lanes=String(layout.runs.length);list.classList.remove('is-scrollable');
  list.style.setProperty('--note-strip-height',`${Math.max(1,layout.runs.length)*(height+gap)+3}px`);
  list.querySelectorAll('.note-continuation').forEach(el=>el.remove());
@@ -176,57 +191,130 @@ function layoutNoteStrip(list){
  }
 }
 const noteStripResizeObserver=new ResizeObserver(entries=>entries.forEach(entry=>layoutNoteStrip(entry.target)));
-scoreSlots.forEach(slot=>noteStripResizeObserver.observe($(slot.strip)));
-
-function renderStrip(){
- const {visible}=shownScoreRows();
- const range=quickRange();
- function fillStrip(stripId,row){
-  const list=$(stripId);list.innerHTML='';if(row===null)return;
-  const rowNotes=notes.map((n,i)=>({n,i})).filter(({n})=>n.row===row);
-  rowNotes.forEach(({n,i},index)=>{
-   const anchor=nativeAnchors.get(n.id);
-   const x=anchor?anchor.x/anchor.width:.5;
-   const b=document.createElement('button'),isStart=i===range.start,isEnd=i===range.end,inRange=i>=range.start&&i<=range.end;
-   const isPlaying=phrasePlaying&&activePlayback&&playbackNote===i;
-   b.type='button';b.className='token'+(i===current?' sel':'')+(i===quickAnchor?' anchor':'')+(inRange?' inRange':'')+(isStart?' rangeStart':'')+(isEnd?' rangeEnd':'')+(isPlaying?' nowPlaying':'');
-   b.dataset.scoreX=String(x);
-   const lyric=getLyric(n);
-   b.title=`${i+1}번 ${noteNameFor(n)} · ${lyric||'가사 없음/연장'}${isStart?' · 재생 시작':''}${isEnd?' · 재생 끝':''}${isPlaying?' · 지금 재생 중':''}`;
-   if(isPlaying)b.setAttribute('aria-current','true');
-   const num=document.createElement('span');num.className='num';num.textContent=String(i+1);b.appendChild(num);
-   const pitch=document.createElement('b');pitch.textContent=n.kind==='spoken'?'말':noteNameFor(n);b.appendChild(pitch);
-   const lyricEl=document.createElement('span');lyricEl.className='lyric'+(lyric?'':' empty');lyricEl.textContent=lyric||'—';b.appendChild(lyricEl);
-   if(isStart||isEnd){const marker=document.createElement('span');marker.className='rangeBadge '+(isStart&&isEnd?'both':isStart?'start':'end');marker.textContent=isStart&&isEnd?'시작·끝':isStart?'▶ 시작':'■ 끝';b.appendChild(marker);}
-   b.onclick=()=>pickRangeNote(i);
-   b.oncontextmenu=e=>{e.preventDefault();setQuickEnd(i);};
-   b.onkeydown=e=>{if(e.shiftKey&&(e.key==='Enter'||e.key===' ')){e.preventDefault();setQuickEnd(i);}};
-   list.appendChild(b);
-  });
-  layoutNoteStrip(list);
- }
- scoreSlots.forEach((slot,i)=>fillStrip(slot.strip,visible[i]??null));
+function createScoreLine(row){
+ const box=$('scoreLineTemplate').content.firstElementChild.cloneNode(true);
+ box.dataset.scoreRow=String(row);
+ const staff=box.querySelector('.native-staff');
+ staff.id=`score-staff-${row}`;
+ return {box,staff,strip:box.querySelector('.noteStrip'),buttons:[]};
 }
+function mountScoreRows(visible){
+ if(mountedRows.length===visible.length&&mountedRows.every((row,index)=>row===visible[index]))return;
+ const wanted=new Set(visible);
+ for(const [row,line] of scoreLines){
+  if(wanted.has(row))continue;
+  noteStripResizeObserver.unobserve(line.strip);
+  scoreLines.delete(row);
+ }
+ scoreStack.replaceChildren(...visible.map(row=>{
+  if(!scoreLines.has(row))scoreLines.set(row,createScoreLine(row));
+  return scoreLines.get(row).box;
+ }));
+ mountedRows=visible;
+}
+function buildNoteButtons(line,system,rendered){
+ line.buttons=system.noteIds.map(id=>{
+  const index=noteIndexById.get(id),model=notes[index];
+  const button=document.createElement('button');
+  button.type='button';
+  button.className='token';
+  button.dataset.scoreX=String((rendered.anchors.get(id)?.x??rendered.width/2)/rendered.width);
+  const lyric=getLyric(model),pitch=noteNameFor(model);
+  const num=document.createElement('span');num.className='num';num.textContent=String(index+1);
+  const pitchLabel=document.createElement('b');pitchLabel.textContent=pitch;
+  const lyricLabel=document.createElement('span');lyricLabel.className=lyric?'lyric':'lyric empty';lyricLabel.textContent=lyric||'—';
+  button.append(num,pitchLabel,lyricLabel);
+  button.onclick=()=>pickRangeNote(index);
+  button.oncontextmenu=event=>{event.preventDefault();setQuickEnd(index);};
+  button.onkeydown=event=>{
+   if(event.shiftKey&&(event.key==='Enter'||event.key===' ')){event.preventDefault();setQuickEnd(index);}
+  };
+  return {button,index,title:`${index+1}번 ${pitch} · ${lyric||'가사 없음/연장'}`};
+ });
+ line.strip.replaceChildren(...line.buttons.map(({button})=>button));
+ noteStripResizeObserver.observe(line.strip);
+}
+
+function updateNoteButtons(line,range,playing){
+ for(const entry of line.buttons){
+  const {button,index,title}=entry;
+  const start=index===range.start,end=index===range.end,active=index===playing;
+  button.classList.toggle('sel',index===current);
+  button.classList.toggle('anchor',index===quickAnchor);
+  button.classList.toggle('inRange',index>=range.start&&index<=range.end);
+  button.classList.toggle('rangeStart',start);
+  button.classList.toggle('rangeEnd',end);
+  button.classList.toggle('nowPlaying',active);
+  button.title=title+(start?' · 재생 시작':'')+(end?' · 재생 끝':'')+(active?' · 지금 재생 중':'');
+  if(active)button.setAttribute('aria-current','true');else button.removeAttribute('aria-current');
+  if(start||end){
+   if(!entry.marker){
+    entry.marker=document.createElement('span');
+    button.append(entry.marker);
+   }
+   entry.marker.className='rangeBadge '+(start&&end?'both':start?'start':'end');
+   entry.marker.textContent=start&&end?'시작·끝':start?'▶ 시작':'■ 끝';
+  }else if(entry.marker){
+   entry.marker.remove();entry.marker=null;
+  }
+ }
+}
+
+function renderScore(){
+ refreshScoreLayout();
+ const visible=shownScoreRows(),range=quickRange();
+ const playing=phrasePlaying?playbackNote:null;
+ const options={
+  notes,lyric:getLyric,shift,octave,currentId:note().id,
+  startId:notes[range.start].id,endId:notes[range.end].id,playingId:notes[playing]?.id,
+  onPick(id,end){
+   const index=noteIndexById.get(id);
+   if(end)setQuickEnd(index);else pickRangeNote(index);
+  }
+ };
+ mountScoreRows(visible);
+ const mode=$('scoreLineCount').value;
+ for(const row of visible){
+  const system=rows[row],line=scoreLines.get(row);
+  line.box.classList.toggle('preview',mode!=='all'&&row!==viewRow);
+  const rebuilt=line.system!==system||line.octave!==octave;
+  if(rebuilt){
+   const rendered=nativeScore.render(line.staff,system,options);
+   line.box.style.setProperty('--system-width',rendered.width+'px');
+   line.box.querySelector('.scoreLineLabel').textContent=system.label+' · '+system.measures.map(m=>m.measure.sourceNumber).join('·')+'마디';
+   line.box.querySelector('.scoreLineCount').textContent=`${system.noteIds.length}음`;
+   line.strip.setAttribute('aria-label',`${row+1}번째 악보 줄의 음이름과 가사`);
+   buildNoteButtons(line,system,rendered);
+   line.system=system;line.octave=octave;line.highlightKey=null;
+  }
+  if(rebuilt||line.mode!==mode){layoutNoteStrip(line.strip);line.mode=mode;}
+  const first=line.buttons[0]?.index,last=line.buttons.at(-1)?.index;
+  const here=index=>index!==null&&index>=first&&index<=last?index:'';
+  const bounds=range.end>=first&&range.start<=last?`${Math.max(first,range.start)}:${Math.min(last,range.end)}`:'';
+  const key=[here(current),here(playing),here(quickAnchor),here(range.start),here(range.end),bounds].join('/');
+  if(key===line.highlightKey)continue;
+  if(!rebuilt)nativeScore.highlight(line.staff,options);
+  updateNoteButtons(line,range,playing);
+  line.highlightKey=key;
+ }
+}
+
 function go(i,withSound=false,fromPhrase=false){
  if(i<0||i>=notes.length)return;
  if(!fromPhrase)stopSingleTone();
  if(!fromPhrase&&phrasePlaying)stopPhrase('구간 재생을 중지하고 음표를 선택했습니다.');
  if(!fromPhrase)quickAnchor=i;
  current=i;
- ensureNoteRowVisible(notes[i].row);
+ if(!fromPhrase||!isFullScore())ensureNoteRowVisible(notes[i].row);
  $('lyricInput').value=getLyric(notes[i]);render();if(withSound&&note().kind!=='spoken')playTone(targetMidi());
 }
-function drawStaff(){
- refreshScoreLayout();
- const range=quickRange(),visible=shownScoreRows().visible;
- visible.forEach((row,i)=>{
-  const slot=scoreSlots[i],host=$(slot.canvas),system=rows[row];
-  const result=nativeScore.render(host,system,{notes,lyric:getLyric,shift,octave,currentId:note().id,startId:notes[range.start].id,endId:notes[range.end].id,playingId:phrasePlaying?notes[playbackNote]?.id:null,onPick:(id,end)=>{const ix=notes.findIndex(n=>n.id===id);if(end)setQuickEnd(ix);else pickRangeNote(ix);}});
-  $(slot.box).style.setProperty('--system-width',result.width+'px');
-  for(const [id,anchor] of result.anchors){nativeAnchors.set(id,{x:anchor.x,width:result.width});}
- });
+function stepSelectedNote(direction){
+ const next=current+direction;
+ if(next<0||next>=notes.length)return;
+ go(next,true);
+ if(isFullScore())scrollToScoreRow(notes[next].row);
 }
-$('down').onclick=()=>{stopSingleTone();if(phrasePlaying)stopPhrase('키 변경으로 재생을 중지했습니다.');shift=Math.max(-12,shift-1);render()};$('up').onclick=()=>{stopSingleTone();if(phrasePlaying)stopPhrase('키 변경으로 재생을 중지했습니다.');shift=Math.min(12,shift+1);render()};$('oct').onchange=e=>{stopSingleTone();if(phrasePlaying)stopPhrase('옥타브 변경으로 재생을 중지했습니다.');octave=Number(e.target.value);render()};$('prev').onclick=()=>go(current-1,true);$('next').onclick=()=>go(current+1,true);$('play').onclick=()=>playTone(targetMidi());$('nDown').onclick=()=>{stopSingleTone();if(phrasePlaying)stopPhrase();note().midi--;render()};$('nUp').onclick=()=>{stopSingleTone();if(phrasePlaying)stopPhrase();note().midi++;render()};$('resetCorrections').onclick=()=>{if(confirm('추가/수정한 음표를 모두 초기화할까요?')){if(phrasePlaying)stopPhrase();manualPhrase=null;notes=baseNotes.map(n=>({...n}));current=0;quickAnchor=0;render()}};
+$('down').onclick=()=>{stopSingleTone();if(phrasePlaying)stopPhrase('키 변경으로 재생을 중지했습니다.');shift=Math.max(-12,shift-1);render()};$('up').onclick=()=>{stopSingleTone();if(phrasePlaying)stopPhrase('키 변경으로 재생을 중지했습니다.');shift=Math.min(12,shift+1);render()};$('oct').onchange=e=>{stopSingleTone();if(phrasePlaying)stopPhrase('옥타브 변경으로 재생을 중지했습니다.');octave=Number(e.target.value);render()};$('prev').onclick=()=>stepSelectedNote(-1);$('next').onclick=()=>stepSelectedNote(1);$('play').onclick=()=>playTone(targetMidi());$('nDown').onclick=()=>{stopSingleTone();if(phrasePlaying)stopPhrase();note().midi--;render()};$('nUp').onclick=()=>{stopSingleTone();if(phrasePlaying)stopPhrase();note().midi++;render()};$('resetCorrections').onclick=()=>{if(confirm('추가/수정한 음표를 모두 초기화할까요?')){if(phrasePlaying)stopPhrase();manualPhrase=null;notes=baseNotes.map(n=>({...n}));current=0;quickAnchor=0;render()}};
 // YIN pitch estimator, 75~850 Hz with silence detection
 function yin(buf,rate){const rms=Math.sqrt(buf.reduce((s,x)=>s+x*x,0)/buf.length);if(rms<.012)return null;const tauMin=Math.floor(rate/850),tauMax=Math.min(Math.floor(rate/75),Math.floor(buf.length/2)-1),N=buf.length-tauMax;const diff=new Float32Array(tauMax+1);for(let t=1;t<=tauMax;t++){let sum=0;for(let j=0;j<N;j++){const d=buf[j]-buf[j+t];sum+=d*d}diff[t]=sum}let rolling=0,candidate=-1,best=1;for(let t=1;t<=tauMax;t++){rolling+=diff[t];diff[t]=rolling>0?diff[t]*t/rolling:1}for(let t=tauMin;t<=tauMax;t++){if(diff[t]<.16){while(t+1<=tauMax&&diff[t+1]<diff[t])t++;candidate=t;best=diff[t];break}}if(candidate<0){for(let t=tauMin;t<=tauMax;t++)if(diff[t]<best){best=diff[t];candidate=t}if(best>.30)return null}let refined=candidate;if(candidate>1&&candidate<tauMax){let x0=diff[candidate-1],x1=diff[candidate],x2=diff[candidate+1],den=2*(2*x1-x0-x2);if(Math.abs(den)>1e-9)refined+=(x0-x2)/den}const hz=rate/refined;return hz>=75&&hz<=850?{hz,rms,quality:Math.max(0,1-best)}:null}
 let yinBuffer=new Float32Array(4096), frames=[];
@@ -345,7 +433,7 @@ function changeQuickCount(value){
  $('quickCount').value=String(normalized);
  if(phrasePlaying)stopPhrase('재생 개수가 변경되어 재생을 중지했습니다.');
  updateQuickUI();
- drawStaff();renderStrip();
+ renderScore();
 }
 $('quickCount').addEventListener('change',e=>changeQuickCount(e.target.value));
 $('quickCount').addEventListener('keydown',e=>{if(e.key==='Enter')e.target.blur()});
@@ -384,7 +472,7 @@ function stopPhrase(message){
  phraseVoices=[];
  phrasePlaying=false;activePlayback=null;playbackNote=null;
  if(message)phraseInfoMessage=message;
- updatePhraseUI();drawStaff();renderStrip();
+ updatePhraseUI();renderScore();
 }
 function schedulePhraseTone(midi,at,dur){
  phraseVoices.push(scheduleSynthTone(midi,at,dur));

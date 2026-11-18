@@ -24,34 +24,19 @@
  <button type="button" id="rangePickEnd" aria-pressed="false">끝점 지정</button>
 </div>
 <div id="rangePickFeedback" class="sub" role="status" style="margin-top:7px"></div>
-<div class="scorePaging" role="group" aria-label="악보 화면 이동 (선택 음표는 그대로 유지)">
+<div class="scorePaging" id="scorePaging" role="group" aria-label="악보 화면 이동 (선택 음표는 그대로 유지)">
   <button type="button" id="scorePrev" title="보이는 악보를 한 줄 앞으로 이동 (재생 시작점 유지)">◀ 이전 악보</button>
-  <div class="scorePagingInfo" aria-live="polite"><strong id="scorePageTitle">악보</strong><label class="score-count-label">구간 <select id="scoreSection" aria-label="연습 구간으로 이동"></select></label><label class="score-count-label" for="scoreLineCount">보기 <select id="scoreLineCount" aria-label="한 번에 볼 악보 줄 수"><option value="2" selected>2줄</option><option value="4">4줄</option></select></label><label class="score-notes-label"><input id="scoreNoteButtons" type="checkbox" checked>음표 버튼</label><span id="scorePageCount" hidden></span></div>
+  <div class="scorePagingInfo" aria-live="polite"><strong id="scorePageTitle">악보</strong><label class="score-count-label">구간 <select id="scoreSection" aria-label="연습 구간으로 이동"></select></label><label class="score-count-label" for="scoreLineCount">보기 <select id="scoreLineCount" aria-label="악보 보기 방식"><option value="2" selected>2줄</option><option value="4">4줄</option><option value="all">전체 보기</option></select></label><label class="score-notes-label"><input id="scoreNoteButtons" type="checkbox" checked>음표 버튼</label></div>
   <button type="button" id="scoreNext" title="보이는 악보를 한 줄 뒤로 이동 (재생 시작점 유지)">다음 악보 ▶</button>
 </div>
-<div class="scoreStacks" aria-label="선택한 줄 수의 악보 보기">
-  <div class="scoreLine" id="scoreLineMain">
-    <div class="scoreLineHead"><span><span class="lineTag">현재 악보</span><span id="scoreMainLabel">첫 악보 줄</span></span><span class="sub" id="scoreMainCount"></span></div>
-    <div class="scorebox"><div id="staff" class="native-staff"></div></div>
-    <div class="noteStrip" id="strip" aria-label="현재 악보 줄의 음이름과 가사"></div>
+<div class="scoreStacks" id="scoreStacks" aria-label="악보"></div>
+<template id="scoreLineTemplate">
+  <div class="scoreLine">
+    <div class="scoreLineHead"><span class="scoreLineLabel"></span><span class="sub scoreLineCount"></span></div>
+    <div class="scorebox"><div class="native-staff"></div></div>
+    <div class="noteStrip"></div>
   </div>
-  <div class="scoreLine preview" id="scoreLinePreview">
-    <div class="scoreLineHead"><span><span class="lineTag next">다음 악보 미리보기</span><span id="scoreNextLabel">다음 악보 줄</span></span><span class="sub" id="scoreNextCount"></span></div>
-    <div class="scorebox"><div id="staffNext" class="native-staff"></div></div>
-    <div class="noteStrip" id="stripNext" aria-label="다음 악보 줄의 음이름과 가사"></div>
-  </div>
-  <div class="scoreLine preview isHidden" id="scoreLine3" hidden>
-    <div class="scoreLineHead"><span id="scoreLabel3"></span><span class="sub" id="scoreCount3"></span></div>
-    <div class="scorebox"><div id="staff3" class="native-staff"></div></div>
-    <div class="noteStrip" id="strip3" aria-label="3번째 악보 줄의 음이름과 가사"></div>
-  </div>
-  <div class="scoreLine preview isHidden" id="scoreLine4" hidden>
-    <div class="scoreLineHead"><span id="scoreLabel4"></span><span class="sub" id="scoreCount4"></span></div>
-    <div class="scorebox"><div id="staff4" class="native-staff"></div></div>
-    <div class="noteStrip" id="strip4" aria-label="4번째 악보 줄의 음이름과 가사"></div>
-  </div>
-</div>
-
+</template>
 
 <div class="practicePanels">
 <details class="lyricSettings" id="lyricPanel" open>

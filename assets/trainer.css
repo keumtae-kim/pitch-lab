@@ -256,3 +256,10 @@ header{padding:6px 12px 4px}header h1{font-size:18px}
 .scoreLine .token,.scoreStacks[data-lines="4"] .token{width:var(--button-width,38px);min-width:0;max-width:none}
 
 #practice-nav a:first-child{flex-shrink:0}#practice-nav span{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}#practice-nav a:last-child{display:block;max-width:46%;overflow:hidden;text-overflow:ellipsis;text-align:center}
+
+.scorePaging.full-score{grid-template-columns:minmax(0,1fr)}
+.scorePaging button[hidden]{display:none}
+#scoreLineCount{width:auto;min-width:78px}
+.scoreStacks[data-lines="all"] .token{height:32px;min-height:32px}
+.scoreStacks[data-lines="all"] .token .num,.scoreStacks[data-lines="all"] .token .rangeBadge{display:none}
+@media(max-width:600px){.scoreStacks[data-lines="all"] .token{height:44px;min-height:44px}}
