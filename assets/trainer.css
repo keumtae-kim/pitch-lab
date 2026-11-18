@@ -263,3 +263,11 @@ header{padding:6px 12px 4px}header h1{font-size:18px}
 .scoreStacks[data-lines="all"] .token{height:32px;min-height:32px}
 .scoreStacks[data-lines="all"] .token .num,.scoreStacks[data-lines="all"] .token .rangeBadge{display:none}
 @media(max-width:600px){.scoreStacks[data-lines="all"] .token{height:44px;min-height:44px}}
+
+.navDock .dockHead{min-width:0;gap:8px}
+.song-volume{display:grid;grid-template-columns:auto minmax(0,1fr) 4ch;align-items:center;gap:5px;width:min(230px,65%);min-width:0;color:#36536c;font-size:12px}
+.song-volume label{white-space:nowrap;font-weight:650}
+.song-volume input{width:100%;min-width:0;height:24px;margin:0;accent-color:#226bda}
+#songVolumeValue{text-align:right;font-variant-numeric:tabular-nums}
+#dockNote{white-space:nowrap}
+@media(max-width:600px){.song-volume input{height:30px}}

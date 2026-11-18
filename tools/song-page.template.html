@@ -91,7 +91,14 @@
 
 <p class="sub" style="font-size:10px;text-align:center"><a href="assets/piano/README.txt">피아노 음원 · Alexander Holm · CC BY 3.0</a></p></main>
 <nav class="navDock" role="group" aria-label="음표 이동과 기준음 재생">
-<div class="dockHead"><span>한 음 / 구간 듣기</span><strong id="dockNote" aria-live="polite">__START_NOTE__</strong></div>
+<div class="dockHead">
+  <div class="song-volume">
+    <label for="songVolume">재생 음량</label>
+    <input id="songVolume" type="range" min="0" max="100" step="1" value="100" aria-valuetext="100%">
+    <span id="songVolumeValue" aria-hidden="true">100%</span>
+  </div>
+  <strong id="dockNote" aria-live="polite">__START_NOTE__</strong>
+</div>
 <button id="prev" title="이전 음으로 이동하고 기준음을 재생합니다">◀ 이전 음<br>듣기</button>
 <button id="play" class="primary" title="현재 음을 그대로 다시 재생합니다">♪ 현재 음<br>다시 듣기</button>
 <button id="next" title="다음 음으로 이동하고 기준음을 재생합니다">다음 음 ▶<br>듣기</button>

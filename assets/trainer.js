@@ -24,6 +24,34 @@ function saveLyrics(){try{localStorage.setItem(LYRIC_SAVE_KEY,JSON.stringify(lyr
 let notes=baseNotes.map(n=>({...n})); let current=SCORE_SONG.vocalStart,quickAnchor=SCORE_SONG.vocalStart,shift=0,octave=-SCORE_SONG.writtenOctaveOffset, ctx=null, track=null, media=null, analyzer=null, raf=null;
 let successSince=0, lastAdvance=0, lastDetected=null;
 const audioSession=PracticeAudio.create({onPause:pauseSongAudio});
+const volumeKey='pitch_lab_song_volume_v1';
+const volumeSlider=$('songVolume');
+let playbackOutput=null;
+try{
+ const saved=localStorage.getItem(volumeKey);
+ if(saved!==null)volumeSlider.value=saved;
+}catch(error){}
+
+function updateVolume(){
+ const label=volumeSlider.value+'%';
+ $('songVolumeValue').textContent=label;
+ volumeSlider.setAttribute('aria-valuetext',label);
+ if(playbackOutput)playbackOutput.gain.setTargetAtTime(volumeSlider.valueAsNumber/100,ctx.currentTime,.012);
+}
+volumeSlider.addEventListener('input',()=>{
+ updateVolume();
+ try{localStorage.setItem(volumeKey,volumeSlider.value);}catch(error){}
+});
+updateVolume();
+
+function getPlaybackOutput(){
+ if(playbackOutput?.context!==ctx){
+  playbackOutput=ctx.createGain();
+  playbackOutput.gain.value=volumeSlider.valueAsNumber/100;
+  playbackOutput.connect(ctx.destination);
+ }
+ return playbackOutput;
+}
 
 const midiName=m=>NAMES[((m%12)+12)%12]+(Math.floor(m/12)-1);
 const freq=m=>440*Math.pow(2,(m-69)/12);
@@ -35,7 +63,8 @@ function targetMidi(){return note().midi+shift+octave}
 // Recorded piano and optional electronic tones share the same MIDI pitch.
 function scheduleSynthTone(midi,at,dur){
  const voice=$('soundStyle').value;
- if(voice==='piano')return SamplePiano.schedule(ctx,midi,at,dur,.72);
+ const destination=getPlaybackOutput();
+ if(voice==='piano')return SamplePiano.schedule(ctx,midi,at,dur,.72,destination);
  const fundamental=freq(midi);
  const options={
   classic:{partials:[['triangle',1,1],['sine',2,.12]],level:.145},
@@ -43,7 +72,7 @@ function scheduleSynthTone(midi,at,dur){
   organ:{partials:[['sine',1,1],['sine',2,.30],['sine',3,.12]],level:.135}
  };
  const spec=options[voice]||options.classic;
- const output=ctx.createGain();output.connect(ctx.destination);
+ const output=ctx.createGain();output.connect(destination);
  const end=at+Math.max(.11,dur);
  const attack=Math.min(.027,dur*.14),release=Math.min(.13,dur*.27);
  output.gain.setValueAtTime(.0001,at);
@@ -567,6 +596,6 @@ $('soundStyle').addEventListener('change',()=>{
 });
 
 function pauseSongAudio(){
- stopPhrase();stopMic();ctx=null;
+ stopPhrase();stopMic();playbackOutput=null;ctx=null;
  $('soundState').textContent='소리를 누르면 다시 연결됩니다.';
 }

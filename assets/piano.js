@@ -45,7 +45,7 @@
   const wanted=new Map(notes.map(midi=>{const a=anchorFor(midi);return [a.midi,a]}));
   await Promise.all(Array.from(wanted.values(),a=>load(ctx,a)));
  }
- function schedule(ctx,midi,at,duration,volume=1){
+ function schedule(ctx,midi,at,duration,volume=1,destination=ctx.destination){
   const anchor=anchorFor(midi),entry=state(ctx).buffers.get(anchor.midi);
   if(!entry)throw new Error('피아노 음원을 먼저 준비해 주세요.');
   const source=ctx.createBufferSource(),gain=ctx.createGain();
@@ -55,7 +55,7 @@
   source.buffer=entry.buffer;source.playbackRate.setValueAtTime(ratio,start);
   gain.gain.setValueAtTime(Math.max(.00001,Math.min(1,volume)*entry.normalization),start);
   gain.gain.setTargetAtTime(.00001,start+seconds, .025);
-  source.connect(gain);gain.connect(ctx.destination);
+  source.connect(gain);gain.connect(destination);
   source.onended=()=>{source.disconnect();gain.disconnect()};
   source.start(start);source.stop(start+seconds+.16);
   return {gain,oscs:[source]};

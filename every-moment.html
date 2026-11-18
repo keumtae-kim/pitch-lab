@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>모든 날, 모든 순간 · 음정 트레이너</title><link rel="stylesheet" href="assets/trainer.css?v=bd0fe2a35c47"></head><body>
+<html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>모든 날, 모든 순간 · 음정 트레이너</title><link rel="stylesheet" href="assets/trainer.css?v=0d20250ea194"></head><body>
 <nav id="practice-nav" aria-label="연습 도구 이동"><a href="./">← 연습 목록</a><span>모든 날, 모든 순간</span><a href="./aloha.html">아로하 →</a></nav>
 <header><h1>모든 날, 모든 순간 <span style="font-weight:400;color:#59718a">·</span> 음정 트레이너</h1></header>
 <main class="wrap">
@@ -91,11 +91,18 @@
 
 <p class="sub" style="font-size:10px;text-align:center"><a href="assets/piano/README.txt?v=20f37bcc1cfd">피아노 음원 · Alexander Holm · CC BY 3.0</a></p></main>
 <nav class="navDock" role="group" aria-label="음표 이동과 기준음 재생">
-<div class="dockHead"><span>한 음 / 구간 듣기</span><strong id="dockNote" aria-live="polite">A♯3</strong></div>
+<div class="dockHead">
+  <div class="song-volume">
+    <label for="songVolume">재생 음량</label>
+    <input id="songVolume" type="range" min="0" max="100" step="1" value="100" aria-valuetext="100%">
+    <span id="songVolumeValue" aria-hidden="true">100%</span>
+  </div>
+  <strong id="dockNote" aria-live="polite">A♯3</strong>
+</div>
 <button id="prev" title="이전 음으로 이동하고 기준음을 재생합니다">◀ 이전 음<br>듣기</button>
 <button id="play" class="primary" title="현재 음을 그대로 다시 재생합니다">♪ 현재 음<br>다시 듣기</button>
 <button id="next" title="다음 음으로 이동하고 기준음을 재생합니다">다음 음 ▶<br>듣기</button>
 <button type="button" id="quickDockPlay" class="primary" title="지정한 시작·끝 구간 듣기">▶ 구간<br>듣기</button>
 </nav>
 
-<script src="songs/catalog.js?v=771905e516f0"></script><script src="songs/every-moment.js?v=23ccf7d1af42"></script><script src="assets/vendor/vexflow-4.2.5.js?v=d632111c9dc0"></script><script src="assets/score-renderer.js?v=dd6a1cb692e2"></script><script src="assets/audio-session.js?v=767860063ac1"></script><script src="assets/piano.js?v=2aee5267ff90"></script><script src="assets/trainer.js?v=55e48412e68b"></script></body></html>
+<script src="songs/catalog.js?v=771905e516f0"></script><script src="songs/every-moment.js?v=23ccf7d1af42"></script><script src="assets/vendor/vexflow-4.2.5.js?v=d632111c9dc0"></script><script src="assets/score-renderer.js?v=dd6a1cb692e2"></script><script src="assets/audio-session.js?v=767860063ac1"></script><script src="assets/piano.js?v=66b8364b0341"></script><script src="assets/trainer.js?v=1fa818ae78e6"></script></body></html>
