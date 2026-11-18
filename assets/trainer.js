@@ -23,6 +23,7 @@ function getLyric(n){const key=String(n.id);return Object.prototype.hasOwnProper
 function saveLyrics(){try{localStorage.setItem(LYRIC_SAVE_KEY,JSON.stringify(lyricChanges));}catch(e){}}
 let notes=baseNotes.map(n=>({...n})); let current=SCORE_SONG.vocalStart,quickAnchor=SCORE_SONG.vocalStart,shift=0,octave=-SCORE_SONG.writtenOctaveOffset, ctx=null, track=null, media=null, analyzer=null, raf=null;
 let successSince=0, lastAdvance=0, lastDetected=null;
+const audioSession=PracticeAudio.create({onPause:pauseSongAudio});
 
 const midiName=m=>NAMES[((m%12)+12)%12]+(Math.floor(m/12)-1);
 const freq=m=>440*Math.pow(2,(m-69)/12);
@@ -66,14 +67,16 @@ function stopSingleTone(){
 }
 async function preparePiano(notes){
  if($('soundStyle').value!=='piano')return;
- if(!SamplePiano.ready(ctx,notes))$('soundState').textContent='피아노 음원 준비 중…';
- try{await SamplePiano.prepare(ctx,notes);$('soundState').textContent='피아노 준비됨'}catch(error){$('soundState').textContent='음원 로딩 실패 · 다시 눌러주세요.';throw error}
+ const context=ctx;
+ if(!SamplePiano.ready(context,notes))$('soundState').textContent='피아노 음원 준비 중…';
+ try{await SamplePiano.prepare(context,notes);if(ctx===context)$('soundState').textContent='피아노 준비됨'}catch(error){if(ctx===context)$('soundState').textContent='음원 로딩 실패 · 다시 눌러주세요.';throw error}
 }
+
 async function playTone(midi,ms=850){
  if(phrasePlaying)stopPhrase();stopSingleTone();const id=singleToneId;
  try{
-  ctx=ctx||new(window.AudioContext||window.webkitAudioContext)();
-  await ctx.resume();await preparePiano([midi]);
+  ctx=audioSession.get();
+  await audioSession.ensureRunning();await preparePiano([midi]);
   if(id!==singleToneId)return;
   singleVoice=scheduleSynthTone(midi,ctx.currentTime+.008,Math.max(.14,ms/1000));
  }catch(e){if(id===singleToneId)$('soundState').textContent='소리 재생 실패 · 다시 눌러주세요.'}
@@ -227,10 +230,23 @@ $('down').onclick=()=>{stopSingleTone();if(phrasePlaying)stopPhrase('키 변경�
 // YIN pitch estimator, 75~850 Hz with silence detection
 function yin(buf,rate){const rms=Math.sqrt(buf.reduce((s,x)=>s+x*x,0)/buf.length);if(rms<.012)return null;const tauMin=Math.floor(rate/850),tauMax=Math.min(Math.floor(rate/75),Math.floor(buf.length/2)-1),N=buf.length-tauMax;const diff=new Float32Array(tauMax+1);for(let t=1;t<=tauMax;t++){let sum=0;for(let j=0;j<N;j++){const d=buf[j]-buf[j+t];sum+=d*d}diff[t]=sum}let rolling=0,candidate=-1,best=1;for(let t=1;t<=tauMax;t++){rolling+=diff[t];diff[t]=rolling>0?diff[t]*t/rolling:1}for(let t=tauMin;t<=tauMax;t++){if(diff[t]<.16){while(t+1<=tauMax&&diff[t+1]<diff[t])t++;candidate=t;best=diff[t];break}}if(candidate<0){for(let t=tauMin;t<=tauMax;t++)if(diff[t]<best){best=diff[t];candidate=t}if(best>.30)return null}let refined=candidate;if(candidate>1&&candidate<tauMax){let x0=diff[candidate-1],x1=diff[candidate],x2=diff[candidate+1],den=2*(2*x1-x0-x2);if(Math.abs(den)>1e-9)refined+=(x0-x2)/den}const hz=rate/refined;return hz>=75&&hz<=850?{hz,rms,quality:Math.max(0,1-best)}:null}
 let yinBuffer=new Float32Array(4096), frames=[];
-async function startMic(){try{if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia)throw new Error('이 브라우저에서는 파일을 HTTPS/localhost에서 열어야 마이크를 사용할 수 있습니다.');media=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false}});ctx=ctx||new(window.AudioContext||window.webkitAudioContext)();await ctx.resume();analyzer=ctx.createAnalyser();analyzer.fftSize=4096;const source=ctx.createMediaStreamSource(media);source.connect(analyzer);$('micStart').disabled=true;$('micStop').disabled=false;$('micMsg').textContent='마이크 켜짐 · 기준음을 듣고 편하게 따라 불러보세요.';loop()}catch(e){$('micMsg').textContent='마이크를 켤 수 없습니다: '+e.message}}
+let micRequestId=0,micInput=null;
+async function startMic(){
+ const id=++micRequestId;
+ try{
+  if(!navigator.mediaDevices?.getUserMedia)throw new Error('이 브라우저에서는 마이크를 사용할 수 없습니다.');
+  const context=ctx=audioSession.get();await audioSession.ensureRunning();
+  if(id!==micRequestId||ctx!==context)return;
+  const stream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false}});
+  if(id!==micRequestId||ctx!==context||document.visibilityState==='hidden'){stream.getTracks().forEach(track=>track.stop());return}
+  media=stream;analyzer=context.createAnalyser();analyzer.fftSize=4096;micInput=context.createMediaStreamSource(media);micInput.connect(analyzer);
+  $('micStart').disabled=true;$('micStop').disabled=false;$('micMsg').textContent='마이크 켜짐 · 기준음을 듣고 편하게 따라 불러보세요.';loop();
+ }catch(error){if(id===micRequestId)$('micMsg').textContent='마이크를 켤 수 없습니다: '+error.message}
+}
+
 let lastSample=0;
 function loop(ts=0){if(!analyzer)return;raf=requestAnimationFrame(loop);if(ts-lastSample<100)return;lastSample=ts;analyzer.getFloatTimeDomainData(yinBuffer);const result=yin(yinBuffer,ctx.sampleRate);if(!result){$('heard').textContent='—';$('confidence').textContent='소리가 감지되면 표시됩니다';$('error').textContent='— 센트';$('judge').textContent='목이 편안한 음역에서 연습하세요';successSince=0;frames=[];return}frames.push(result.hz);if(frames.length>4)frames.shift();let fs=frames.slice().sort((a,b)=>a-b),hz=fs[Math.floor(fs.length/2)],raw=69+12*Math.log2(hz/440),heardMidi=Math.round(raw),cents=1200*Math.log2(hz/freq(targetMidi()));$('heard').textContent=midiName(heardMidi);$('confidence').textContent=`${hz.toFixed(1)}Hz · 추정 정확도 ${Math.round(result.quality*100)}%`;$('error').textContent=(cents>0?'+':'')+Math.round(cents)+' 센트';$('needle').style.left=(Math.max(1,Math.min(99,50+cents/2.1)))+'%';const good=Math.abs(cents)<=Number($('tolerance').value);$('judge').textContent=good?'목표 음정에 가깝습니다':'음이 '+(cents<0?'낮습니다':'높습니다');$('judge').className=good?'sub success':'sub caution';if(good){if(!successSince)successSince=Date.now();if($('autoNext').checked&&!phrasePlaying&&Date.now()-successSince>550&&Date.now()-lastAdvance>1400){lastAdvance=Date.now();go(current+1)}}else successSince=0}
-function stopMic(){if(raf)cancelAnimationFrame(raf);raf=null;if(media)media.getTracks().forEach(t=>t.stop());media=null;analyzer=null;$('micStart').disabled=false;$('micStop').disabled=true;$('micMsg').textContent='마이크 꺼짐'}
+function stopMic(){micRequestId++;if(raf)cancelAnimationFrame(raf);raf=null;media?.getTracks().forEach(track=>track.stop());media=null;micInput?.disconnect();micInput=null;analyzer=null;frames=[];successSince=0;$('micStart').disabled=false;$('micStop').disabled=true;$('micMsg').textContent='마이크 꺼짐'}
 $('micStart').onclick=startMic;$('micStop').onclick=stopMic;window.addEventListener('beforeunload',stopMic);
 
 // v4: Equal-sized, user-configurable ear-training chunks. Not the exact musical phrases.
@@ -380,8 +396,8 @@ async function playPhrase(range=null,kind='regular'){
  phrasePlaying=true;activePlayback={from,to,kind};playbackNote=null;
  phraseInfoMessage='음원 준비 중…';updatePhraseUI();
  try{
-  ctx=ctx||new(window.AudioContext||window.webkitAudioContext)();
-  await ctx.resume();
+  ctx=audioSession.get();
+  await audioSession.ensureRunning();
   await preparePiano(notes.slice(from,to+1).filter(n=>n.kind!=='spoken').map(n=>n.midi+shift+octave));
  }catch(e){if(token===phraseToken)stopPhrase('음원 로딩 실패 · 다시 재생해 주세요.');return;}
  if(token!==phraseToken)return;
@@ -462,4 +478,7 @@ $('soundStyle').addEventListener('change',()=>{
  playTone(targetMidi());
 });
 
-window.addEventListener("pagehide",()=>stopPhrase());
+function pauseSongAudio(){
+ stopPhrase();stopMic();ctx=null;
+ $('soundState').textContent='소리를 누르면 다시 연결됩니다.';
+}

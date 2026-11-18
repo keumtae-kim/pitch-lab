@@ -35,3 +35,9 @@ Source caveats: an omitted backing part is intentional, repeated source measure 
 
 - Every day, Every Moment / 모든 날, 모든 순간: Paul Kim, Ab major, quarter note = 67. The supplied 51 source bars expand to 58 performance bars (404 noteheads, 232 quarter-note beats). Source order is 1–36, 17–23, 37–51; the second ending sustains the last note of bar 23 into bar 37. Five source triplet groups become six after expanding the repeat, including the sixteenth-note triplets in bars 3 and 46. Practice tempos are 50/67/80. No source PDF or scan is included.
 - The catalog drives both the main list and next-song navigation. Each newly added song receives a separate lyric-edit storage key; the two earlier keys are preserved.
+
+## Audio interruptions
+
+`assets/audio-session.js` owns the foreground Web Audio lifecycle for the pitch tool and song trainers. On screen lock, tab backgrounding or pagehide, playback timers and microphone input are stopped and the old AudioContext is closed. Returning to the page does not autoplay or reopen the microphone; the next play action creates and unlocks a fresh context. Suspended and interrupted states are both resumed before scheduling notes. A bounded resume timeout discards a stuck context so the next tap can retry without a full reload. Late resume/sample-load/microphone-permission completions cannot restart a canceled practice session.
+
+Validation: `node tests/audio-session.cjs` and `node tests/piano.cjs`. Actual iOS lock/unlock behavior still needs an on-device check.

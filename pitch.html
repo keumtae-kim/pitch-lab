@@ -279,6 +279,7 @@
     </div>
     <p class="small" style="text-align:center"><a href="assets/piano/README.txt">피아노 음원 · Alexander Holm · CC BY 3.0</a></p>
   </main>
+<script src="assets/audio-session.js?v=767860063ac1"></script>
 <script src="assets/piano.js?v=2aee5267ff90"></script>
 <script>
 (()=>{'use strict';
@@ -291,26 +292,39 @@
   const nameOf=m=>names[(m%12+12)%12]+(Math.floor(m/12)-1);
   const korOf=m=>`${Math.floor(m/12)-3}옥 ${korean[(m%12+12)%12]}`;
   function parseNote(str){let s=str.trim().toUpperCase().replace(/♯/g,'#').replace(/♭/g,'B');let mat=/^([A-G])([#B]?)(-?\d)$/.exec(s);if(!mat)return null;let off={'C':0,'D':2,'E':4,'F':5,'G':7,'A':9,'B':11}[mat[1]];if(mat[2]==='#')off++;if(mat[2]==='B')off--;let m=(Number(mat[3])+1)*12+off;return m>=24&&m<=108?m:null}
-  const ctx=()=>{if(!audio)audio=new (window.AudioContext||window.webkitAudioContext)();if(audio.state==='suspended')audio.resume();return audio};
+  const audioSession=PracticeAudio.create({onPause:pausePracticeAudio});
+  const ctx=()=>{audio=audioSession.get();return audio};
   let voiceEpoch=0;
   function stopVoices(){voiceEpoch++;const now=audio?.currentTime||0;activeVoices.forEach(v=>{v.cancelled=true;clearTimeout(v.repeatTimer);try{v.gain?.gain.cancelScheduledValues(now);v.gain?.gain.setTargetAtTime(.0001,now,.025);v.oscs.forEach(o=>o.stop(now+.14))}catch(e){}});activeVoices=[]}
   async function preparePiano(notes){
+    const c=ctx();await audioSession.ensureRunning();
     if($('timbre').value!=='piano')return;
-    const c=ctx();if(!SamplePiano.ready(c,notes))$('pianoState').textContent='피아노 음원 준비 중…';
-    try{await SamplePiano.prepare(c,notes);$('pianoState').textContent='그랜드피아노 준비됨'}catch(error){$('pianoState').textContent='음원 로딩 실패 · 다시 눌러주세요.';throw error}
+    if(!SamplePiano.ready(c,notes))$('pianoState').textContent='피아노 음원 준비 중…';
+    try{await SamplePiano.prepare(c,notes);if(audio===c)$('pianoState').textContent='그랜드피아노 준비됨'}catch(error){if(audio===c)$('pianoState').textContent='음원 로딩 실패 · 다시 눌러주세요.';throw error}
   }
-  function playTone(m,duration=1.2){const c=ctx();const vol=Number($('volume').value)/100;const timbre=$('timbre').value;
-    if(timbre==='piano'){
-      const voice={gain:null,oscs:[],cancelled:false,repeatTimer:null};activeVoices.push(voice);
-      const start=()=>{if(voice.cancelled)return;Object.assign(voice,SamplePiano.schedule(c,m,c.currentTime+.008,duration===null?2.25:duration,vol));if(duration===null)voice.repeatTimer=setTimeout(start,2500)};
-      if(SamplePiano.ready(c,[m]))start();else preparePiano([m]).then(start).catch(()=>{voice.cancelled=true});
-      return voice;
-    }
-    const now=c.currentTime;const gain=c.createGain();gain.gain.value=.0001;gain.connect(c.destination);let partials=timbre==='pure'?[[1,1,'sine']]:[[1,.75,'sine'],[2,.15,'sine'],[3,.06,'sine']];let oscs=[];
-    partials.forEach(([mul,amp,type])=>{let o=c.createOscillator(),g=c.createGain();o.type=type;o.frequency.value=freqOf(m)*mul;g.gain.value=amp;o.connect(g);g.connect(gain);o.start(now);oscs.push(o)});
-    const level=Math.min(.8,vol*.68);gain.gain.setTargetAtTime(level,now,.012);
-    if(duration!==null){const end=now+duration;gain.gain.setTargetAtTime(.0001,end-.09,.035);oscs.forEach(o=>o.stop(end+.15))}
-    const voice={gain,oscs};activeVoices.push(voice);return voice;
+  function playTone(m,duration=1.2){
+    const c=ctx(),vol=Number($('volume').value)/100,timbre=$('timbre').value;
+    const voice={gain:null,oscs:[],cancelled:false,repeatTimer:null};activeVoices.push(voice);
+    const start=()=>{
+      if(voice.cancelled||audio!==c||c.state!=='running')return;
+      if(timbre==='piano'){
+        Object.assign(voice,SamplePiano.schedule(c,m,c.currentTime+.008,duration===null?2.25:duration,vol));
+        if(duration===null)voice.repeatTimer=setTimeout(start,2500);
+        return;
+      }
+      const now=c.currentTime,gain=c.createGain();gain.gain.value=.0001;gain.connect(c.destination);
+      const partials=timbre==='pure'?[[1,1,'sine']]:[[1,.75,'sine'],[2,.15,'sine'],[3,.06,'sine']],oscs=[];
+      partials.forEach(([mul,amp,type])=>{const o=c.createOscillator(),g=c.createGain();o.type=type;o.frequency.value=freqOf(m)*mul;g.gain.value=amp;o.connect(g);g.connect(gain);o.start(now);oscs.push(o)});
+      gain.gain.setTargetAtTime(Math.min(.8,vol*.68),now,.012);
+      if(duration!==null){const end=now+duration;gain.gain.setTargetAtTime(.0001,end-.09,.035);oscs.forEach(o=>o.stop(end+.15))}
+      Object.assign(voice,{gain,oscs});
+    };
+    audioSession.ensureRunning().then(async()=>{
+      if(voice.cancelled||audio!==c)return;
+      if(timbre==='piano'&&!SamplePiano.ready(c,[m]))await preparePiano([m]);
+      start();
+    }).catch(()=>{if(!voice.cancelled){voice.cancelled=true;$('pianoState').textContent='소리를 다시 눌러 연결해 주세요.'}});
+    return voice;
   }
   function choose(m){selected=m;$('selectedNote').textContent=nameOf(m);$('selectedKo').textContent=korOf(m);$('selectedHz').textContent=freqOf(m).toFixed(2)+' Hz';$('matchStatus').textContent='목표: '+nameOf(m);document.querySelectorAll('[data-note]').forEach(el=>el.classList.toggle('active',Number(el.dataset.note)===m));}
   function buildKeyboard(){const start=Number($('octaveRange').value),end=start+24,root=$('keyboard');root.replaceChildren();let whites=[];for(let m=start;m<=end;m++){if(![1,3,6,8,10].includes(m%12)){const b=document.createElement('button');b.className='white';b.dataset.note=m;b.type='button';b.title=nameOf(m)+' · '+korOf(m);b.innerHTML='<span>'+nameOf(m)+'</span>';b.addEventListener('click',()=>{stopVoices();held=false;$('holdOne').textContent='계속 듣기';choose(m);playTone(m,1.15)});root.appendChild(b);whites.push(m)}}
@@ -396,7 +410,26 @@
       }
       let midi=69+12*Math.log2(f/440),nearest=Math.round(midi),cents=(midi-nearest)*100;$('heardNote').textContent=nameOf(nearest);$('heardNote').classList.remove('faded');$('heardDesc').textContent=`${f.toFixed(1)} Hz · 음 중심에서 ${cents>=0?'+':''}${cents.toFixed(0)} cent`;let targetCents=1200*Math.log2(f/freqOf(selected));$('needle').style.left=(50+Math.max(-50,Math.min(50,targetCents/2)))+'%';if(Math.abs(targetCents)<=20)$('matchStatus').innerHTML='<span class="on">목표 '+nameOf(selected)+'에 가까워요!</span>';else $('matchStatus').textContent=`목표 ${nameOf(selected)}보다 ${Math.abs(targetCents).toFixed(0)} cent ${targetCents<0?'낮아요':'높아요'}`;prevFreq=f;
     }else{$('heardNote').textContent='—';$('heardNote').classList.add('faded');$('heardDesc').textContent=earTrial&&!earTrial.done?'숨이 아닌 목소리로 한 음을 내보세요.':'목소리를 1~2초 안정적으로 내보세요.';$('needle').style.left='50%';$('matchStatus').textContent=earTrial&&!earTrial.done?'청음 연습 중 · 결과는 첫 시도 후 공개됩니다.':'목표: '+nameOf(selected)} }
-  $('micToggle').addEventListener('click',async()=>{if(micStream){micStream.getTracks().forEach(t=>t.stop());micStream=null;analyser=null;micSource?.disconnect();micSource=null;clearInterval(micTimer);micTimer=null;earOnMicOff();showMicLevel(0,false);$('micToggle').textContent='마이크 켜기';$('micState').textContent='마이크 사용 안 함';$('heardNote').textContent='—';return}try{if(!navigator.mediaDevices?.getUserMedia)throw new Error('브라우저 보안 설정 때문에 마이크를 열 수 없습니다. localhost로 실행해 주세요.');const stream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false},video:false});let c=ctx();micStream=stream;micSource=c.createMediaStreamSource(stream);analyser=c.createAnalyser();analyser.fftSize=4096;micSource.connect(analyser);$('micToggle').textContent='■ 마이크 끄기';$('micState').textContent='마이크 측정 중';micTimer=setInterval(readMic,130);earOnMicOn()}catch(err){$('micState').textContent='사용 불가: '+err.message}});
+  let micRequestId=0;
+  function stopMic(){
+    micRequestId++;micStream?.getTracks().forEach(track=>track.stop());micStream=null;analyser=null;
+    micSource?.disconnect();micSource=null;clearInterval(micTimer);micTimer=null;
+    earOnMicOff();showMicLevel(0,false);$('micToggle').textContent='마이크 켜기';$('micState').textContent='마이크 사용 안 함';$('heardNote').textContent='—';
+  }
+  $('micToggle').addEventListener('click',async()=>{
+    if(micStream){stopMic();return}
+    const id=++micRequestId;
+    try{
+      if(!navigator.mediaDevices?.getUserMedia)throw new Error('이 브라우저에서는 마이크를 사용할 수 없습니다.');
+      const c=ctx();await audioSession.ensureRunning();
+      if(id!==micRequestId||audio!==c)return;
+      const stream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false},video:false});
+      if(id!==micRequestId||audio!==c||document.visibilityState==='hidden'){stream.getTracks().forEach(track=>track.stop());return}
+      micStream=stream;micSource=c.createMediaStreamSource(stream);analyser=c.createAnalyser();analyser.fftSize=4096;micSource.connect(analyser);
+      $('micToggle').textContent='■ 마이크 끄기';$('micState').textContent='마이크 측정 중';micTimer=setInterval(readMic,130);earOnMicOn();
+    }catch(error){if(id===micRequestId)$('micState').textContent='사용 불가: '+error.message}
+  });
+
 
   // ──────────────────────────────────────────────────────────────────────────
   // 음 이름 표시를 가린 단일음 재현·두 음 비교 (기존 건반/튜너와 독립적으로 작동)
@@ -883,7 +916,10 @@
     }
   });
   $('timbre').addEventListener('change',()=>{stopEarTrial();clearCmpPlayback();stopSeq();held=false;$('holdOne').textContent='계속 듣기';$('pianoState').textContent=$('timbre').value==='piano'?'실제 피아노 녹음':'전자음';});
-  window.addEventListener('pagehide',()=>{stopEarTrial();clearCmpPlayback();stopSeq();if(micStream)micStream.getTracks().forEach(t=>t.stop())});
+  function pausePracticeAudio(){
+    stopEarTrial();clearCmpPlayback();stopSeq();held=false;$('holdOne').textContent='계속 듣기';
+    stopMic();audio=null;$('pianoState').textContent='건반을 누르면 소리가 다시 연결됩니다.';
+  }
   buildRootOptions();buildJumpOptions();buildKeyboard();syncPattern();choose(Number($('scaleRoot').value));
 })();
 </script>
