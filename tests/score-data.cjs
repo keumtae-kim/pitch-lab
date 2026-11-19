@@ -7,6 +7,14 @@ for(const id of songIds){const song=JSON.parse(fs.readFileSync(path.join(__dirna
 
 const {fitNoteLanes,sharpNoteName}=require('../assets/score-renderer.js');
 assert.equal(sharpNoteName(56),'G♯3');assert.equal(sharpNoteName(61),'C♯4');
+const {scaleDegreeName}=require('../assets/score-renderer.js');
+assert.equal(scaleDegreeName({step:'D',octave:4,alter:0},62,'D'),'도');
+assert.equal(scaleDegreeName({step:'F',octave:4,alter:1},66,'D'),'미');
+assert.equal(scaleDegreeName({step:'A',octave:4,alter:0},69,'D'),'솔');
+assert.equal(scaleDegreeName({step:'G',octave:4,alter:1},68,'D'),'파♯');
+assert.equal(scaleDegreeName({step:'A',octave:4,alter:-1},68,'D'),'솔♭');
+assert.equal(scaleDegreeName({step:'B',octave:4,alter:-1},70,'Ab'),'레');
+assert.equal(scaleDegreeName({step:'F',octave:4,alter:1},65,'D'),'미♭'); // manually corrected F♯ to F
 for(const id of songIds){const song=JSON.parse(fs.readFileSync(path.join(__dirname,'../songs',id+'.json'),'utf8'));for(const width of [280,340,390,600,768,1046]){const renderer=new ScoreRenderer(song);for(const system of renderer.layout(width,song.notes,n=>n.lyric,-3).systems){const count=system.noteIds.length,anchors=Array.from({length:count},(_,i)=>(system.prefix+(i+.5)*(system.width-system.prefix)/Math.max(1,count))/system.width),layout=fitNoteLanes(anchors,anchors.map(()=>38),system.displayWidth,width<=600);assert.equal(layout.placements.length,count);assert(layout.runs.length<=2);for(let i=0;i<count;i++){const p=layout.placements[i];assert(p.left>=-.001&&p.left+p.width<=system.displayWidth+.001);if(i){const prev=layout.placements[i-1];assert(p.row>=prev.row);if(p.row===prev.row)assert(p.left>=prev.left+prev.width+2.99);}}}}}
 const stepped=fitNoteLanes(Array.from({length:10},(_,i)=>.29+i*.066),Array(10).fill(38),340,true);assert(stepped.runs.length>1);assert(stepped.placements[stepped.runs[1].from].left>340*.25);console.log('Sharp labels, viewport fitting and consecutive staggered button lanes passed');
 

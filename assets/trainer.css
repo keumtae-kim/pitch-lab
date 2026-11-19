@@ -271,3 +271,7 @@ header{padding:6px 12px 4px}header h1{font-size:18px}
 #songVolumeValue{text-align:right;font-variant-numeric:tabular-nums}
 #dockNote{white-space:nowrap}
 @media(max-width:600px){.song-volume input{height:30px}}
+
+#scoreLabelMode{min-height:26px;padding:3px 5px;border-radius:6px;font-size:11px}
+#lyricPanel[hidden],#selectedLyric[hidden],.scoreStacks[data-label-mode="pitch"] .token .lyric{display:none}
+@media(max-width:600px){#scoreLabelMode{min-height:30px}}

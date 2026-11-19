@@ -60,6 +60,14 @@ function spellPitch(pitch,midi,key,shift){
  const candidates=[...LETTERS].map(letter=>{const oct=Math.round((target-PC[letter])/12)-1,alt=target-(12*(oct+1)+PC[letter]);return {step:letter,octave:oct,alter:alt,weight:(alt===(KEY_ALTERS[newKey]?.[letter]||0)?0:2)+(letter===step?0:.3)+Math.abs(alt)*.1};}).filter(p=>Math.abs(p.alter)<=1);
  candidates.sort((a,b)=>a.weight-b.weight);return candidates[0];
 }
+function scaleDegreeName(pitch,midi,key){
+ // Keep the original spelling for relative names so transposition and octave
+ // changes cannot turn a raised degree into a different, lowered degree.
+ const spelled=spellPitch(pitch,midi,key,0);
+ const degree=mod(LETTERS.indexOf(spelled.step)-LETTERS.indexOf(key[0]),7);
+ const alteration=spelled.alter-(KEY_ALTERS[key]?.[spelled.step]||0);
+ return ['도','레','미','파','솔','라','시'][degree]+(alteration>0?'♯':'♭').repeat(Math.abs(alteration));
+}
 function transposeChord(label,key,shift){if(!shift)return label;const names=transposedKey(key,shift).includes('b')?['C','Db','D','Eb','E','F','Gb','G','Ab','A','Bb','B']:['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];return label.replace(/(^|\/)([A-G])([#b]?)/g,(_,prefix,letter,acc)=>prefix+names[mod(PC[letter]+(acc==='#'?1:acc==='b'?-1:0)+shift,12)]);}
 function textWidth(text,size=12){if(typeof document==='undefined')return [...text].reduce((w,c)=>w+(c.charCodeAt(0)>255?size:size*.62),0);const c=textWidth.context||(textWidth.context=document.createElement('canvas').getContext('2d'));c.font=`600 ${size}px system-ui, sans-serif`;return c.measureText(text).width;}
 const SIGNATURE_SCALE=.8;
@@ -136,5 +144,5 @@ class ScoreRenderer{
  }
  highlight(host,{currentId,startId,endId,playingId,notes}){const index=new Map(notes.map((n,i)=>[n.id,i]));for(const group of host.querySelectorAll('.native-note[data-note-id]')){const id=Number(group.dataset.noteId);group.classList.toggle('is-selected',id===currentId);group.classList.toggle('is-playing',id===playingId);group.classList.toggle('is-start',id===startId);group.classList.toggle('is-end',id===endId);group.classList.toggle('is-range',index.get(id)>=index.get(startId)&&index.get(id)<=index.get(endId));}}
 }
-const api={ScoreRenderer,validateSong,spellPitch,transposedKey,transposeChord,sharpNoteName,fitNoteLanes};if(typeof module!=='undefined')module.exports=api;Object.assign(root,api);
+const api={ScoreRenderer,validateSong,spellPitch,scaleDegreeName,transposedKey,transposeChord,sharpNoteName,fitNoteLanes};if(typeof module!=='undefined')module.exports=api;Object.assign(root,api);
 })(typeof window!=='undefined'?window:globalThis);
