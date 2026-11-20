@@ -6,6 +6,10 @@ const PC={C:0,D:2,E:4,F:5,G:7,A:9,B:11};
 const KEY_ALTERS={C:{},D:{F:1,C:1},E:{F:1,C:1,G:1,D:1},G:{F:1},A:{F:1,C:1,G:1},B:{F:1,C:1,G:1,D:1,A:1},F:{B:-1},Bb:{B:-1,E:-1},Eb:{B:-1,E:-1,A:-1},Ab:{B:-1,E:-1,A:-1,D:-1},Db:{B:-1,E:-1,A:-1,D:-1,G:-1},'F#':{F:1,C:1,G:1,D:1,A:1,E:1}};
 const mod=(a,b)=>(a%b+b)%b;
 function sharpNoteName(midi){const names=['C','C♯','D','D♯','E','F','F♯','G','G♯','A','A♯','B'];return names[mod(midi,12)]+(Math.floor(midi/12)-1);}
+function fixedDoName(midi){
+ const names=['도','도♯','레','레♯','미','파','파♯','솔','솔♯','라','라♯','시'];
+ return names[mod(midi,12)];
+}
 // Partition into consecutive runs, then keep each run near its score anchors.
 // Later runs retain their horizontal position instead of wrapping to the left.
 function fitNoteLanes(anchors,minimumWidths,availableWidth,touch=false){
@@ -144,5 +148,5 @@ class ScoreRenderer{
  }
  highlight(host,{currentId,startId,endId,playingId,notes}){const index=new Map(notes.map((n,i)=>[n.id,i]));for(const group of host.querySelectorAll('.native-note[data-note-id]')){const id=Number(group.dataset.noteId);group.classList.toggle('is-selected',id===currentId);group.classList.toggle('is-playing',id===playingId);group.classList.toggle('is-start',id===startId);group.classList.toggle('is-end',id===endId);group.classList.toggle('is-range',index.get(id)>=index.get(startId)&&index.get(id)<=index.get(endId));}}
 }
-const api={ScoreRenderer,validateSong,spellPitch,scaleDegreeName,transposedKey,transposeChord,sharpNoteName,fitNoteLanes};if(typeof module!=='undefined')module.exports=api;Object.assign(root,api);
+const api={ScoreRenderer,validateSong,spellPitch,fixedDoName,scaleDegreeName,transposedKey,transposeChord,sharpNoteName,fitNoteLanes};if(typeof module!=='undefined')module.exports=api;Object.assign(root,api);
 })(typeof window!=='undefined'?window:globalThis);

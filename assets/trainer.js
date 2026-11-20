@@ -55,16 +55,18 @@ function getPlaybackOutput(){
 
 const midiName=m=>NAMES[((m%12)+12)%12]+(Math.floor(m/12)-1);
 const freq=m=>440*Math.pow(2,(m-69)/12);
-function noteNameFor(n,offset=octave){return n.kind==='spoken'?'말':sharpNoteName(n.midi+shift+offset);}
+function practiceMidi(n,offset=octave){return n.midi+shift+offset;}
+function noteNameFor(n,offset=octave){return n.kind==='spoken'?'말':sharpNoteName(practiceMidi(n,offset));}
 function scoreLabelFor(note){
  if(scoreLabelMode.value==='lyrics')return getLyric(note);
  if(scoreLabelMode.value==='pitch'||note.kind==='spoken')return noteNameFor(note);
+ if(scoreLabelMode.value==='fixed-do')return fixedDoName(practiceMidi(note));
  return scaleDegreeName(note.pitch,note.midi,SCORE_SONG.key);
 }
 
 $('oct').value=String(octave);
 function note(){return notes[current]}
-function targetMidi(){return note().midi+shift+octave}
+function targetMidi(){return practiceMidi(note());}
 // Recorded piano and optional electronic tones share the same MIDI pitch.
 function scheduleSynthTone(midi,at,dur){
  const voice=$('soundStyle').value;
@@ -151,7 +153,7 @@ try{
  const saved=JSON.parse(localStorage.getItem(scoreViewKey)||'{}');
  if([2,4,'all'].includes(saved.lines))$('scoreLineCount').value=String(saved.lines);
  if(saved.buttons===false)$('scoreNoteButtons').checked=false;
- if(['lyrics','pitch','solfege'].includes(saved.label))scoreLabelMode.value=saved.label;
+ if([...scoreLabelMode.options].some(option=>option.value===saved.label))scoreLabelMode.value=saved.label;
 }catch(error){}
 function isFullScore(){return $('scoreLineCount').value==='all';}
 function scoreViewCount(){return Number($('scoreLineCount').value);}
@@ -526,7 +528,7 @@ async function playPhrase(range=null,kind='regular'){
  try{
   ctx=audioSession.get();
   await audioSession.ensureRunning();
-  await preparePiano(notes.slice(from,to+1).filter(n=>n.kind!=='spoken').map(n=>n.midi+shift+octave));
+  await preparePiano(notes.slice(from,to+1).filter(n=>n.kind!=='spoken').map(n=>practiceMidi(n)));
  }catch(e){if(token===phraseToken)stopPhrase('음원 로딩 실패 · 다시 재생해 주세요.');return;}
  if(token!==phraseToken)return;
  phrasePlaying=true;activePlayback={from,to,kind};playbackNote=null;phraseInfoMessage=kind==='quick'?'선택한 음부터 연속 재생 중입니다.':'구간 재생 중 · 현재 음이 순서대로 표시됩니다. 따라 부르기 전에 먼저 들어보세요.';
@@ -542,7 +544,7 @@ async function playPhrase(range=null,kind='regular'){
   if((i===from||!n.tied)&&n.kind!=='spoken'){
    let held=n.beats||1;
    for(let j=i+1;j<=to&&notes[j].tied;j++)held+=notes[j].beats||1;
-   schedulePhraseTone(n.midi+shift+octave,startAt+onset,unit*held*.96);
+   schedulePhraseTone(practiceMidi(n),startAt+onset,unit*held*.96);
   }
   const atMs=onset*1000;
   phraseTimers.push(setTimeout(()=>{

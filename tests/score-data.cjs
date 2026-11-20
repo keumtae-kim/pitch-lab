@@ -7,7 +7,12 @@ for(const id of songIds){const song=JSON.parse(fs.readFileSync(path.join(__dirna
 
 const {fitNoteLanes,sharpNoteName}=require('../assets/score-renderer.js');
 assert.equal(sharpNoteName(56),'G♯3');assert.equal(sharpNoteName(61),'C♯4');
-const {scaleDegreeName}=require('../assets/score-renderer.js');
+const {fixedDoName,scaleDegreeName}=require('../assets/score-renderer.js');
+assert.deepEqual(Array.from({length:12},(_,i)=>fixedDoName(60+i)),
+ ['도','도♯','레','레♯','미','파','파♯','솔','솔♯','라','라♯','시']);
+assert.equal(fixedDoName(59),'시'); // B3, including the original opening pitch of 봄봄봄
+assert.equal(fixedDoName(59-3),'솔♯');
+assert.equal(fixedDoName(57),'라'); // A3, the original opening vocal pitch of 아로하
 assert.equal(scaleDegreeName({step:'D',octave:4,alter:0},62,'D'),'도');
 assert.equal(scaleDegreeName({step:'F',octave:4,alter:1},66,'D'),'미');
 assert.equal(scaleDegreeName({step:'A',octave:4,alter:0},69,'D'),'솔');
