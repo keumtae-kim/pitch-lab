@@ -37,3 +37,18 @@ assert.deepEqual(every.practiceTempos,[50,67,80]);console.log('Every Moment: rev
 
 for(const note of every.notes){assert.equal(12*(note.pitch.octave+1)+{C:0,D:2,E:4,F:5,G:7,A:9,B:11}[note.pitch.step]+note.pitch.alter,note.midi);}
 assert.deepEqual(every.measures[2].chords.map(c=>c.beat),[0,2]);
+
+const firefly=JSON.parse(fs.readFileSync(path.join(__dirname,'../songs/firefly.json'),'utf8'));
+assert.equal(firefly.notes[firefly.vocalStart].midi-firefly.writtenOctaveOffset,52);
+assert.equal(firefly.notes[135].midi,firefly.notes[firefly.vocalStart].midi+12);
+assert.deepEqual(firefly.measures.map(m=>m.sourceNumber),Array.from({length:66},(_,i)=>i+1));
+assert.deepEqual(firefly.measures.slice(-3).map(m=>m.meter),[[4,4],[2,4],[4,4]]);
+assert.deepEqual(firefly.measures[64].events.map(e=>[e.beats,e.tied]),[[2,true]]);
+for(const [i,note] of firefly.notes.entries()){
+ if(!note.tied)continue;
+ assert.equal(note.midi,firefly.notes[i-1].midi);
+ assert.equal(note.leadRest,0);
+ assert.equal(note.lyric,'');
+}
+assert.equal(firefly.measures.flatMap(m=>m.events).filter(e=>e.notation.tuplet===3).length,30);
+console.log('Firefly: E3 vocal entry, octave rise, ties, triplets and 2/4 ending passed');
