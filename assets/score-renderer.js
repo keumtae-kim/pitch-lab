@@ -2,8 +2,10 @@
 (function(root){
 'use strict';
 const LETTERS='CDEFGAB',NATURAL=[0,2,4,5,7,9,11],KEYS=['C','Db','D','Eb','E','F','F#','G','Ab','A','Bb','B'];
+const MINOR_KEYS=['Cm','C#m','Dm','Ebm','Em','Fm','F#m','Gm','G#m','Am','Bbm','Bm'];
+const VOCAL_PART_LABELS={male:'남성',female:'여성',both:'함께'};
 const PC={C:0,D:2,E:4,F:5,G:7,A:9,B:11};
-const KEY_ALTERS={C:{},D:{F:1,C:1},E:{F:1,C:1,G:1,D:1},G:{F:1},A:{F:1,C:1,G:1},B:{F:1,C:1,G:1,D:1,A:1},F:{B:-1},Bb:{B:-1,E:-1},Eb:{B:-1,E:-1,A:-1},Ab:{B:-1,E:-1,A:-1,D:-1},Db:{B:-1,E:-1,A:-1,D:-1,G:-1},'F#':{F:1,C:1,G:1,D:1,A:1,E:1}};
+const KEY_ALTERS={C:{},D:{F:1,C:1},E:{F:1,C:1,G:1,D:1},G:{F:1},A:{F:1,C:1,G:1},B:{F:1,C:1,G:1,D:1,A:1},F:{B:-1},Bb:{B:-1,E:-1},Eb:{B:-1,E:-1,A:-1},Ab:{B:-1,E:-1,A:-1,D:-1},Db:{B:-1,E:-1,A:-1,D:-1,G:-1},Gb:{B:-1,E:-1,A:-1,D:-1,G:-1,C:-1},'F#':{F:1,C:1,G:1,D:1,A:1,E:1}};
 const mod=(a,b)=>(a%b+b)%b;
 function sharpNoteName(midi){const names=['C','C♯','D','D♯','E','F','F♯','G','G♯','A','A♯','B'];return names[mod(midi,12)]+(Math.floor(midi/12)-1);}
 function fixedDoName(midi){
@@ -53,7 +55,14 @@ function fitNoteLanes(anchors,minimumWidths,availableWidth,touch=false){
  return {placements,runs};
 }
 function tonic(key){return mod(PC[key[0]]+(key[1]==='#'?1:key[1]==='b'?-1:0),12);}
-function transposedKey(key,shift){return KEYS[mod(tonic(key)+shift,12)];}
+function transposedKey(key,shift){return (key.endsWith('m')?MINOR_KEYS:KEYS)[mod(tonic(key)+shift,12)];}
+function keyAlterations(key){
+ if(!key.endsWith('m'))return KEY_ALTERS[key];
+ const relativeLetter=LETTERS[mod(LETTERS.indexOf(key[0])+2,7)];
+ const difference=mod(tonic(key)+3-PC[relativeLetter]+6,12)-6;
+ const relativeKey=relativeLetter+(difference===1?'#':difference===-1?'b':'');
+ return KEY_ALTERS[relativeKey];
+}
 function spellPitch(pitch,midi,key,shift){
  const newKey=transposedKey(key,shift),delta=LETTERS.indexOf(newKey[0])-LETTERS.indexOf(key[0]);
  const step=LETTERS[mod(LETTERS.indexOf(pitch.step)+delta,7)],natural=PC[step],target=midi+shift;
@@ -61,7 +70,8 @@ function spellPitch(pitch,midi,key,shift){
  const originalMidi=12*(pitch.octave+1)+PC[pitch.step]+pitch.alter;
  if((!shift&&midi===originalMidi)||Math.abs(alter)<=1)return {step,octave,alter};
  // Prefer a readable enharmonic spelling to a double accidental after transposition.
- const candidates=[...LETTERS].map(letter=>{const oct=Math.round((target-PC[letter])/12)-1,alt=target-(12*(oct+1)+PC[letter]);return {step:letter,octave:oct,alter:alt,weight:(alt===(KEY_ALTERS[newKey]?.[letter]||0)?0:2)+(letter===step?0:.3)+Math.abs(alt)*.1};}).filter(p=>Math.abs(p.alter)<=1);
+ const alters=keyAlterations(newKey);
+ const candidates=[...LETTERS].map(letter=>{const oct=Math.round((target-PC[letter])/12)-1,alt=target-(12*(oct+1)+PC[letter]);return {step:letter,octave:oct,alter:alt,weight:(alt===(alters?.[letter]||0)?0:2)+(letter===step?0:.3)+Math.abs(alt)*.1};}).filter(p=>Math.abs(p.alter)<=1);
  candidates.sort((a,b)=>a.weight-b.weight);return candidates[0];
 }
 function scaleDegreeName(pitch,midi,key){
@@ -69,7 +79,7 @@ function scaleDegreeName(pitch,midi,key){
  // changes cannot turn a raised degree into a different, lowered degree.
  const spelled=spellPitch(pitch,midi,key,0);
  const degree=mod(LETTERS.indexOf(spelled.step)-LETTERS.indexOf(key[0]),7);
- const alteration=spelled.alter-(KEY_ALTERS[key]?.[spelled.step]||0);
+ const alteration=spelled.alter-(keyAlterations(key)?.[spelled.step]||0);
  return ['도','레','미','파','솔','라','시'][degree]+(alteration>0?'♯':'♭').repeat(Math.abs(alteration));
 }
 function transposeChord(label,key,shift){if(!shift)return label;const names=transposedKey(key,shift).includes('b')?['C','Db','D','Eb','E','F','Gb','G','Ab','A','Bb','B']:['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];return label.replace(/(^|\/)([A-G])([#b]?)/g,(_,prefix,letter,acc)=>prefix+names[mod(PC[letter]+(acc==='#'?1:acc==='b'?-1:0)+shift,12)]);}
@@ -108,7 +118,7 @@ class ScoreRenderer{
   const old=this.cache.get(host);if(old?.signature===signature){this.highlight(host,options);return old;}
   const VF=root.Vex?.Flow;if(!VF)throw Error('악보 렌더러를 불러오지 못했습니다. 새로고침해 주세요.');
   host.replaceChildren();const renderer=new VF.Renderer(host,VF.Renderer.Backends.SVG);renderer.resize(system.width,230);const ctx=renderer.getContext();ctx.setFont('Arial',12);const svg=host.querySelector('svg');svg.classList.add('native-score');svg.setAttribute('role','group');svg.setAttribute('aria-label',`${system.label}, ${system.firstMeasure}~${system.lastMeasure}마디`);
-  const key=transposedKey(this.song.key,shift);let cursor=4;const built=[],anchors=new Map(),measureInfo=[];let lastMeter='';
+  const key=transposedKey(this.song.key,shift),keyAlters=keyAlterations(key);let cursor=4;const built=[],anchors=new Map(),measureInfo=[];let lastMeter='';
   for(let mi=0;mi<system.measures.length;mi++){
    const spec=system.measures[mi],m=spec.measure,first=mi===0,staveWidth=spec.width+(first?system.prefix:0);const stave=new VF.Stave(cursor,35,staveWidth);
    const meter=m.meter.join('/');addCompactSignatures(stave,first?key:null,first||meter!==lastMeter?meter:null,octave===-12?'8vb':octave===12?'8va':undefined);lastMeter=meter;
@@ -116,9 +126,9 @@ class ScoreRenderer{
    for(const group of [...svg.children].slice(previousChildren)){if(group.matches('.vf-clef,.vf-keysignature,.vf-timesignature')){group.classList.add('compact-signature');group.setAttribute('transform',`translate(${cursor} 0) scale(${SIGNATURE_SCALE} 1) translate(${-cursor} 0)`);}}
    stave.setNoteStartX(noteStart);
    const accidentals={};const entry=[];
-   for(const e of m.events){const model=lookup.get(e.noteId);const p=e.kind==='note'?spellPitch(e.pitch,model.midi,this.song.key,shift):{step:'B',octave:4,alter:0};const keyString=`${p.step.toLowerCase()}/${p.octave}${e.spoken?'/x':''}`;
+   for(const e of m.events){const model=lookup.get(e.noteId);const p=e.spoken?e.pitch:e.kind==='note'?spellPitch(e.pitch,model.midi,this.song.key,shift):{step:'B',octave:4,alter:0};const keyString=`${p.step.toLowerCase()}/${p.octave}${e.spoken?'/x':''}`;
     const note=new VF.StaveNote({clef:'treble',keys:[keyString],duration:e.notation.value+'d'.repeat(e.notation.dots)+(e.kind==='rest'?'r':''),auto_stem:true});
-    if(e.kind==='note'){const accidentalKey=p.step+p.octave;const previous=accidentals[accidentalKey]??(KEY_ALTERS[key]?.[p.step]||0);if(p.alter!==previous&&!e.tied){note.addModifier(new VF.Accidental(p.alter===0?'n':p.alter===1?'#':p.alter===-1?'b':p.alter===2?'##':'bb'),0);}accidentals[accidentalKey]=p.alter;}
+    if(e.kind==='note'&&!e.spoken){const accidentalKey=p.step+p.octave;const previous=accidentals[accidentalKey]??(keyAlters?.[p.step]||0);if(p.alter!==previous&&!e.tied){note.addModifier(new VF.Accidental(p.alter===0?'n':p.alter===1?'#':p.alter===-1?'b':p.alter===2?'##':'bb'),0);}accidentals[accidentalKey]=p.alter;}
     note.setStave(stave).setContext(ctx);
     for(let d=0;d<e.notation.dots;d++)VF.Dot.buildAndAttach([note],{all:true});
     entry.push({event:e,note,model,pitch:p,stave,system:system.index});
@@ -138,9 +148,10 @@ class ScoreRenderer{
   const namespace='http://www.w3.org/2000/svg';const addText=(text,x,y,className)=>{const t=document.createElementNS(namespace,'text');t.textContent=text;t.setAttribute('x',x);t.setAttribute('y',y);t.setAttribute('class',className);t.setAttribute('stroke','none');svg.append(t);return t;};
   const glyphBounds=svg.getBBox();const chordY=Math.min(52,glyphBounds.y-6);const lyricY=Math.max(135,glyphBounds.y+glyphBounds.height+18);
   for(const info of measureInfo){addText(String(info.m.sourceNumber||'못갖춘마디'),info.start+4,chordY-17,'measure-number');for(const chord of info.m.chords){const near=info.entry.reduce((best,item)=>Math.abs(item.event.beat-chord.beat)<Math.abs(best.event.beat-chord.beat)?item:best,info.entry[0]);const t=addText(transposeChord(chord.label,this.song.key,shift),near.x,chordY,'chord-label');t.setAttribute('text-anchor','middle');}}
-  for(const item of built){if(item.event.kind!=='note')continue;const id=item.event.noteId,label=lyric(item.model);if(label)addText(label,item.x,lyricY,'score-lyric').setAttribute('text-anchor','middle');
+  for(const item of built){if(item.event.kind!=='note')continue;const id=item.event.noteId,label=lyric(item.model),part=item.model.vocalPart;
+   if(label){const text=addText(label,item.x,lyricY,'score-lyric');text.setAttribute('text-anchor','middle');if(part)text.dataset.vocalPart=part;}
    const center=anchors.get(id);const mark=document.createElementNS(namespace,'rect');mark.setAttribute('x',center.x-13);mark.setAttribute('y',center.y-11);mark.setAttribute('width',26);mark.setAttribute('height',22);mark.setAttribute('rx',6);mark.setAttribute('class','note-highlight');item.group.prepend(mark);
-   const hit=document.createElementNS(namespace,'rect');hit.setAttribute('x',center.x-17);hit.setAttribute('y',Math.min(center.y-22,65));hit.setAttribute('width',34);hit.setAttribute('height',Math.max(44,lyricY-Math.min(center.y-22,65)+6));hit.setAttribute('fill','transparent');hit.setAttribute('stroke','none');hit.setAttribute('class','note-hit');hit.setAttribute('tabindex','0');hit.setAttribute('role','button');hit.setAttribute('aria-label',`${notes.indexOf(item.model)+1}번 ${label||'음표'} 선택`);hit.dataset.noteId=String(id);hit.addEventListener('click',()=>onPick(id,false));hit.addEventListener('contextmenu',e=>{e.preventDefault();onPick(id,true);});hit.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();onPick(id,e.shiftKey);}});svg.append(hit);
+   const hit=document.createElementNS(namespace,'rect');hit.setAttribute('x',center.x-17);hit.setAttribute('y',Math.min(center.y-22,65));hit.setAttribute('width',34);hit.setAttribute('height',Math.max(44,lyricY-Math.min(center.y-22,65)+6));hit.setAttribute('fill','transparent');hit.setAttribute('stroke','none');hit.setAttribute('class','note-hit');hit.setAttribute('tabindex','0');hit.setAttribute('role','button');hit.setAttribute('aria-label',`${notes.indexOf(item.model)+1}번 ${part?VOCAL_PART_LABELS[part]+' ':''}${label||'음표'} 선택`);hit.dataset.noteId=String(id);hit.addEventListener('click',()=>onPick(id,false));hit.addEventListener('contextmenu',e=>{e.preventDefault();onPick(id,true);});hit.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();onPick(id,e.shiftKey);}});svg.append(hit);
   }
   const bounds=svg.getBBox(),top=Math.floor(Math.min(bounds.y,0))-3,bottom=Math.ceil(Math.max(bounds.y+bounds.height,lyricY+8));const displayWidth=system.displayWidth,scale=displayWidth/system.width,height=(bottom-top)*scale;svg.setAttribute('viewBox',`0 ${top} ${system.width} ${bottom-top}`);svg.setAttribute('height',height);svg.setAttribute('width',displayWidth);svg.style.height=height+'px';svg.style.width=displayWidth+'px';host.style.width=displayWidth+'px';host.style.height=height+'px';
   const displayAnchors=new Map([...anchors].map(([id,a])=>[id,{x:a.x*scale,y:a.y*scale}]));
@@ -148,5 +159,5 @@ class ScoreRenderer{
  }
  highlight(host,{currentId,startId,endId,playingId,notes}){const index=new Map(notes.map((n,i)=>[n.id,i]));for(const group of host.querySelectorAll('.native-note[data-note-id]')){const id=Number(group.dataset.noteId);group.classList.toggle('is-selected',id===currentId);group.classList.toggle('is-playing',id===playingId);group.classList.toggle('is-start',id===startId);group.classList.toggle('is-end',id===endId);group.classList.toggle('is-range',index.get(id)>=index.get(startId)&&index.get(id)<=index.get(endId));}}
 }
-const api={ScoreRenderer,validateSong,spellPitch,fixedDoName,scaleDegreeName,transposedKey,transposeChord,sharpNoteName,fitNoteLanes};if(typeof module!=='undefined')module.exports=api;Object.assign(root,api);
+const api={ScoreRenderer,validateSong,spellPitch,fixedDoName,scaleDegreeName,transposedKey,transposeChord,sharpNoteName,fitNoteLanes,VOCAL_PART_LABELS};if(typeof module!=='undefined')module.exports=api;Object.assign(root,api);
 })(typeof window!=='undefined'?window:globalThis);

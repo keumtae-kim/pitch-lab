@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>나는 반딧불 · 음정 트레이너</title><link rel="stylesheet" href="assets/trainer.css?v=fc6860435b1d"></head><body>
+<html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>나는 반딧불 · 음정 트레이너</title><link rel="stylesheet" href="assets/trainer.css?v=48a1858e6ef1"></head><body>
 <nav id="practice-nav" aria-label="연습 도구 이동"><a href="./">← 연습 목록</a><span>나는 반딧불</span><a href="./aloha.html">아로하 →</a></nav>
 <header><h1>나는 반딧불 <span style="font-weight:400;color:#59718a">·</span> 음정 트레이너</h1></header>
 <main class="wrap">
@@ -29,6 +29,7 @@
   <div class="scorePagingInfo" aria-live="polite"><strong id="scorePageTitle">악보</strong><label class="score-count-label">구간 <select id="scoreSection" aria-label="연습 구간으로 이동"></select></label><label class="score-count-label" for="scoreLineCount">보기 <select id="scoreLineCount" aria-label="악보 보기 방식"><option value="2" selected>2줄</option><option value="4">4줄</option><option value="all">전체 보기</option></select></label><label class="score-count-label" for="scoreLabelMode">표기 <select id="scoreLabelMode"><option value="lyrics" selected>가사</option><option value="pitch">음이름</option><option value="fixed-do">고정도</option><option value="solfege">이동도</option></select></label><label class="score-notes-label"><input id="scoreNoteButtons" type="checkbox" checked>음표 버튼</label></div>
   <button type="button" id="scoreNext" title="보이는 악보를 한 줄 뒤로 이동 (재생 시작점 유지)">다음 악보 ▶</button>
 </div>
+<div id="vocalPartLegend" class="vocal-part-legend" role="group" aria-label="듀엣 파트" hidden></div>
 <div class="scoreStacks" id="scoreStacks" aria-label="악보"></div>
 <template id="scoreLineTemplate">
   <div class="scoreLine">
@@ -54,7 +55,7 @@
 
 </div>
 </section>
-<section class="card"><div class="notewrap"><div><div class="label">지금 따라 부를 음</div><div class="bigNote" id="noteName">F3</div><div class="noteLyricPreview" id="selectedLyric"></div><div class="status" id="noteDesc">기준음을 먼저 듣고, 마이크로 따라 부르세요.</div></div></div>
+<section class="card"><div class="notewrap"><div><div class="label">지금 따라 부를 음</div><div class="bigNote" id="noteName">E3</div><span id="selectedVocalPart" class="vocal-part-badge" hidden></span><div class="noteLyricPreview" id="selectedLyric"></div><div class="status" id="noteDesc">기준음을 먼저 듣고, 마이크로 따라 부르세요.</div></div></div>
 <div class="toolbar" style="margin-top:18px"><div class="group"><span class="label">현재 음표 보정</span><button id="nDown" class="tiny">♭ −1</button><button id="nUp" class="tiny">♯ +1</button></div><div class="group"><span class="label">맞으면 자동으로 다음 음</span><input id="autoNext" type="checkbox"><span class="sub">허용오차</span><select id="tolerance"><option value="20">±20센트</option><option value="30" selected>±30센트</option><option value="50">±50센트</option></select></div></div><div class="progress-track" style="margin-top:14px"><div class="progress" id="progress"></div></div></section>
 <details class="extraPractice"><summary>추가 설정</summary><div class="tools score-edit-tools"><input type="checkbox" id="addToggle" hidden><button class="tiny" id="resetCorrections">음표 수정 초기화</button></div>
 <section class="card phraseCard" id="phrasePanel" aria-label="짧은 구간 멜로디 연습">
@@ -105,4 +106,4 @@
 <button type="button" id="quickDockPlay" class="primary" title="지정한 시작·끝 구간 듣기">▶ 구간<br>듣기</button>
 </nav>
 
-<script src="songs/catalog.js?v=da7a6be198f8"></script><script src="songs/firefly.js?v=d1516ad34bba"></script><script src="assets/vendor/vexflow-4.2.5.js?v=d632111c9dc0"></script><script src="assets/score-renderer.js?v=d35173009d3c"></script><script src="assets/audio-session.js?v=767860063ac1"></script><script src="assets/piano.js?v=66b8364b0341"></script><script src="assets/trainer.js?v=3c3279aca9b5"></script></body></html>
+<script src="songs/catalog.js?v=d57bb1eaa3dd"></script><script src="songs/firefly.js?v=d1516ad34bba"></script><script src="assets/vendor/vexflow-4.2.5.js?v=d632111c9dc0"></script><script src="assets/score-renderer.js?v=fe1e0bfc0c2e"></script><script src="assets/audio-session.js?v=767860063ac1"></script><script src="assets/piano.js?v=66b8364b0341"></script><script src="assets/trainer.js?v=3d957b8ce1a9"></script></body></html>

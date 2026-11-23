@@ -14,7 +14,7 @@ for(const song of songs){
 const catalog=songs.map(({id,title,artist})=>({id,title,artist,url:id+'.html'}));
 fs.writeFileSync(path.join(root,'songs','catalog.js'),'window.SCORE_CATALOG='+JSON.stringify(catalog)+';\n');
 for(const song of songs){
- const page=template.replaceAll('__SONG_TITLE__',escape(song.title)).replaceAll('__SONG_ID__',song.id).replaceAll('__NOTE_COUNT__',String(song.notes.length)).replaceAll('__START_NOTE__',sharpNoteName(song.notes[song.vocalStart].midi-song.writtenOctaveOffset));
+ const page=template.replaceAll('__SONG_TITLE__',escape(song.title)).replaceAll('__SONG_ID__',song.id).replaceAll('__NOTE_COUNT__',String(song.notes.length)).replaceAll('__START_NOTE__',song.notes[song.vocalStart].kind==='spoken'?'말':sharpNoteName(song.notes[song.vocalStart].midi-song.writtenOctaveOffset));
  fs.writeFileSync(path.join(root,song.id+'.html'),page.replace(/(src|href)="((?:assets|songs)\/[^"?]+)(?:\?v=[a-f0-9]+)?"/g,(_,attribute,file)=>attribute+'="'+file+'?v='+version(file)+'"'));
 }
 const indexPath=path.join(root,'index.html');

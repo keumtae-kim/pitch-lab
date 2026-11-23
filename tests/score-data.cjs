@@ -52,3 +52,21 @@ for(const [i,note] of firefly.notes.entries()){
 }
 assert.equal(firefly.measures.flatMap(m=>m.events).filter(e=>e.notation.tuplet===3).length,30);
 console.log('Firefly: E3 vocal entry, octave rise, ties, triplets and 2/4 ending passed');
+
+const bus=JSON.parse(fs.readFileSync(path.join(__dirname,'../songs/bus.json'),'utf8'));
+const range=(start,end)=>Array.from({length:end-start+1},(_,i)=>start+i);
+assert.deepEqual(bus.measures.map(m=>m.sourceNumber),[
+ ...range(1,55),...range(23,46),...range(56,63),...range(39,46),...range(64,67),...range(64,68)
+]);
+assert.equal(transposedKey('Ebm',0),'Ebm');
+assert.equal(transposedKey('Ebm',-1),'Dm');
+assert.equal(scaleDegreeName({step:'C',octave:5,alter:-1},71,'Ebm'),'라');
+assert.equal(scaleDegreeName({step:'C',octave:5,alter:0},72,'Ebm'),'라♯');
+assert.equal(bus.notes[bus.vocalStart].kind,'spoken');
+assert.equal(bus.notes.filter(n=>n.kind==='spoken').length,56);
+assert.deepEqual(bus.notes.filter(n=>n.sourceNoteId===144).map(n=>n.lyric),['는','도']);
+assert.deepEqual(new Set(bus.notes.map(n=>n.vocalPart).filter(Boolean)),new Set(['male','female','both']));
+assert.deepEqual(bus.notes.filter(n=>n.sourceNoteId===267).map(n=>n.vocalPart),['both','both','female']);
+assert.equal(bus.notes.find(n=>n.sourceNoteId===407).vocalPart,'both');
+assert.deepEqual(bus.notes.filter(n=>n.sourceNoteId===198).map(n=>n.vocalPart),['female','female']);
+console.log('Bus: minor-key spelling, rap, verse lyrics, performed repeat order and TJ duet parts passed');

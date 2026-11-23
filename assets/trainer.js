@@ -4,7 +4,11 @@ document.querySelector('#practice-nav span').textContent=SCORE_SONG.title;
 const songCatalog=window.SCORE_CATALOG||[{id:'aloha',title:'아로하',url:'aloha.html'},{id:'bom',title:'봄봄봄',url:'bom.html'}];
 const other=songCatalog[(songCatalog.findIndex(s=>s.id===SCORE_SONG.id)+1)%songCatalog.length];
 const nextSong=document.querySelector('#practice-nav a:last-child');nextSong.href='./'+other.url;nextSong.textContent=other.title+' →';nextSong.title='다음 연습곡: '+other.title;
-document.querySelector('.song-key-tempo').textContent=SCORE_SONG.key+'장조 · ♩='+SCORE_SONG.bpm;
+function scoreTempoLabel(key){
+ const minor=key.endsWith('m');
+ return `${minor?key.slice(0,-1):key}${minor?'단조':'장조'} · ♩=${SCORE_SONG.bpm}`;
+}
+document.querySelector('.song-key-tempo').textContent=scoreTempoLabel(SCORE_SONG.key);
 document.querySelector('#phraseTempo option[selected]').value=SCORE_SONG.bpm;document.querySelector('#phraseTempo option[selected]').textContent='원곡 · '+SCORE_SONG.bpm;
 if(SCORE_SONG.practiceTempos){const labels=['천천히','원곡','빠르게'];[...document.querySelector('#phraseTempo').options].forEach((option,i)=>{option.value=String(SCORE_SONG.practiceTempos[i]);option.textContent=labels[i]+' · '+SCORE_SONG.practiceTempos[i];});}
 
@@ -12,6 +16,23 @@ const baseNotes=SCORE_SONG.notes.map(n=>({...n,row:0}));
 
 let rows=[];
 const $=id=>document.getElementById(id);
+if(SCORE_SONG.notes.some(note=>note.vocalPart)){
+ const legend=$('vocalPartLegend');
+ legend.hidden=false;
+ for(const [part,label] of Object.entries(VOCAL_PART_LABELS)){
+  const badge=document.createElement('span');
+  badge.className='vocal-part-badge';
+  badge.dataset.vocalPart=part;
+  badge.textContent=label;
+  legend.append(badge);
+ }
+ if(SCORE_SONG.source?.vocalParts==='tj-karaoke'){
+  const caption=document.createElement('span');
+  caption.className='sub';
+  caption.textContent='TJ 노래방 영상 기준';
+  legend.append(caption);
+ }
+}
 const NAMES=['C','C♯','D','D♯','E','F','F♯','G','G♯','A','A♯','B'];
 // v8: transcribed syllables from the supplied sheet; users can correct any misalignment.
 const defaultLyrics=Object.fromEntries(SCORE_SONG.notes.filter(n=>n.lyric).map(n=>[n.id,n.lyric]));
@@ -117,7 +138,7 @@ async function playTone(midi,ms=850){
   singleVoice=scheduleSynthTone(midi,ctx.currentTime+.008,Math.max(.14,ms/1000));
  }catch(e){if(id===singleToneId)$('soundState').textContent='소리 재생 실패 · 다시 눌러주세요.'}
 }
-function render(){if(!notes.length)return;refreshScoreLayout();const n=note();updateScorePaging();document.querySelector('.song-key-tempo').textContent=transposedKey(SCORE_SONG.key,shift)+'장조 · ♩='+SCORE_SONG.bpm;$('shiftName').textContent=shift===0?'원키':(shift>0?'+':'')+shift;$('noteName').textContent=noteNameFor(note());$('selectedLyric').hidden=scoreLabelMode.value==='pitch';$('selectedLyric').textContent=scoreLabelFor(n)||(scoreLabelMode.value==='lyrics'?'가사 미지정 · 이어 부름':'');$('lyricEditLabel').textContent=`${current+1}번 ${noteNameFor(note())} 가사`;if(document.activeElement!==$('lyricInput'))$('lyricInput').value=getLyric(n);$('noteDesc').textContent=`악보 ${noteNameFor(n,0)} → 현재 ${noteNameFor(note())} · ${freq(targetMidi()).toFixed(1)} Hz`;$('lineTitle').textContent=rows[n.row].label;$('progressTxt').textContent=`${current+1} / ${notes.length}음 · ${n.row+1}번째 악보 줄`;$('progress').style.width=`${100*(current+1)/notes.length}%`;$('dockNote').textContent=`${noteNameFor(note())} · ${current+1}/${notes.length}음`;$('prev').disabled=current===0;$('next').disabled=current===notes.length-1;renderScore();successSince=0;updatePhraseUI();}
+function render(){if(!notes.length)return;refreshScoreLayout();const n=note();updateScorePaging();document.querySelector('.song-key-tempo').textContent=scoreTempoLabel(transposedKey(SCORE_SONG.key,shift));$('shiftName').textContent=shift===0?'원키':(shift>0?'+':'')+shift;$('noteName').textContent=noteNameFor(note());$('selectedLyric').hidden=scoreLabelMode.value==='pitch';$('selectedLyric').textContent=scoreLabelFor(n)||(scoreLabelMode.value==='lyrics'?'가사 미지정 · 이어 부름':'');$('lyricEditLabel').textContent=`${current+1}번 ${noteNameFor(note())} 가사`;if(document.activeElement!==$('lyricInput'))$('lyricInput').value=getLyric(n);const spoken=n.kind==='spoken';$('play').disabled=$('nDown').disabled=$('nUp').disabled=spoken;const part=$('selectedVocalPart');part.hidden=!n.vocalPart;part.dataset.vocalPart=n.vocalPart||'';part.textContent=VOCAL_PART_LABELS[n.vocalPart]||'';$('noteDesc').textContent=spoken?'랩 · 박자에 맞춰 말하세요':`악보 ${noteNameFor(n,0)} → 현재 ${noteNameFor(note())} · ${freq(targetMidi()).toFixed(1)} Hz`;$('lineTitle').textContent=rows[n.row].label;$('progressTxt').textContent=`${current+1} / ${notes.length}음 · ${n.row+1}번째 악보 줄`;$('progress').style.width=`${100*(current+1)/notes.length}%`;$('dockNote').textContent=`${noteNameFor(note())} · ${current+1}/${notes.length}음`;$('prev').disabled=current===0;$('next').disabled=current===notes.length-1;renderScore();successSince=0;updatePhraseUI();}
 const nativeScore=new ScoreRenderer(SCORE_SONG);
 const scoreStack=$('scoreStacks'),scoreLines=new Map();
 let scoreLayoutKey='',mountedRows=[],noteIndexById=new Map();
@@ -261,6 +282,10 @@ function buildNoteButtons(line,system,rendered){
   const button=document.createElement('button');
   button.type='button';
   button.className='token';
+  if(model.vocalPart){
+   button.dataset.vocalPart=model.vocalPart;
+   button.setAttribute('aria-description',VOCAL_PART_LABELS[model.vocalPart]);
+  }
   button.dataset.scoreX=String((rendered.anchors.get(id)?.x??rendered.width/2)/rendered.width);
   const pitch=noteNameFor(model),label=scoreLabelMode.value==='pitch'?'':scoreLabelFor(model);
   const num=document.createElement('span');num.className='num';num.textContent=String(index+1);
@@ -272,7 +297,7 @@ function buildNoteButtons(line,system,rendered){
   button.onkeydown=event=>{
    if(event.shiftKey&&(event.key==='Enter'||event.key===' ')){event.preventDefault();setQuickEnd(index);}
   };
-  return {button,index,title:`${index+1}번 ${pitch}${label&&label!==pitch?' · '+label:''}`};
+  return {button,index,title:`${index+1}번 ${model.vocalPart?VOCAL_PART_LABELS[model.vocalPart]+' ':''}${pitch}${label&&label!==pitch?' · '+label:''}`};
  });
  line.strip.replaceChildren(...line.buttons.map(({button})=>button));
  noteStripResizeObserver.observe(line.strip);
@@ -376,7 +401,7 @@ async function startMic(){
 }
 
 let lastSample=0;
-function loop(ts=0){if(!analyzer)return;raf=requestAnimationFrame(loop);if(ts-lastSample<100)return;lastSample=ts;analyzer.getFloatTimeDomainData(yinBuffer);const result=yin(yinBuffer,ctx.sampleRate);if(!result){$('heard').textContent='—';$('confidence').textContent='소리가 감지되면 표시됩니다';$('error').textContent='— 센트';$('judge').textContent='목이 편안한 음역에서 연습하세요';successSince=0;frames=[];return}frames.push(result.hz);if(frames.length>4)frames.shift();let fs=frames.slice().sort((a,b)=>a-b),hz=fs[Math.floor(fs.length/2)],raw=69+12*Math.log2(hz/440),heardMidi=Math.round(raw),cents=1200*Math.log2(hz/freq(targetMidi()));$('heard').textContent=midiName(heardMidi);$('confidence').textContent=`${hz.toFixed(1)}Hz · 추정 정확도 ${Math.round(result.quality*100)}%`;$('error').textContent=(cents>0?'+':'')+Math.round(cents)+' 센트';$('needle').style.left=(Math.max(1,Math.min(99,50+cents/2.1)))+'%';const good=Math.abs(cents)<=Number($('tolerance').value);$('judge').textContent=good?'목표 음정에 가깝습니다':'음이 '+(cents<0?'낮습니다':'높습니다');$('judge').className=good?'sub success':'sub caution';if(good){if(!successSince)successSince=Date.now();if($('autoNext').checked&&!phrasePlaying&&Date.now()-successSince>550&&Date.now()-lastAdvance>1400){lastAdvance=Date.now();go(current+1)}}else successSince=0}
+function loop(ts=0){if(!analyzer)return;raf=requestAnimationFrame(loop);if(ts-lastSample<100)return;lastSample=ts;analyzer.getFloatTimeDomainData(yinBuffer);const result=yin(yinBuffer,ctx.sampleRate);if(!result){$('heard').textContent='—';$('confidence').textContent='소리가 감지되면 표시됩니다';$('error').textContent='— 센트';$('judge').textContent='목이 편안한 음역에서 연습하세요';successSince=0;frames=[];return}frames.push(result.hz);if(frames.length>4)frames.shift();let fs=frames.slice().sort((a,b)=>a-b),hz=fs[Math.floor(fs.length/2)],raw=69+12*Math.log2(hz/440),heardMidi=Math.round(raw),cents=1200*Math.log2(hz/freq(targetMidi()));$('heard').textContent=midiName(heardMidi);$('confidence').textContent=`${hz.toFixed(1)}Hz · 추정 정확도 ${Math.round(result.quality*100)}%`;if(note().kind==='spoken'){$('error').textContent='— 센트';$('judge').textContent='랩 · 박자에 맞춰 말하세요';$('judge').className='sub';$('needle').style.left='50%';successSince=0;return}$('error').textContent=(cents>0?'+':'')+Math.round(cents)+' 센트';$('needle').style.left=(Math.max(1,Math.min(99,50+cents/2.1)))+'%';const good=Math.abs(cents)<=Number($('tolerance').value);$('judge').textContent=good?'목표 음정에 가깝습니다':'음이 '+(cents<0?'낮습니다':'높습니다');$('judge').className=good?'sub success':'sub caution';if(good){if(!successSince)successSince=Date.now();if($('autoNext').checked&&!phrasePlaying&&Date.now()-successSince>550&&Date.now()-lastAdvance>1400){lastAdvance=Date.now();go(current+1)}}else successSince=0}
 function stopMic(){micRequestId++;if(raf)cancelAnimationFrame(raf);raf=null;media?.getTracks().forEach(track=>track.stop());media=null;micInput?.disconnect();micInput=null;analyzer=null;frames=[];successSince=0;$('micStart').disabled=false;$('micStop').disabled=true;$('micMsg').textContent='마이크 꺼짐'}
 $('micStart').onclick=startMic;$('micStop').onclick=stopMic;window.addEventListener('beforeunload',stopMic);
 
@@ -605,7 +630,7 @@ $('phraseDefault').onclick=()=>{stopPhrase();manualPhrase=null;phraseInfoMessage
 applyScoreView();
 $('soundStyle').addEventListener('change',()=>{
  if(phrasePlaying)stopPhrase('소리 종류를 변경했습니다. 새 소리로 구간을 다시 들어보세요.');
- playTone(targetMidi());
+ if(note().kind!=='spoken')playTone(targetMidi());
 });
 
 function pauseSongAudio(){
