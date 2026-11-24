@@ -68,8 +68,8 @@
     .cmp-pair-divider{font-size:12px;color:#7494b0;font-weight:750}
     .relative-choices.two{grid-template-columns:repeat(2,minmax(0,1fr))}
     .cmp-first-note{color:#526d84;font-size:11px;margin:3px 0 0}
-    .cmp-stats.four-stats{grid-template-columns:repeat(4,minmax(0,1fr))}
-    @media(max-width:580px){.cmp-stats.four-stats{grid-template-columns:repeat(2,minmax(0,1fr))}.cmp-pair-divider{width:100%;text-align:center}.cmp-pair-group{flex:1;justify-content:center}}
+    .ear-stats.cmp-stats{grid-template-columns:repeat(5,minmax(0,1fr))}
+    @media(max-width:580px){.ear-stats.cmp-stats{grid-template-columns:repeat(3,minmax(0,1fr))}.cmp-pair-divider{width:100%;text-align:center}.cmp-pair-group{flex:1;justify-content:center}}
 
     .cmp-variety{border-top:1px solid #dce9f5;margin-top:12px;padding-top:12px}.cmp-variety .cmp-checkbox{font-weight:700;color:#2c5877}.cmp-variety .ear-muted{margin:5px 0 0 23px}
     .cmp-stage{margin:13px 0 10px;border:1px solid #dbe8f3;border-radius:15px;background:linear-gradient(150deg,#fbfdff,#ecf5ff);padding:19px 13px;text-align:center}
@@ -152,6 +152,15 @@
 .practice-details{font-size:12px;margin-top:6px;color:#36536c}
 .practice-details summary{padding:4px 0;cursor:pointer;font-weight:650}
 .practice-details .ear-history{margin:4px 0 6px;min-height:0}
+.cmp-analysis{border:1px solid #d8e6f3;background:#f5f9fe;border-radius:8px;padding:3px 9px}
+.cmp-analysis p{margin:5px 0}
+.cmp-analysis-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px 14px;padding:2px 0 6px}
+.cmp-analysis-grid[hidden]{display:none}
+.cmp-analysis-grid details{min-width:0}
+.cmp-analysis table{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums}
+.cmp-analysis th,.cmp-analysis td{border-bottom:1px solid #dce7f3;padding:5px 3px;text-align:center}
+.cmp-analysis th:first-child{text-align:left}
+@media(max-width:650px){.cmp-analysis-grid{grid-template-columns:1fr}}
 .scale-panel,.jump-panel,.cmp-panel{padding:7px 8px;margin:0 0 6px;border-radius:8px}
 .scale-panel .control{min-width:min(155px,100%)}
 .sequence{padding:5px;margin:7px 0;border-radius:8px}
@@ -323,12 +332,35 @@
           <div class="cmp-bottom">
             <label class="cmp-checkbox"><input id="cmpAutoNext" type="checkbox"> 정답 선택 후 자동으로 다음 문제</label>
           </div>
-          <div class="ear-stats cmp-stats four-stats" aria-label="청음 비교 연습 통계">
+          <div class="ear-stats cmp-stats" aria-label="청음 비교 연습 통계">
             <div class="ear-stat"><strong id="cmpTotal">0</strong><span>총 도전</span></div>
             <div class="ear-stat"><strong id="cmpAccuracy">—</strong><span>전체 정답률</span></div>
             <div class="ear-stat"><strong id="cmpFirst">—</strong><span>재청취 없이 정답률</span></div>
+            <div class="ear-stat"><strong id="cmpReplayed">—</strong><span>재청취 후 정답률</span></div>
             <div class="ear-stat"><strong id="cmpStreak">0</strong><span>연속 정답</span></div>
           </div>
+          <details class="practice-details cmp-analysis">
+            <summary>두 음의 높낮이 기록 분석</summary>
+            <p id="cmpDirectionListening"></p>
+            <p class="ear-muted" id="cmpDirectionCoverage"></p>
+            <div class="cmp-analysis-grid" id="cmpDirectionTables" hidden>
+              <details open>
+                <summary>반음 차이별 정답률</summary>
+                <table aria-label="반음 차이별 정답률">
+                  <thead><tr><th scope="col">간격</th><th scope="col">전체</th><th scope="col">첫 청취</th><th scope="col">재청취 후</th></tr></thead>
+                  <tbody id="cmpByGap"></tbody>
+                </table>
+              </details>
+              <details>
+                <summary>음별 정답률</summary>
+                <p class="ear-muted">해당 음이 나온 문제를 집계합니다. 같은 음이 두 번 나온 문제도 ‘전체’에는 한 번만 들어갑니다.</p>
+                <table aria-label="음별 정답률">
+                  <thead><tr><th scope="col">음</th><th scope="col">전체</th><th scope="col">첫 음</th><th scope="col">둘째 음</th></tr></thead>
+                  <tbody id="cmpByNote"></tbody>
+                </table>
+              </details>
+            </div>
+          </details>
           <details class="practice-details"><summary>최근 기록</summary><div id="cmpStats" class="ear-muted"></div><div class="ear-history" id="cmpHistory"></div><button class="btn" id="cmpReset" type="button">기록 초기화</button></details>
         </section>
     </div>
@@ -615,7 +647,7 @@
   // ────────────────────────────────────────────────────────────────────
   const cmpHistoryKey='vocal_pitch_lab_compare_v3'; // 기존 v3 결과 이어받기
   let cmpHistory=[];
-  try{const data=JSON.parse(localStorage.getItem(cmpHistoryKey)||'[]');if(Array.isArray(data))cmpHistory=data.filter(x=>typeof x.correct==='boolean'&&typeof x.mode==='string').slice(-500)}catch(e){}
+  try{const data=JSON.parse(localStorage.getItem(cmpHistoryKey)||'[]');if(Array.isArray(data))cmpHistory=data.filter(x=>typeof x?.correct==='boolean'&&typeof x.mode==='string').slice(-500)}catch(e){}
   let cmpAutoTimer=null,cmpAdaptiveIndex=1,cmpCorrectRun=0,cmpWrongRun=0;
   // 현재 페이지에서 출제했던 실제 음 조합. 이전 게임 기록은 v3 키를 그대로 이어받습니다.
   let cmpRecentTrials=[];
@@ -662,11 +694,62 @@
     $('cmpLow').value='52';$('cmpHigh').value='64';
   }
   function cmpSave(){try{localStorage.setItem(cmpHistoryKey,JSON.stringify(cmpHistory.slice(-500)))}catch(e){}}
+  function cmpRate(correct,total,showCount=false){
+    if(!total)return '—';
+    const rate=Math.round(correct/total*100)+'%';
+    return showCount?`${rate} (${correct}/${total})`:rate;
+  }
+  function cmpListeningRate(attempts,replayed,showCount=false){
+    const listens=attempts.filter(x=>replayed?Number.isInteger(x.replays)&&x.replays>0:x.replays===0);
+    return cmpRate(listens.filter(x=>x.correct).length,listens.length,showCount);
+  }
+  function cmpRenderAnalysisRows(id,groups,labelFor,columns){
+    const body=$(id);
+    const rows=[...groups].sort(([a],[b])=>a-b).map(([key,attempts])=>{
+      const row=document.createElement('tr');
+      const label=document.createElement('th');label.scope='row';label.textContent=labelFor(key);
+      row.append(label);
+      for(const format of columns){
+        const cell=document.createElement('td');cell.textContent=format(attempts,key);row.append(cell);
+      }
+      return row;
+    });
+    body.replaceChildren(...rows);
+  }
+  function cmpRenderDirectionStats(){
+    const attempts=cmpHistory.filter(x=>x.mode==='direction');
+    const withNotes=attempts.filter(x=>Array.isArray(x.notes)&&x.notes.length===2&&x.notes.every(n=>Number.isInteger(n)&&n>=0&&n<=127));
+    const earlier=attempts.length-withNotes.length;
+    $('cmpDirectionListening').textContent=attempts.length
+      ?`첫 청취 ${cmpListeningRate(attempts,false,true)} · 재청취 후 ${cmpListeningRate(attempts,true,true)}`
+      :'두 음의 높낮이 문제를 풀면 정답률이 표시됩니다.';
+    $('cmpDirectionCoverage').textContent=earlier?`음 정보가 없는 이전 기록 ${earlier}문제는 청취 정답률에 반영됩니다. 아래 표는 음 정보가 있는 문제를 집계합니다.`:'';
+    $('cmpDirectionCoverage').hidden=!earlier;
+    $('cmpDirectionTables').hidden=!withNotes.length;
+    const byGap=new Map(),byNote=new Map();
+    function add(groups,key,attempt){
+      if(!groups.has(key))groups.set(key,[]);
+      groups.get(key).push(attempt);
+    }
+    for(const attempt of withNotes){
+      const [first,second]=attempt.notes;
+      add(byGap,Math.abs(second-first),attempt);
+      for(const note of new Set(attempt.notes))add(byNote,note,attempt);
+    }
+    const accuracy=items=>cmpRate(items.filter(x=>x.correct).length,items.length,true);
+    cmpRenderAnalysisRows('cmpByGap',byGap,gap=>gap?gap+'반음':'0반음 (같은 음)',[
+      accuracy,items=>cmpListeningRate(items,false,true),items=>cmpListeningRate(items,true,true)
+    ]);
+    cmpRenderAnalysisRows('cmpByNote',byNote,nameOf,[
+      accuracy,(items,note)=>accuracy(items.filter(x=>x.notes[0]===note)),(items,note)=>accuracy(items.filter(x=>x.notes[1]===note))
+    ]);
+  }
   function cmpRenderStats(){
     const total=cmpHistory.length,correct=cmpHistory.filter(x=>x.correct).length;
     $('cmpTotal').textContent=String(total);
-    $('cmpAccuracy').textContent=total?Math.round(correct/total*100)+'%':'—';
-    const firsts=cmpHistory.filter(x=>x.replays===0);$('cmpFirst').textContent=firsts.length?Math.round(firsts.filter(x=>x.correct).length/firsts.length*100)+'%':'—';
+    $('cmpAccuracy').textContent=cmpRate(correct,total);
+    $('cmpFirst').textContent=cmpListeningRate(cmpHistory,false);
+    $('cmpReplayed').textContent=cmpListeningRate(cmpHistory,true);
     let streak=0;for(let i=total-1;i>=0&&cmpHistory[i].correct;i--)streak++;
     $('cmpStreak').textContent=String(streak);
     const last=cmpHistory.slice(-20).reverse(),root=$('cmpHistory');root.replaceChildren();
@@ -674,6 +757,7 @@
     else for(const x of last){const s=document.createElement('span');s.className=x.correct?'pass':'miss';s.textContent=(x.correct?'✓ ':'× ')+(cmpModeNames[x.mode]||x.mode)+' · '+x.level+(Number.isInteger(x.replays)?(x.replays?' · ↺'+x.replays:' · 첫 청취'):'');root.appendChild(s)}
     const recent=cmpHistory.slice(-20),recentHits=recent.filter(x=>x.correct).length;
     $('cmpStats').textContent=total?`최근 ${recent.length}문제 정답 ${recentHits}개 · 브라우저에 자동 저장`:'기록은 이 브라우저에 보관됩니다.';
+    cmpRenderDirectionStats();
   }
   function clearCmpPlayback(){
     cmpPlayTimers.forEach(clearTimeout);cmpPlayTimers=[];cmpId++;
@@ -797,7 +881,7 @@
     const data=mode==='pair'?cmpCreatePair(lo,hi,desiredPairStyle):mode==='direction'?cmpCreateDirection(lo,hi,jumps):mode==='interval'?cmpCreateInterval(lo,hi,jumps):cmpCreateContour(lo,hi,jumps);
     if(!data)return null;
     const level=$('cmpLevel').value==='adaptive'?cmpLevelTable[cmpAdaptiveIndex].name:$('cmpLevel').selectedOptions[0].textContent.split(' · ')[0];
-    return {...data,mode,level,done:false,replays:0};
+    return {...data,mode,level,done:false,hasHeard:false,replays:0};
   }
   // 음역이 충분히 넓을 때 세 구간을 섞어 출제합니다. 음과 음 사이의 반음 간격은
   // 선택한 난이도를 유지하며, 무작위 후보 중 다른 음역·새 음 조합을 우선합니다.
@@ -891,26 +975,34 @@
     const indices=which===null?notes.map((_,i)=>i):which==='A'?[0,1]:[2,3];
     const stepMs=(pace.tone+pace.gap)*1000;
     const breakMs=isPair&&which===null?Math.max(650,pace.gap*1600):0;
+    let playbackEpoch=voiceEpoch;
     let elapsed=0;
     setCmpButtons(false);cmpDrawDots();
     $('cmpPrompt').textContent=cmpTrial.done?'정답을 확인하며 다시 듣는 중입니다':which?'간격 '+which+'를 다시 듣는 중입니다.':'음을 재생하고 있습니다. 순서대로 들어보세요.';
     for(let i=0;i<indices.length;i++){
       const noteIndex=indices[i],delay=Math.round(elapsed);
-      const play=()=>{if(id!==cmpId)return;stopVoices();cmpDrawDots(noteIndex);playTone(notes[noteIndex],pace.tone)};
+      const play=()=>{
+        if(id!==cmpId||playbackEpoch!==voiceEpoch)return;
+        stopVoices();playbackEpoch=voiceEpoch;
+        cmpDrawDots(noteIndex);playTone(notes[noteIndex],pace.tone);
+      };
       if(i===0)play();else cmpPlayTimers.push(setTimeout(play,delay));
       elapsed+=stepMs;
       if(isPair&&which===null&&i===1)elapsed+=breakMs;
     }
     cmpPlayTimers.push(setTimeout(()=>{
       if(id!==cmpId)return;cmpDrawDots();
+      if(playbackEpoch!==voiceEpoch){
+        $('cmpPrompt').textContent='재생이 중단됐습니다. 다시 듣기를 눌러주세요.';
+        return;
+      }
       $('cmpPrompt').textContent=cmpTrial.done?'정답과 음이름을 확인했습니다.':'소리를 다 들었습니다. 정답을 골라보세요.';
-      if(!cmpTrial.done)setCmpButtons(true)
+      if(!cmpTrial.done){
+        if(cmpTrial.hasHeard)cmpTrial.replays++;
+        cmpTrial.hasHeard=true;
+        setCmpButtons(true);
+      }
     },Math.round(elapsed-pace.gap*1000+100)));
-  }
-  function cmpReplayPart(which){
-    if(!cmpTrial)return;
-    if(!cmpTrial.done)cmpTrial.replays++;
-    playCmp(which);
   }
   function cmpNewTrial(){
     stopEarTrial();earTrial=null;clearCmpPlayback();
@@ -938,7 +1030,9 @@
     $('cmpFeedback').className='ear-feedback '+(good?'success':'needs-work');
     $('cmpFeedback').textContent=`${good?'정답':'오답'} · ${answer} · ${detail}`;
     $('cmpPrompt').textContent='정답 공개';
-    cmpHistory.push({mode:cmpTrial.mode,level:cmpTrial.level,correct:good,replays:cmpTrial.replays,time:Date.now()});cmpHistory=cmpHistory.slice(-500);cmpSave();cmpRenderStats();
+    const attempt={mode:cmpTrial.mode,level:cmpTrial.level,correct:good,replays:cmpTrial.replays,time:Date.now()};
+    if(cmpTrial.mode==='direction')attempt.notes=cmpTrial.notes.slice();
+    cmpHistory.push(attempt);cmpHistory=cmpHistory.slice(-500);cmpSave();cmpRenderStats();
     cmpDrawAnswers();
     document.querySelectorAll('#cmpChoices [data-comp]').forEach(btn=>{
       btn.disabled=true;
@@ -963,18 +1057,18 @@
     })
   }
   $('cmpNew').addEventListener('click',cmpNewTrial);
-  $('cmpReplay').addEventListener('click',()=>cmpReplayPart(null));
-  $('cmpReplayA').addEventListener('click',()=>cmpReplayPart('A'));
-  $('cmpReplayB').addEventListener('click',()=>cmpReplayPart('B'));
+  $('cmpReplay').addEventListener('click',()=>playCmp());
+  $('cmpReplayA').addEventListener('click',()=>playCmp('A'));
+  $('cmpReplayB').addEventListener('click',()=>playCmp('B'));
   $('cmpReset').addEventListener('click',()=>{
     if(!confirm('저장된 청음 비교 기록을 초기화할까요? (한 음 재현 기록은 유지됩니다.)'))return;
     cmpHistory=[];cmpSave();cmpRenderStats();cmpAdaptiveIndex=1;cmpCorrectRun=0;cmpWrongRun=0;cmpConfigLabel()
   });
   document.addEventListener('keydown',e=>{
-    if(e.altKey||e.ctrlKey||e.metaKey||e.repeat||['INPUT','SELECT','TEXTAREA'].includes(document.activeElement?.tagName)||document.activeElement?.isContentEditable)return;
+    if(e.altKey||e.ctrlKey||e.metaKey||e.repeat||['INPUT','SELECT','TEXTAREA','SUMMARY'].includes(document.activeElement?.tagName)||document.activeElement?.isContentEditable)return;
     if(e.key==='Enter'){e.preventDefault();cmpNewTrial();return}
     if(!cmpTrial)return;
-    if(e.code==='Space'){e.preventDefault();cmpReplayPart(null);return}
+    if(e.code==='Space'){e.preventDefault();playCmp();return}
     if(e.key>='1'&&e.key<='4'&&!cmpTrial.done){
       const btn=$(`cmpChoices`).querySelectorAll('[data-comp]')[Number(e.key)-1];
       if(btn&&!btn.disabled){e.preventDefault();btn.click()}
