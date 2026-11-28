@@ -61,6 +61,12 @@
         <p>자자 · 남성, 여성, 함께 부르는 구간을 색으로 확인하세요.</p>
         <a class="open" href="./bus.html">버스 안에서 연습 열기 <span aria-hidden="true">→</span></a>
       </section>
+      <section class="card song" aria-labelledby="jotni-title">
+        <span class="badge">악보 · 원키</span>
+        <h2 id="jotni-title">좋니 음정 트레이너</h2>
+        <p>윤종신 · 원하는 구간을 골라 연습하세요.</p>
+        <a class="open" href="./jotni.html">좋니 연습 열기 <span aria-hidden="true">→</span></a>
+      </section>
       <section class="card song" aria-labelledby="firefly-title">
         <span class="badge">악보 · 원키</span>
         <h2 id="firefly-title">나는 반딧불 음정 트레이너</h2>
@@ -73,7 +79,7 @@
       <p>연습 기록은 현재 사용하는 기기와 브라우저에 저장됩니다.</p>
     </aside>
   </main>
-<script src="songs/catalog.js?v=d57bb1eaa3dd"></script><script>
+<script src="songs/catalog.js?v=c99ef9511e66"></script><script>
 if(window.SCORE_CATALOG){const grid=document.querySelector('.grid');grid.querySelectorAll('.song').forEach(card=>card.remove());for(const song of SCORE_CATALOG){const card=document.createElement('section');card.className='card song';const badge=document.createElement('span');badge.className='badge';badge.textContent='악보 · 원키';const title=document.createElement('h2');title.textContent=song.title+' 음정 트레이너';const description=document.createElement('p');description.textContent=song.artist+' · 원하는 구간을 골라 연습하세요.';const link=document.createElement('a');link.className='open';link.href=song.url;link.textContent=song.title+' 연습 열기 →';card.append(badge,title,description,link);grid.append(card);}}
 </script>
 </body>

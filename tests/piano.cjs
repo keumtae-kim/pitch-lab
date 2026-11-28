@@ -62,7 +62,9 @@ const ctx={currentTime:10,destination:{},decodeAudioData:async()=>decoded,create
   const song=JSON.parse(fs.readFileSync(path.join(songsDir,file)));
   for(const note of song.notes.filter(note=>note.kind!=='spoken'))for(const shift of [-4,0,4]){
    const midi=note.midi-song.writtenOctaveOffset+shift;
-   assert(midi>=36&&midi<=83,song.id+' default vocal range with ±4 semitones is covered');
+   piano.schedule(ctx,midi,12,.5);
+   const rate=sources.at(-1).playbackRate.calls[0][1];
+   assert(Math.abs(12*Math.log2(rate))<=2.000001,`${song.id}: MIDI ${midi} stays within two semitones of a recorded sample`);
   }
  }
  console.log('Piano: 16 source hashes / 1,220,410 bytes, C2–B5 coverage, B5 boundary, extended notes, catalog songs ±4 keys, cache/retry/timing passed');
